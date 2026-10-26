@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "doscientos-ecosystem": {
+      "source": "doscientos-es/skills",
+      "sourceType": "github",
+      "skillPath": "skills/doscientos-ecosystem/SKILL.md",
+      "computedHash": "600721050b95cdf243c9c28a500aec362f16e7634238d6a786869f230fcfbdab"
+    },
+    "lead-demo-generation": {
+      "source": "doscientos-es/skills",
+      "sourceType": "github",
+      "skillPath": "skills/lead-demo-generation/SKILL.md",
+      "computedHash": "8d08f1a8a79767a1c5f3e2dfa6c8f4dd43b408c14506b24832116c74ecef6f20"
+    },
+    "operational-react-supabase": {
+      "source": "doscientos-es/skills",
+      "sourceType": "github",
+      "skillPath": "skills/operational-react-supabase/SKILL.md",
+      "computedHash": "5852470c91659f8fedc851b88106823fd3c239da0a15ad96031d73d912e889a2"
+    },
+    "product-ui-design": {
+      "source": "doscientos-es/skills",
+      "sourceType": "github",
+      "skillPath": "skills/product-ui-design/SKILL.md",
+      "computedHash": "e3a65a280fd14002864af90d16a0f83f0acf32e7a6562bc16709f746c382ad3c"
+    },
+    "technical-details": {
+      "source": "doscientos-es/skills",
+      "sourceType": "github",
+      "skillPath": "skills/technical-details/SKILL.md",
+      "computedHash": "cbcfae9c800f3c896a0df1f1ab444950cff476b5b03f72ebc7c095fc52b039dc"
+    }
+  }
+}

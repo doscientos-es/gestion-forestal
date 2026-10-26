@@ -1,0 +1,6 @@
+# Generados desde Git por changelog:sync; no se formatean a mano
+CHANGELOG.md
+public/changelog.json
+
+# Generado por TanStack Router; su formato pertenece al generador
+src/routeTree.gen.ts

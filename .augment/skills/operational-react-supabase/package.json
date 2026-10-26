@@ -1,0 +1,40 @@
+{
+  "name": "@doscientos/create-operational-app",
+  "version": "0.1.0",
+  "description": "Create a secure Vite, React, TanStack Router, TanStack Query and Supabase operational app.",
+  "keywords": [
+    "doscientos",
+    "react",
+    "supabase",
+    "tanstack-router",
+    "vite"
+  ],
+  "homepage": "https://github.com/doscientos-es/skills#readme",
+  "license": "Apache-2.0",
+  "author": "Doscientos <dev@doscientos.es>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/doscientos-es/skills.git",
+    "directory": "skills/operational-react-supabase"
+  },
+  "bin": {
+    "create-operational-app": "./bin/create-operational-app.mjs"
+  },
+  "files": [
+    "bin",
+    "starter",
+    "README.md"
+  ],
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "node --test test/create-operational-app.test.mjs",
+    "release:check": "pnpm test && npm pack --dry-run"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "packageManager": "pnpm@9.15.2"
+}

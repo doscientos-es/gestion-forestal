@@ -1,0 +1,478 @@
+@import 'tailwindcss';
+@import '@doscientos/ui/styles.css';
+
+/* Neutral, cool "SaaS dashboard" identity: near-white canvas, white surfaces, hairline borders,
+   one restrained green accent. Colours come only from these tokens. */
+:root {
+  color-scheme: light;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --radius: 0.5rem;
+  --canvas: #f6f7f9;
+  --background: #f6f7f9;
+  --sidebar: #ffffff;
+  --foreground: #14171c;
+  --card: #ffffff;
+  --card-foreground: #14171c;
+  --popover: #ffffff;
+  --popover-foreground: #14171c;
+  --primary: #166534;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f2f5;
+  --secondary-foreground: #14171c;
+  --muted: #f0f2f5;
+  --muted-foreground: #596273;
+  --accent: #e9f3ec;
+  --accent-foreground: #14532d;
+  --border: #e3e6eb;
+  --input: #d3d8df;
+  --ring: #1f7a3d;
+  --brand: #1d7a3c;
+  --brand-soft: #e3f2e7;
+  --success: #15803d;
+  --warning: #92400e;
+  --info: #1d4f9a;
+  --destructive: #b91c1c;
+  --destructive-foreground: #ffffff;
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  color: var(--foreground);
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Map every semantic token to a Tailwind colour: without these, utilities such as
+   `divide-border` or `border-border` fall back to the text colour (black lines). */
+@theme inline {
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-canvas: var(--canvas);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+}
+
+/* A bare `border` (several primitives use it) would be drawn in the text colour: use the soft token. */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+}
+
+html,
+body {
+  /* `clip` (unlike `hidden`) keeps sticky headers working and removes stray horizontal scroll. */
+  overflow-x: clip;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100dvh;
+  margin: 0;
+  background: var(--canvas);
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+/* ---------- Frame: app geometry here; primitives keep their own styles ---------- */
+/* The document is the only vertical scroll; the sidebar and the dock are fixed in place. */
+.app-canvas {
+  min-height: 100dvh;
+}
+.app-frame {
+  min-height: 100dvh;
+  flex-direction: column;
+  background: var(--background);
+}
+.app-frame > .app-sidebar {
+  display: none;
+}
+.app-main {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+.app-content {
+  flex: 1;
+  padding: 1rem 1rem calc(6rem + env(safe-area-inset-bottom));
+}
+/* Header stays visible while the page scrolls; on desktop it sits at the top of the content. */
+.page-top {
+  margin-bottom: 1rem;
+}
+/* The content area is focused after navigating (for screen readers); it is not a control, so no ring. */
+.app-content:focus-visible {
+  outline: none;
+}
+
+/* ---------- Navigation ---------- */
+.nav-link {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition:
+    background 150ms,
+    border-color 150ms;
+}
+.nav-link:hover {
+  background: var(--muted);
+}
+.nav-link[aria-current='page'] {
+  background: var(--accent);
+  color: var(--accent-foreground);
+  font-weight: 600;
+}
+.nav-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.nav-count {
+  margin-left: auto;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Floating dark pill: only the active tab shows its label; the primary action is a round button. */
+.mobile-dock {
+  position: fixed;
+  right: 0.75rem;
+  bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  left: 0.75rem;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  pointer-events: none;
+}
+.mobile-nav {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.125rem;
+  padding: 0.3125rem;
+  border-radius: 999px;
+  background: #171a21;
+  box-shadow: 0 12px 28px -8px rgb(16 24 40 / 0.4);
+  pointer-events: auto;
+}
+.mobile-nav .nav-link {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  color: #b6bcc8;
+  font-size: 0.8125rem;
+}
+.mobile-nav .nav-link:hover {
+  background: rgb(255 255 255 / 0.08);
+}
+.mobile-nav .nav-link[aria-current='page'] {
+  background: rgb(255 255 255 / 0.16);
+  color: #fff;
+}
+.mobile-nav .nav-link:not([aria-current='page']) .nav-label {
+  display: none;
+}
+.nav-dot {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: #f59e0b;
+}
+.mobile-nav .nav-link[aria-current='page'] .nav-dot {
+  display: none;
+}
+.sheet-link {
+  display: flex;
+  min-height: 3rem;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+.sheet-link[aria-current='page'] {
+  background: var(--muted);
+  font-weight: 600;
+}
+.sheet-link:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+.mobile-fab {
+  display: inline-flex;
+  width: 3.25rem;
+  height: 3.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: 0 12px 28px -8px rgb(16 24 40 / 0.4);
+  pointer-events: auto;
+}
+.mobile-fab:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 0.75rem;
+  left: 0.75rem;
+  transform: translateY(-200%);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.skip-link:focus {
+  transform: none;
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (min-width: 64rem) {
+  .app-frame {
+    flex-direction: row;
+  }
+  .app-frame > .app-sidebar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    width: 16rem;
+    height: 100dvh;
+    flex-shrink: 0;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem 0.875rem 1rem;
+    border: 0;
+    border-right: 1px solid var(--border);
+    background: var(--sidebar);
+    /* The sidebar never scrolls as a whole: only its navigation does, independently of the page. */
+    overflow: hidden;
+  }
+  .app-sidebar .sidebar-scroll {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    /* Wheel and touch scrolling stop here instead of moving the page behind it. */
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  .app-sidebar .nav-link {
+    min-height: 2.5rem;
+  }
+  .app-content {
+    padding: 0 2.25rem 3rem;
+  }
+  .page-top {
+    position: sticky;
+    top: 0;
+    z-index: 15;
+    margin: 0 -2.25rem 1.5rem;
+    padding: 1.25rem 2.25rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in oklab, var(--background) 92%, transparent);
+    backdrop-filter: blur(8px);
+  }
+  /* Short windows: drop the secondary sidebar blocks instead of adding a second scrollbar. */
+  @media (max-height: 760px) {
+    .hide-short {
+      display: none;
+    }
+  }
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* A plain `grid` has one `auto` column that grows to its widest child (an input, a button row)
+   and pushes the page sideways on phones. Give it a shrinkable column unless it sets its own. */
+.app-content :where(.grid:not([class*='grid-cols-'])) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Printing from the invoice drawer: only the document is printed, not the app around it. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-invoice,
+  .print-invoice * {
+    visibility: visible;
+  }
+  .print-invoice {
+    position: fixed;
+    inset: 0;
+    overflow: visible;
+    padding: 2rem;
+    background: white;
+  }
+}
+
+/* ---------- Surfaces (reference look: soft white panels) ---------- */
+/* Rows of filters and shortcuts above lists. Written as plain CSS because Tailwind responsive
+   utilities (`md:flex-row`) lose to the same plain utility (`flex-col`) that the UI package ships. */
+.filter-toolbar,
+.shortcut-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  text-align: left;
+}
+.filter-toolbar {
+  margin-bottom: 1rem;
+}
+.filter-toolbar__tabs {
+  min-width: 0;
+  max-width: 100%;
+}
+.filter-toolbar__controls {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+@media (min-width: 48rem) {
+  .filter-toolbar,
+  .shortcut-strip {
+    flex-direction: row;
+    align-items: center;
+  }
+  .filter-toolbar__tabs {
+    flex-shrink: 1;
+  }
+  .filter-toolbar__controls {
+    justify-content: flex-end;
+  }
+}
+
+/* Quieter outlines: surfaces are separated by tone, the line is only a hint. */
+:root {
+  --border-soft: var(--border);
+}
+
+/* Compact metric cards: one tight block (label, value, hint) instead of a tall tile. */
+[data-slot='metric-card'] {
+  --card-spacing: 0.625rem;
+  border-color: var(--border-soft);
+  box-shadow: none;
+}
+[data-slot='metric-card'] [data-slot='card-content'] {
+  padding-inline: 0.875rem;
+}
+[data-slot='metric-card-label'] {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+[data-slot='metric-card-value'] {
+  margin-top: 0;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+[data-slot='metric-card-description'] {
+  margin-top: 0;
+  overflow: hidden;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel {
+  overflow: hidden;
+  border: 1px solid var(--border-soft);
+  border-radius: 0.75rem;
+  background: var(--card);
+  box-shadow: 0 1px 2px rgb(16 24 40 / 0.04);
+}
+.panel-row {
+  transition: background 120ms;
+}
+.panel-row:hover {
+  background: var(--muted);
+}
+
+/* Primitive refinements, never re-implementations. */
+[data-slot='button'],
+[data-slot='input'],
+[data-slot='select-trigger'],
+[data-slot='textarea'] {
+  border-radius: 0.5rem;
+}
+[data-slot='metric-card'] {
+  border-radius: 0.75rem;
+  box-shadow: none;
+}
+[data-slot='page-header-title'] {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 1.625rem;
+  letter-spacing: -0.02em;
+}
+[data-slot='table-cell'] {
+  overflow-wrap: anywhere;
+}
+.recharts-wrapper,
+.recharts-surface {
+  outline: none;
+}
+
+@media (pointer: coarse) {
+  [data-slot='button'],
+  [data-slot='input'],
+  [data-slot='select-trigger'] {
+    min-height: 2.75rem;
+  }
+  [data-slot='input'] {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,188 @@
+@import 'tailwindcss';
+@import '@doscientos/ui/styles.css';
+
+:root {
+  color-scheme: light;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --radius: 0.5rem;
+  --canvas: #efefec;
+  --background: #f7f7f5;
+  --foreground: #292d34;
+  --card: #ffffff;
+  --card-foreground: #292d34;
+  --popover: #ffffff;
+  --primary: #2a4227;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f1ed;
+  --secondary-foreground: #292d34;
+  --muted: #f0f1ed;
+  --muted-foreground: #626760;
+  --accent: #e8f1e4;
+  --accent-foreground: #1a2e18;
+  --border: #e1e3dd;
+  --border-strong: #c7ccc3;
+  --ring: #4d7a45;
+  --sidebar: #ffffff;
+  --success: #166534;
+  --warning: #854d0e;
+  --destructive: #b91c1c;
+  --surface-subtle: #fafaf8;
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  color: var(--foreground);
+  background: var(--background);
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* App geometry belongs here; primitives and interaction styles stay in UI. */
+.starter-shell {
+  height: 100dvh;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.starter-shell > .starter-sidebar {
+  display: none;
+  height: 100%;
+  width: 14.5rem;
+  flex-direction: column;
+}
+
+.starter-main {
+  min-height: 0;
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.starter-main > .starter-content {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem 1rem;
+  scroll-padding-block: 1rem;
+}
+
+.starter-nav-link {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.starter-nav-link:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+.starter-nav-link[aria-current='page'] {
+  background: var(--accent);
+  color: var(--primary);
+  font-weight: 600;
+}
+.starter-nav-link:focus-visible,
+.starter-brand:focus-visible,
+.starter-content:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
+
+.starter-mobile-nav {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--card);
+}
+.starter-mobile-nav .starter-nav-link {
+  flex: 1;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.starter-skip-link {
+  position: fixed;
+  z-index: 100;
+  top: 0.75rem;
+  left: 0.75rem;
+  transform: translateY(-200%);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.starter-skip-link:focus {
+  transform: none;
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (min-width: 48rem) {
+  .starter-shell {
+    flex-direction: row;
+  }
+  .starter-shell > .starter-sidebar {
+    display: flex;
+  }
+  .starter-mobile-nav {
+    display: none;
+  }
+  .starter-main > .starter-content {
+    padding: 2rem;
+  }
+}
+
+/* Flat product surfaces, never a second implementation of the controls. */
+.starter-customer-dialog {
+  width: min(32rem, calc(100vw - 2rem));
+  max-width: 32rem;
+  max-height: calc(100dvh - 2rem);
+}
+
+[data-slot='metric-card'] {
+  box-shadow: none;
+  border-radius: var(--radius);
+}
+[data-slot='page-header-title'] {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 1.5rem;
+}
+[data-slot='table-cell'] {
+  overflow-wrap: anywhere;
+}
+
+@media (pointer: coarse) {
+  [data-slot='button'],
+  [data-slot='input'],
+  [data-slot='select-trigger'] {
+    min-height: 2.75rem;
+  }
+  [data-slot='input'] {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
