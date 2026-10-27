@@ -11,7 +11,7 @@ import { primaryShortcut } from './sidebar-parts'
 
 const MAIN_TABS = 3
 
-/** Floating dark pill: main destinations, a "More" sheet for the rest and the primary action. */
+/** Docked tab bar: main destinations, a "More" sheet for the rest and a floating primary action. */
 export function MobileNavigation({
   user,
   pathname,

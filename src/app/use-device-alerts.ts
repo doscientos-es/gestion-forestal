@@ -56,11 +56,12 @@ export function useDeviceAlerts(user: Person) {
 
 function announce(notice: AppNotification, navigate: ReturnType<typeof useNavigate>) {
   if (document.visibilityState === 'visible') {
-    toast(notice.title, {
+    toast({
+      title: notice.title,
       description: notice.body,
       action: {
         label: 'Ver',
-        onClick: () => {
+        onPress: () => {
           const target = notificationTarget(notice)
           if (!target) void navigate({ to: '/avisos' })
           else if (!('params' in target)) void navigate({ to: target.to })
