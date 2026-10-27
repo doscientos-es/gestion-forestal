@@ -16,6 +16,7 @@ import { clock } from '@/shared/lib/clock'
 import { downloadTextFile } from '@/shared/lib/download'
 import { formatMoney, formatShortDate } from '@/shared/lib/format'
 import { useCommand } from '@/shared/lib/use-command'
+import { useUrlState } from '@/shared/lib/use-url-state'
 import { DataTable, RowMenu } from '@/shared/ui/data-table'
 import { EmptyPanel } from '@/shared/ui/empty-panel'
 import { FilterTabs } from '@/shared/ui/filter-tabs'
@@ -29,7 +30,12 @@ type Filter = 'todas' | InvoiceStatus
 
 export function InvoicesPage() {
   const workspace = useWorkspace()
-  const [filter, setFilter] = useState<Filter>('todas')
+  const [filter, setFilter] = useUrlState<Filter>('estado', 'todas', [
+    'todas',
+    'borrador',
+    'enviada',
+    'cobrada',
+  ])
   const [selected, setSelected] = useState<string[]>([])
   const [preview, setPreview] = useState<InvoiceDraft | null>(null)
   const find = lookup(workspace)
@@ -74,18 +80,19 @@ export function InvoicesPage() {
         description="Borradores generados desde las obras. La gestoría emite la factura oficial."
         actions={
           <>
-            <Button
-              variant="outline"
-              isDisabled={rows.length === 0}
-              onPress={() =>
-                downloadTextFile(
-                  `facturas-${clock.today()}.csv`,
-                  invoicesToCsv(rows, accountingLookup(workspace)),
-                )
-              }
-            >
-              <FileSpreadsheet aria-hidden="true" className="size-4" /> Exportar vista
-            </Button>
+            <RowMenu label="Más acciones de facturas">
+              <DropdownMenuItem
+                isDisabled={rows.length === 0}
+                onAction={() =>
+                  downloadTextFile(
+                    `facturas-${clock.today()}.csv`,
+                    invoicesToCsv(rows, accountingLookup(workspace)),
+                  )
+                }
+              >
+                <FileSpreadsheet aria-hidden="true" className="size-4" /> Exportar la vista a CSV
+              </DropdownMenuItem>
+            </RowMenu>
             <Button
               isDisabled={drafts.length === 0 || handOver.isPending}
               onPress={() => handOver.mutate(drafts)}
@@ -160,6 +167,17 @@ export function InvoicesPage() {
             getKey={(invoice) => invoice.id}
             openLabel={(invoice) => `Ver borrador ${invoice.reference}`}
             onOpen={setPreview}
+            narrow={(invoice) => {
+              const status = invoiceStatus[invoice.status]
+              return (
+                <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <Tag tone={status.tone} dot>
+                    {status.label}
+                  </Tag>
+                  <span className="text-muted-foreground">{formatShortDate(invoice.date)}</span>
+                </span>
+              )
+            }}
             select={{ selected, onToggle: toggle }}
             columns={[
               {

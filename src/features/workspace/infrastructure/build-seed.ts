@@ -331,6 +331,7 @@ function addTasksAndNotices(workspace: Workspace, today: IsoDate) {
         title: `Nueva obra: ${work.title}`,
         body: `Tienes ${texts.length} tareas por completar.`,
         workId: work.id,
+        budgetId: null,
         createdOn: addDays(today, -3),
         read: started,
       })
@@ -346,6 +347,7 @@ function addTasksAndNotices(workspace: Workspace, today: IsoDate) {
       title: `${workspace.people.find((person) => person.id === request.personId)?.name} pide ${request.type}`,
       body: `Del ${request.start} al ${request.end}.`,
       workId: null,
+      budgetId: null,
       createdOn: addDays(today, -1),
       read: false,
     })
@@ -411,6 +413,7 @@ function addExpenses(workspace: Workspace, today: IsoDate) {
       title: `Gasto por revisar: ${expense.description}`,
       body: `${(expense.amount / 100).toFixed(2).replace('.', ',')} € · ${expense.date}.`,
       workId: expense.workId,
+      budgetId: null,
       createdOn: expense.date,
       read: false,
     })

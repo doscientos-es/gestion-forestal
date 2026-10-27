@@ -53,7 +53,7 @@ export function InvoicePreviewDrawer({
       invoicesApi.sendEmail(invoice?.id ?? '', email),
     {
       success: (_output, email) => ({
-        title: 'Copia enviada (simulado)',
+        title: 'Copia enviada',
         description: `Anotado en el historial · ${email.to}`,
       }),
       onSuccess: () => setEmailing(false),

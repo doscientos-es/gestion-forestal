@@ -12,7 +12,6 @@ import {
   marginAlerts,
   proposeDraft,
   summarizeYear,
-  workStatus,
   type Person,
   type Workspace,
 } from '@/features/workspace'
@@ -112,7 +111,7 @@ export function AdminHome({
           description="Facturas en gestoría"
         />
       </MetricGrid>
-      <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+      <div className="home-grid">
         <Panel aria-labelledby="active-title">
           <PanelHeader
             id="active-title"
@@ -166,7 +165,7 @@ export function AdminHome({
             ))}
           </ul>
         </Panel>
-        <div className="space-y-5">
+        <div className="home-grid__side">
           <Panel aria-labelledby="todo-title">
             <PanelHeader
               id="todo-title"
@@ -232,10 +231,6 @@ export function AdminHome({
           </Panel>
         </div>
       </div>
-      <p className="text-muted-foreground mt-6 text-xs">
-        Hoy: {formatShortDate(today)} · {workStatus.en_curso.label}: {active.length} · Datos de
-        ejemplo
-      </p>
     </>
   )
 }

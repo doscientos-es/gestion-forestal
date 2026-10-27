@@ -90,7 +90,8 @@ body {
 }
 
 /* ---------- Frame: app geometry here; primitives keep their own styles ---------- */
-/* The document is the only vertical scroll; the sidebar and the dock are fixed in place. */
+/* Phones: the document scrolls and the dock is fixed. Desktop (below): sidebar and content scroll
+   independently. */
 .app-canvas {
   min-height: 100dvh;
 }
@@ -98,6 +99,9 @@ body {
   min-height: 100dvh;
   flex-direction: column;
   background: var(--background);
+  /* `clip` (not `hidden`/`auto`) does not make a scroll container, so `position: sticky` bars
+     inside the page stick to the phone's viewport instead of to a box that never scrolls. */
+  overflow: clip;
 }
 .app-frame > .app-sidebar {
   display: none;
@@ -108,9 +112,11 @@ body {
   flex: 1;
   flex-direction: column;
 }
-.app-content {
+.app-frame .app-content {
   flex: 1;
   padding: 1rem 1rem calc(6rem + env(safe-area-inset-bottom));
+  overflow-x: clip;
+  overflow-y: visible;
 }
 /* Header stays visible while the page scrolls; on desktop it sits at the top of the content. */
 .page-top {
@@ -267,12 +273,30 @@ body {
 }
 
 @media (min-width: 64rem) {
+  /* Desktop: the window is split in two independent scroll areas. The sidebar keeps its own
+     height and the page content scrolls inside `.app-content`, so neither drags the other. */
+  .app-canvas {
+    height: 100dvh;
+    overflow: hidden;
+  }
   .app-frame {
+    height: 100dvh;
+    min-height: 0;
     flex-direction: row;
+    overflow: hidden;
+  }
+  .app-main {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .app-frame .app-content {
+    min-height: 0;
+    overflow-y: auto;
+    /* Reaching the end of the page must not scroll the (fixed) window behind it. */
+    overscroll-behavior: contain;
   }
   .app-frame > .app-sidebar {
-    position: sticky;
-    top: 0;
     display: flex;
     width: 16rem;
     height: 100dvh;
@@ -297,7 +321,7 @@ body {
   .app-sidebar .nav-link {
     min-height: 2.5rem;
   }
-  .app-content {
+  .app-frame .app-content {
     padding: 0 2.25rem 3rem;
   }
   .page-top {
@@ -329,6 +353,14 @@ body {
 
 /* Printing from the invoice drawer: only the document is printed, not the app around it. */
 @media print {
+  /* The desktop layout clips the page to the window: print needs the full height. */
+  .app-canvas,
+  .app-frame,
+  .app-main,
+  .app-frame .app-content {
+    height: auto;
+    overflow: visible;
+  }
   body * {
     visibility: hidden;
   }
@@ -382,6 +414,101 @@ body {
   }
   .filter-toolbar__controls {
     justify-content: flex-end;
+  }
+}
+
+/* Absence calendar day: names on wide screens, coloured dots on phones. Plain CSS for the same
+   reason as the filter toolbar (responsive Tailwind utilities lose to the UI package's). */
+.cal-day {
+  min-height: 4rem;
+}
+.cal-chips {
+  display: none;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+.cal-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.125rem;
+}
+@media (min-width: 40rem) {
+  .cal-day {
+    min-height: 6.5rem;
+  }
+  .cal-chips {
+    display: flex;
+  }
+  .cal-dots {
+    display: none;
+  }
+}
+
+/* Responsive helpers in plain CSS (responsive Tailwind utilities lose to the UI package's own). */
+/* Table: secondary columns only from tablet up; `narrow-only` repeats their key data on phones. */
+.col-secondary {
+  display: none;
+}
+.narrow-only {
+  display: block;
+}
+@media (min-width: 48rem) {
+  .col-secondary {
+    display: table-cell;
+  }
+  .narrow-only {
+    display: none;
+  }
+}
+/* Fingers need 40 px even when the control looks compact. */
+@media (pointer: coarse) {
+  .touch-target {
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+  }
+}
+/* A bar that stays above the phone dock (primary action, price) and is a normal block on desktop. */
+.sticky-action {
+  position: sticky;
+  bottom: calc(5.25rem + env(safe-area-inset-bottom));
+  z-index: 20;
+}
+.mobile-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: 0 6px 20px -8px rgb(0 0 0 / 0.25);
+}
+@media (min-width: 64rem) {
+  .sticky-action {
+    position: static;
+  }
+  .mobile-bar--only {
+    display: none;
+  }
+}
+/* Office home: what needs the user first on phones, three columns of content from desktop. */
+.home-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 1.25rem;
+}
+.home-grid__side {
+  display: grid;
+  gap: 1.25rem;
+  order: -1;
+}
+@media (min-width: 80rem) {
+  .home-grid {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  }
+  .home-grid__side {
+    order: 0;
   }
 }
 

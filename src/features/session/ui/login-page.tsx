@@ -1,5 +1,7 @@
+import { Button, ConfirmDialog } from '@doscientos/ui'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { ArrowRight } from 'lucide-react'
+import { useState } from 'react'
 
 import {
   roleLabels,
@@ -32,6 +34,11 @@ export function LoginPage({ onSignedIn }: { onSignedIn: () => void }) {
   const signIn = useCommand((person: Person) => workspaceApi.signIn(person.id), {
     onSuccess: onSignedIn,
   })
+  const [confirmReset, setConfirmReset] = useState(false)
+  const reset = useCommand(() => workspaceApi.resetDemo(), {
+    success: 'Datos restablecidos',
+    onSuccess: () => setConfirmReset(false),
+  })
   const crewName = (person: Person) =>
     workspace.crews.find((crew) => crew.id === person.crewId)?.name ?? person.title
 
@@ -41,8 +48,8 @@ export function LoginPage({ onSignedIn }: { onSignedIn: () => void }) {
         <div className="mb-8">
           <h1 className="text-3xl font-semibold tracking-tight">Rodal</h1>
           <p className="text-muted-foreground mt-1 max-w-xl text-sm">
-            Gestión forestal: presupuestos, cuadrillas, partes y facturas. Elige un usuario de
-            ejemplo para entrar con su rol; los cambios se guardan solo en este navegador.
+            Gestión forestal: presupuestos, cuadrillas, partes y facturas. Elige quién eres para
+            entrar.
           </p>
         </div>
         <div className="grid gap-4 lg:grid-cols-3">
@@ -90,11 +97,27 @@ export function LoginPage({ onSignedIn }: { onSignedIn: () => void }) {
             )
           })}
         </div>
-        <p className="text-muted-foreground mt-6 text-center text-xs">
-          Selector de demostración: no es un inicio de sesión real. En producción cada persona entra
-          con su cuenta y solo ve lo que su rol permite.
-        </p>
+        <div className="mt-6 flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground"
+            onPress={() => setConfirmReset(true)}
+          >
+            Restablecer los datos
+          </Button>
+        </div>
       </div>
+      <ConfirmDialog
+        open={confirmReset}
+        onOpenChange={setConfirmReset}
+        title="¿Restablecer los datos?"
+        description="Se borrarán los presupuestos, partes y facturas creados en este navegador y se cargará de nuevo el escenario inicial."
+        confirmLabel="Restablecer"
+        destructive
+        pending={reset.isPending}
+        onConfirm={() => reset.mutate(undefined)}
+      />
     </main>
   )
 }

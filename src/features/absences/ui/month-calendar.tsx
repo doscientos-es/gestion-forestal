@@ -56,7 +56,17 @@ function dayLabel(day: GridDay) {
  * Month grid of who is away. `crewId` locks it to one crew (the foreman's); without it the
  * office can filter by crew. Click a day for details and, for the office, to approve requests.
  */
-export function MonthCalendar({ crewId, canDecide }: { crewId?: string; canDecide: boolean }) {
+export function MonthCalendar({
+  crewId,
+  canDecide,
+  onRegister,
+  onCancel,
+}: {
+  crewId?: string
+  canDecide: boolean
+  onRegister?: (date: string) => void
+  onCancel?: (absence: Absence) => void
+}) {
   const workspace = useWorkspace()
   const today = clock.today()
   const [view, setView] = useState({
@@ -85,6 +95,9 @@ export function MonthCalendar({ crewId, canDecide }: { crewId?: string; canDecid
       return { year: Math.floor(index / 12), month: (index % 12) + 1 }
     })
   }
+  // «octubre de 2026» → «Octubre de 2026» (CSS `capitalize` would also turn «de» into «De»).
+  const rawTitle = formatMonthYear(view.year, view.month)
+  const monthTitle = rawTitle.charAt(0).toLocaleUpperCase('es') + rawTitle.slice(1)
 
   return (
     <>
@@ -92,7 +105,7 @@ export function MonthCalendar({ crewId, canDecide }: { crewId?: string; canDecid
         <PanelHeader
           id="calendar-title"
           icon={<CalendarDays className="size-5" strokeWidth={1.75} />}
-          title={<span className="capitalize">{formatMonthYear(view.year, view.month)}</span>}
+          title={monthTitle}
           description={
             pendingCount > 0
               ? `${pluralize(pendingCount, 'solicitud pendiente', 'solicitudes pendientes')} este mes`
@@ -199,7 +212,7 @@ export function MonthCalendar({ crewId, canDecide }: { crewId?: string; canDecid
                       disabled={!cell.inMonth}
                       onClick={() => setSelected(cell.date)}
                       className={cn(
-                        'focus-visible:outline-ring flex min-h-16 w-full flex-col items-stretch gap-1 p-1.5 text-left focus-visible:outline-2 focus-visible:-outline-offset-2 sm:min-h-24',
+                        'cal-day focus-visible:outline-ring flex w-full flex-col items-stretch gap-1 p-1.5 text-left focus-visible:outline-2 focus-visible:-outline-offset-2',
                         cell.inMonth ? 'hover:bg-muted/60 cursor-pointer' : 'opacity-30',
                         cell.inMonth && loadTint[cell.load],
                         cell.weekend && cell.load === 'libre' && 'bg-muted/40',
@@ -216,7 +229,7 @@ export function MonthCalendar({ crewId, canDecide }: { crewId?: string; canDecid
                       >
                         {Number(cell.date.slice(8))}
                       </span>
-                      <span aria-hidden="true" className="hidden flex-col gap-0.5 sm:flex">
+                      <span aria-hidden="true" className="cal-chips">
                         {cell.away.slice(0, MAX_CHIPS).map(({ absence, person }) => (
                           <span
                             key={absence.id}
@@ -224,7 +237,7 @@ export function MonthCalendar({ crewId, canDecide }: { crewId?: string; canDecid
                               'truncate rounded px-1.5 py-0.5 text-[0.6875rem] leading-tight font-medium',
                               typeColor[absence.type],
                               absence.status === 'solicitada' &&
-                                'border border-dashed border-current !bg-white/70 !text-zinc-700',
+                                'border border-dashed border-current bg-white/70! text-zinc-700!',
                             )}
                           >
                             {person.name.split(' ')[0]}
@@ -236,7 +249,7 @@ export function MonthCalendar({ crewId, canDecide }: { crewId?: string; canDecid
                           </span>
                         ) : null}
                       </span>
-                      <span aria-hidden="true" className="flex flex-wrap gap-0.5 sm:hidden">
+                      <span aria-hidden="true" className="cal-dots">
                         {cell.away.slice(0, 6).map(({ absence }) => (
                           <span
                             key={absence.id}
@@ -253,7 +266,12 @@ export function MonthCalendar({ crewId, canDecide }: { crewId?: string; canDecid
         </table>
       </Panel>
       {day ? (
-        <CalendarDayDetail day={day} canDecide={canDecide} />
+        <CalendarDayDetail
+          day={day}
+          canDecide={canDecide}
+          {...(onRegister ? { onRegister } : {})}
+          {...(onCancel ? { onCancel } : {})}
+        />
       ) : (
         <p className="text-muted-foreground mt-4 text-center text-sm">
           Pulsa un día para ver quién está fuera.

@@ -60,8 +60,12 @@ export function recordBudgetView(
   budgetId: string,
   context: Context,
 ): Workspace {
-  if (!workspace.budgets.some((item) => item.id === budgetId)) return workspace
-  return logActivity(
+  const budget = workspace.budgets.find((item) => item.id === budgetId)
+  if (!budget) return workspace
+  const first = !workspace.activity.some(
+    (event) => event.kind === 'presupuesto_visto' && event.entityId === budgetId,
+  )
+  const logged = logActivity(
     workspace,
     {
       kind: 'presupuesto_visto',
@@ -69,6 +73,21 @@ export function recordBudgetView(
       entityId: budgetId,
       summary: 'Enlace de la propuesta',
       actorId: null,
+    },
+    context,
+  )
+  // Only the first open is worth an alert; later ones are in the history.
+  if (!first) return logged
+  const clientName = workspace.clients.find((item) => item.id === budget.clientId)?.name
+  return notify(
+    logged,
+    adminIds(workspace),
+    {
+      kind: 'propuesta_vista',
+      title: `${clientName ?? 'El cliente'} ha abierto la propuesta`,
+      body: `${budget.number} · ${budget.title}`,
+      workId: null,
+      budgetId,
     },
     context,
   )
@@ -108,6 +127,7 @@ export function respondToBudget(
           : `${clientName ?? 'El cliente'} ha rechazado la propuesta`,
       body: `${budget.number} · ${budget.title}`,
       workId: work?.id ?? null,
+      budgetId,
     },
     context,
   )
@@ -137,8 +157,12 @@ export function recordWorkReportView(
   workId: string,
   context: Context,
 ): Workspace {
-  if (!workspace.works.some((item) => item.id === workId)) return workspace
-  return logActivity(
+  const work = workspace.works.find((item) => item.id === workId)
+  if (!work) return workspace
+  const first = !workspace.activity.some(
+    (event) => event.kind === 'informe_visto' && event.entityId === workId,
+  )
+  const logged = logActivity(
     workspace,
     {
       kind: 'informe_visto',
@@ -146,6 +170,19 @@ export function recordWorkReportView(
       entityId: workId,
       summary: 'Enlace del informe',
       actorId: null,
+    },
+    context,
+  )
+  if (!first) return logged
+  const clientName = workspace.clients.find((item) => item.id === work.clientId)?.name
+  return notify(
+    logged,
+    adminIds(workspace),
+    {
+      kind: 'informe_visto',
+      title: `${clientName ?? 'El cliente'} ha abierto el informe de obra`,
+      body: `${work.code} · ${work.title}`,
+      workId,
     },
     context,
   )

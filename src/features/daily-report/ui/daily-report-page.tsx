@@ -201,15 +201,18 @@ export function DailyReportPage() {
             className="min-h-20"
           />
         </div>
+      </Panel>
+      {/* Stays above the phone dock so the foreman never has to scroll back to send the report. */}
+      <div className="sticky-action mt-4">
         <Button
           onPress={send}
-          className="h-14 w-full text-base"
+          className="h-14 w-full text-base shadow-lg lg:shadow-none"
           isDisabled={submit.isPending || form.workerIds.length === 0}
         >
           {saved ? <CheckCircle2 aria-hidden="true" className="size-5" /> : null}
           {saved ? 'Parte guardado · actualizar' : 'Enviar parte'}
         </Button>
-      </Panel>
+      </div>
     </div>
   )
 }

@@ -216,8 +216,14 @@ export type NotificationKind =
   | 'ausencia_solicitada'
   | 'ausencia_resuelta'
   | 'presupuesto_respondido'
+  | 'cuadrilla_cambiada'
+  | 'propuesta_vista'
+  | 'informe_visto'
 
-/** In-app notice. Push delivery is a production adapter; the demo only stores these. */
+/**
+ * In-app notice. The device shows it as a system alert while the app is open or in the
+ * background; delivery with the app closed is a production adapter (Web Push from a server).
+ */
 export type AppNotification = {
   id: string
   personId: string
@@ -225,6 +231,8 @@ export type AppNotification = {
   title: string
   body: string
   workId: string | null
+  /** Budget the notice is about, when it is about one. */
+  budgetId: string | null
   createdOn: IsoDate
   read: boolean
 }

@@ -35,7 +35,7 @@ export function ClientReportPanel({ work }: { work: Work }) {
       worksApi.sendReportEmail(work.id, email),
     {
       success: (_output, email) => ({
-        title: 'Informe enviado (simulado)',
+        title: 'Informe enviado',
         description: `Anotado en el historial · ${email.to}`,
       }),
       onSuccess: () => setSending(false),

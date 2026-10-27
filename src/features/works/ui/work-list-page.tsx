@@ -1,7 +1,6 @@
 import { DropdownMenuItem } from '@doscientos/ui'
 import { useNavigate } from '@tanstack/react-router'
 import { TreePine } from 'lucide-react'
-import { useState } from 'react'
 
 import {
   availableYears,
@@ -12,6 +11,7 @@ import {
   zoneTone,
 } from '@/features/workspace'
 import { formatMoney, formatNumber, formatPercent } from '@/shared/lib/format'
+import { useUrlState, useUrlText } from '@/shared/lib/use-url-state'
 import { DataTable, RowMenu } from '@/shared/ui/data-table'
 import { EmptyPanel } from '@/shared/ui/empty-panel'
 import { FilterTabs, FilterToolbar, SearchField, type FilterOption } from '@/shared/ui/filter-tabs'
@@ -28,9 +28,16 @@ export function WorkListPage() {
   const navigate = useNavigate()
   const open = (workId: string) => void navigate({ to: '/obras/$workId', params: { workId } })
   const years = availableYears(workspace)
-  const [filter, setFilter] = useState<WorkFilter>('activas')
-  const [query, setQuery] = useState('')
-  const [year, setYear] = useState<number | 'todos'>('todos')
+  const [filter, setFilter] = useUrlState<WorkFilter>('estado', 'activas', [
+    'activas',
+    'en_curso',
+    'pendiente',
+    'terminada',
+    'todas',
+  ])
+  const [query, setQuery] = useUrlText('q')
+  const [campaign, setCampaign] = useUrlState('campana', 'todos', ['todos', ...years.map(String)])
+  const year = campaign === 'todos' ? 'todos' : Number(campaign)
   if (!user) return null
   const find = lookup(workspace)
   const rows = workRows(workspace, user)
@@ -65,8 +72,8 @@ export function WorkListPage() {
           hideLabel
           className="w-40 shrink-0"
           label="Campaña"
-          value={String(year)}
-          onChange={(value) => setYear(value === 'todos' ? 'todos' : Number(value))}
+          value={campaign}
+          onChange={setCampaign}
           options={[
             { value: 'todos', label: 'Todos los años' },
             ...years.map((item) => ({ value: String(item), label: `Campaña ${item}` })),

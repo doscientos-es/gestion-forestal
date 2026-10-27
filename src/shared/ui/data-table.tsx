@@ -34,7 +34,7 @@ export function RowMenu({ label, children }: { label: string; children: ReactNod
     <DropdownMenu
       placement="bottom end"
       trigger={
-        <IconButton label={label} variant="ghost" size="icon-sm">
+        <IconButton label={label} variant="ghost" size="icon-sm" className="touch-target">
           <Ellipsis aria-hidden="true" className="size-4" />
         </IconButton>
       }
@@ -59,6 +59,7 @@ export function DataTable<T>({
   select,
   pageSize = 10,
   footer,
+  narrow,
 }: {
   label: string
   rows: T[]
@@ -70,6 +71,8 @@ export function DataTable<T>({
   select?: Selection
   pageSize?: number
   footer?: ReactNode
+  /** Key data of the hidden secondary columns (e.g. the status), shown under the title on phones. */
+  narrow?: (row: T) => ReactNode
 }) {
   const [requested, setPage] = useState(1)
   const pageCount = Math.max(1, Math.ceil(rows.length / pageSize))
@@ -79,7 +82,7 @@ export function DataTable<T>({
   const range = `${formatNumber(start + 1)}–${formatNumber(start + visible.length)} de ${formatNumber(rows.length)}`
   const cellClass = (column: Column<T>) =>
     cn(
-      column.secondary && 'hidden md:table-cell',
+      column.secondary && 'col-secondary',
       column.align === 'right' && 'text-right',
       column.className,
     )
@@ -131,6 +134,7 @@ export function DataTable<T>({
                         className="focus-visible:outline-ring block w-full min-w-0 rounded-sm text-left focus-visible:outline-2"
                       >
                         {column.cell(row)}
+                        {narrow ? <span className="narrow-only mt-1.5">{narrow(row)}</span> : null}
                       </button>
                     ) : (
                       column.cell(row)

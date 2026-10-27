@@ -28,7 +28,7 @@ export const collections = [
 export type CollectionName = (typeof collections)[number]
 
 /** Bump when the seed or the stored shape changes: the demo re-seeds on mismatch. */
-export const DATABASE_VERSION = 6
+export const DATABASE_VERSION = 7
 
 const META_KEY = 'db:meta'
 

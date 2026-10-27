@@ -159,9 +159,6 @@ export function WorkReportDocument({ work, workspace }: { work: Work; workspace:
           </table>
         </section>
       ) : null}
-      <p className="mt-8 border-t border-zinc-200 pt-4 text-xs text-zinc-500">
-        Informe de demostración con datos ficticios.
-      </p>
     </article>
   )
 }

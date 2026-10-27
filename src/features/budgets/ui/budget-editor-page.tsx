@@ -199,6 +199,18 @@ export function BudgetEditorPage({
         </div>
         <BudgetPreview estimate={estimate} />
       </div>
+      {/* Phones: the price and the save button follow you while you fill in the lines. */}
+      <div className="sticky-action mobile-bar mobile-bar--only mt-5">
+        <div className="min-w-0 flex-1">
+          <p className="text-muted-foreground text-xs">Precio de venta + IVA</p>
+          <p className="text-lg leading-tight font-semibold tabular-nums">
+            {formatMoney(estimate.price)}
+          </p>
+        </div>
+        <Button onPress={submit} isDisabled={save.isPending}>
+          Guardar
+        </Button>
+      </div>
     </>
   )
 }

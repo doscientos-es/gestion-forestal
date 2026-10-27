@@ -1,7 +1,4 @@
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
   Button,
   DialogContent,
   DialogDescription,
@@ -13,7 +10,7 @@ import {
   FieldLabel,
   Textarea,
 } from '@doscientos/ui'
-import { FlaskConical, Paperclip, Send } from 'lucide-react'
+import { Paperclip, Send } from 'lucide-react'
 import { useId, useState } from 'react'
 
 import { TextField } from './form-controls'
@@ -70,13 +67,9 @@ function EmailForm({
           <Paperclip aria-hidden="true" className="size-3.5 shrink-0" />
           <span className="truncate">{attachment}</span>
         </p>
-        <Alert variant="info">
-          <FlaskConical aria-hidden="true" className="size-4" />
-          <AlertTitle>Modo demostración</AlertTitle>
-          <AlertDescription>
-            No sale ningún correo. El envío queda anotado en el historial como si se hubiera hecho.
-          </AlertDescription>
-        </Alert>
+        <p className="text-muted-foreground text-xs">
+          El envío queda anotado en el historial del documento.
+        </p>
       </div>
       <DialogFooter>
         <Button variant="ghost" onPress={onCancel}>

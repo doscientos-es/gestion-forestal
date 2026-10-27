@@ -31,10 +31,16 @@ export function AbsenceRequestDialog({
   open,
   onOpenChange,
   user,
+  initialDate,
+  initialPersonId,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   user: Person
+  /** First day to pre-fill (e.g. the day picked in the calendar). */
+  initialDate?: string
+  /** Office only: the person the absence is for (e.g. from the crews screen). */
+  initialPersonId?: string
 }) {
   const workspace = useWorkspace()
   const find = lookup(workspace)
@@ -43,10 +49,14 @@ export function AbsenceRequestDialog({
   // Workers can only ask for future dates; the office may register past absences (e.g. sick leave).
   const minDate = isAdmin ? undefined : today
   const workers = workspace.people.filter((person) => person.role !== 'admin')
-  const [personId, setPersonId] = useState(isAdmin ? (workers[0]?.id ?? '') : user.id)
+  const [personId, setPersonId] = useState(
+    isAdmin ? (initialPersonId ?? workers[0]?.id ?? '') : user.id,
+  )
   const [type, setType] = useState<AbsenceType>('vacaciones')
-  const [start, setStart] = useState(addWorkingDays(nextWorkingDay(today), 10))
-  const [end, setEnd] = useState(addWorkingDays(nextWorkingDay(today), 14))
+  const [start, setStart] = useState(initialDate ?? addWorkingDays(nextWorkingDay(today), 10))
+  const [end, setEnd] = useState(
+    initialDate ? initialDate : addWorkingDays(nextWorkingDay(today), 14),
+  )
   const [note, setNote] = useState('')
   const noteId = useId()
   const person = find.person(personId)

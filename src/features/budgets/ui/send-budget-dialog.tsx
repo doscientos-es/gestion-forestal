@@ -29,7 +29,7 @@ export function SendBudgetDialog({
       budgetsApi.sendEmail(budget?.id ?? '', email),
     {
       success: (_output, email) => ({
-        title: 'Propuesta enviada (simulado)',
+        title: 'Propuesta enviada',
         description: `Anotado en el historial · ${email.to}`,
       }),
       onSuccess: onClose,

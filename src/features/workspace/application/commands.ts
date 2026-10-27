@@ -218,11 +218,12 @@ function updateWork(workspace: Workspace, workId: string, patch: Partial<Work>):
 export function notify(
   workspace: Workspace,
   personIds: string[],
-  notice: Pick<AppNotification, 'kind' | 'title' | 'body' | 'workId'>,
+  notice: Pick<AppNotification, 'kind' | 'title' | 'body' | 'workId'> & { budgetId?: string },
   context: Context,
 ): Workspace {
   const created: AppNotification[] = personIds.map((personId) => ({
     ...notice,
+    budgetId: notice.budgetId ?? null,
     id: context.id(),
     personId,
     createdOn: context.today,
@@ -506,6 +507,27 @@ export function decideAbsence(
     {
       kind: 'ausencia_resuelta',
       title: status === 'aprobada' ? 'Tus días están aprobados' : 'Tu solicitud no se ha aprobado',
+      body: `Del ${absence.start} al ${absence.end}.`,
+      workId: null,
+    },
+    context,
+  )
+}
+
+/** Removes an absence registered by mistake (or no longer needed) and tells the person. */
+export function cancelAbsence(
+  workspace: Workspace,
+  absenceId: string,
+  context: Context,
+): Workspace {
+  const absence = workspace.absences.find((item) => item.id === absenceId)
+  if (!absence) throw new CommandError('Ausencia no encontrada.')
+  return notify(
+    { ...workspace, absences: workspace.absences.filter((item) => item.id !== absenceId) },
+    [absence.personId],
+    {
+      kind: 'ausencia_resuelta',
+      title: 'Se ha anulado una ausencia tuya',
       body: `Del ${absence.start} al ${absence.end}.`,
       workId: null,
     },

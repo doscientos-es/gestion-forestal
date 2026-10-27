@@ -1,6 +1,6 @@
 import { Alert, AlertDescription, AlertTitle, Button, ConfirmDialog } from '@doscientos/ui'
 import { useQueryClient } from '@tanstack/react-query'
-import { Check, Eye, Printer, X } from 'lucide-react'
+import { Check, Printer, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import { useWorkspace, type Budget } from '@/features/workspace'
@@ -37,11 +37,7 @@ export function BudgetPublicPage({ budget }: { budget: Budget }) {
 
   return (
     <main className="app-canvas min-h-dvh px-4 py-6 sm:px-8">
-      <div className="mx-auto mb-4 flex w-full max-w-3xl flex-wrap items-center justify-between gap-3">
-        <p className="text-muted-foreground flex items-center gap-2 text-xs">
-          <Eye aria-hidden="true" className="size-4" />
-          Vista del cliente · demostración. Esta visita ya consta en el historial.
-        </p>
+      <div className="mx-auto mb-4 flex w-full max-w-3xl justify-end print:hidden">
         <Button variant="outline" size="sm" onPress={() => window.print()}>
           <Printer aria-hidden="true" className="size-4" /> Imprimir o guardar PDF
         </Button>

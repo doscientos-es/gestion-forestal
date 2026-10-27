@@ -1,4 +1,4 @@
-import { Button, MetricCard, MetricGrid } from '@doscientos/ui'
+import { Button, ConfirmDialog, DropdownMenuItem, MetricCard, MetricGrid } from '@doscientos/ui'
 import { Check, Plus, Sun, X } from 'lucide-react'
 import { useState } from 'react'
 
@@ -18,6 +18,8 @@ import { clock } from '@/shared/lib/clock'
 import { rangesOverlap } from '@/shared/lib/dates'
 import { formatShortDate } from '@/shared/lib/format'
 import { useCommand } from '@/shared/lib/use-command'
+import { useUrlState } from '@/shared/lib/use-url-state'
+import { RowMenu } from '@/shared/ui/data-table'
 import { EmptyPanel } from '@/shared/ui/empty-panel'
 import { FilterTabs } from '@/shared/ui/filter-tabs'
 import { PageTop } from '@/shared/ui/page-top'
@@ -35,8 +37,24 @@ export function AbsencesPage() {
   const workspace = useWorkspace()
   const user = useCurrentUser()
   const [open, setOpen] = useState(false)
-  const [filter, setFilter] = useState<Filter>('solicitada')
-  const [view, setView] = useState<View>('solicitudes')
+  /** Day pre-filled in the request dialog when the office registers from the calendar. */
+  const [registerDate, setRegisterDate] = useState<string | undefined>()
+  const [filter, setFilter] = useUrlState<Filter>('estado', 'solicitada', [
+    'solicitada',
+    'aprobada',
+    'rechazada',
+    'todas',
+  ])
+  const [view, setView] = useUrlState<View>('vista', 'solicitudes', [
+    'solicitudes',
+    'calendario',
+    'saldos',
+  ])
+  const [cancelling, setCancelling] = useState<Absence | null>(null)
+  const cancel = useCommand((absenceId: string) => absencesApi.cancel(absenceId), {
+    success: 'Ausencia anulada',
+    onSuccess: () => setCancelling(null),
+  })
   const decide = useCommand(
     ({ absence, status }: { absence: Absence; status: 'aprobada' | 'rechazada' }) =>
       absencesApi.decide(absence.id, status),
@@ -65,6 +83,15 @@ export function AbsencesPage() {
   const balance = vacationBalance(user.id, year, workspace.absences)
   const upcoming = scope.filter((item) => item.status !== 'rechazada' && item.end >= today).length
   const balances = workspace.people.filter((person) => person.role !== 'admin').length
+  // The calendar tab counts what the calendar shows: everyone for the office, the crew for a foreman.
+  const calendarPeople = new Set(
+    workspace.people
+      .filter((person) => isAdmin || (person.crewId !== null && person.crewId === user.crewId))
+      .map((person) => person.id),
+  )
+  const calendarUpcoming = workspace.absences.filter(
+    (item) => item.status !== 'rechazada' && item.end >= today && calendarPeople.has(item.personId),
+  ).length
 
   return (
     <>
@@ -113,7 +140,7 @@ export function AbsencesPage() {
                 label: isAdmin ? 'Solicitudes' : 'Mis solicitudes',
                 count: count('solicitada'),
               },
-              { value: 'calendario', label: 'Calendario', count: upcoming },
+              { value: 'calendario', label: 'Calendario', count: calendarUpcoming },
               ...(isAdmin ? [{ value: 'saldos' as const, label: 'Saldos', count: balances }] : []),
             ]}
           />
@@ -136,6 +163,15 @@ export function AbsencesPage() {
         <MonthCalendar
           {...(isAdmin || !user.crewId ? {} : { crewId: user.crewId })}
           canDecide={isAdmin}
+          {...(isAdmin
+            ? {
+                onRegister: (date: string) => {
+                  setRegisterDate(date)
+                  setOpen(true)
+                },
+                onCancel: setCancelling,
+              }
+            : {})}
         />
       ) : null}
       {isAdmin && view === 'saldos' ? <VacationBalances /> : null}
@@ -230,13 +266,44 @@ export function AbsencesPage() {
                       </Button>
                     </div>
                   ) : null}
+                  {isAdmin ? (
+                    <RowMenu label={`Acciones de la ausencia de ${person?.name}`}>
+                      <DropdownMenuItem onAction={() => setCancelling(absence)}>
+                        Anular ausencia
+                      </DropdownMenuItem>
+                    </RowMenu>
+                  ) : null}
                 </li>
               )
             })}
           </ul>
         )}
       </Panel>
-      {open ? <AbsenceRequestDialog open onOpenChange={setOpen} user={user} /> : null}
+      <ConfirmDialog
+        open={cancelling !== null}
+        onOpenChange={(next) => !next && setCancelling(null)}
+        title="¿Anular esta ausencia?"
+        description={
+          cancelling
+            ? `Se quita la ausencia de ${workspace.people.find((p) => p.id === cancelling.personId)?.name ?? ''} (${formatShortDate(cancelling.start)} – ${formatShortDate(cancelling.end)}) y se le avisa.`
+            : ''
+        }
+        confirmLabel="Anular ausencia"
+        destructive
+        pending={cancel.isPending}
+        onConfirm={() => cancelling && cancel.mutate(cancelling.id)}
+      />
+      {open ? (
+        <AbsenceRequestDialog
+          open
+          onOpenChange={(next) => {
+            setOpen(next)
+            if (!next) setRegisterDate(undefined)
+          }}
+          user={user}
+          {...(registerDate ? { initialDate: registerDate } : {})}
+        />
+      ) : null}
     </>
   )
 }

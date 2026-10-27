@@ -1,6 +1,6 @@
 import { DrawerContent, DrawerHeader, DrawerTitle } from '@doscientos/ui'
 import { Link } from '@tanstack/react-router'
-import { Ellipsis, Plus, RotateCcw, UserRound } from 'lucide-react'
+import { Ellipsis, Plus, UserRound } from 'lucide-react'
 import { useState } from 'react'
 
 import { canAccess, roleLabels, type Area, type Person } from '@/features/workspace'
@@ -16,12 +16,10 @@ export function MobileNavigation({
   user,
   pathname,
   counts,
-  onReset,
 }: {
   user: Person
   pathname: string
   counts: Partial<Record<Area, number>>
-  onReset: () => void
 }) {
   const [open, setOpen] = useState(false)
   const allowed = destinations.filter((item) => canAccess(user.role, item.area))
@@ -100,19 +98,6 @@ export function MobileNavigation({
               <UserRound aria-hidden="true" className="size-5" strokeWidth={1.75} />
               <span className="flex-1">Cambiar de usuario</span>
             </Link>
-          </li>
-          <li>
-            <button
-              type="button"
-              className="sheet-link w-full text-left"
-              onClick={() => {
-                setOpen(false)
-                onReset()
-              }}
-            >
-              <RotateCcw aria-hidden="true" className="size-5" strokeWidth={1.75} />
-              <span className="flex-1">Restablecer datos de ejemplo</span>
-            </button>
           </li>
         </ul>
       </DrawerContent>

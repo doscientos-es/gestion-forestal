@@ -1,6 +1,6 @@
 import { Button, IconButton } from '@doscientos/ui'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { ArrowLeftRight, Plus, RotateCcw, Sprout } from 'lucide-react'
+import { ArrowLeftRight, Plus, Sprout } from 'lucide-react'
 
 import {
   calculatePerformance,
@@ -128,15 +128,6 @@ export function PrimaryShortcut({ user }: { user: Person }) {
     <Button size="lg" className="w-full" onPress={() => void navigate({ to: shortcut.to })}>
       <Plus aria-hidden="true" className="size-4" />
       {shortcut.label}
-    </Button>
-  )
-}
-
-export function ResetDemoButton({ onReset }: { onReset: () => void }) {
-  return (
-    <Button variant="ghost" size="sm" onPress={onReset} className="text-muted-foreground w-full">
-      <RotateCcw aria-hidden="true" className="size-3.5" />
-      Restablecer datos de ejemplo
     </Button>
   )
 }

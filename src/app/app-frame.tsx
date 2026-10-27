@@ -5,7 +5,6 @@ import {
   AppShellMobileHeader,
   AppShellSidebar,
   Button,
-  ConfirmDialog,
   IconButton,
   Kbd,
   cn,
@@ -14,30 +13,18 @@ import { useNavigate, useRouterState } from '@tanstack/react-router'
 import { ArrowLeft, Search } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 
-import { useWorkspace, workspaceApi, type Person } from '@/features/workspace'
-import { useCommand } from '@/shared/lib/use-command'
+import { useWorkspace, type Person } from '@/features/workspace'
 
 import { MobileNavigation } from './mobile-navigation'
 import { navigationCounts, pageTitle, parentDestination } from './navigation'
 import { SearchDialog } from './search-dialog'
-import {
-  NavigationGroups,
-  PrimaryShortcut,
-  ResetDemoButton,
-  SeasonCard,
-  UserHeader,
-} from './sidebar-parts'
+import { NavigationGroups, PrimaryShortcut, SeasonCard, UserHeader } from './sidebar-parts'
 
 export function AppFrame({ user, children }: { user: Person; children: ReactNode }) {
   const workspace = useWorkspace()
   const pathname = useRouterState({ select: (state) => state.location.pathname })
   const previousPath = useRef(pathname)
   const contentRef = useRef<HTMLDivElement>(null)
-  const [confirmReset, setConfirmReset] = useState(false)
-  const reset = useCommand(() => workspaceApi.resetDemo(), {
-    success: 'Datos de ejemplo restablecidos',
-    onSuccess: () => setConfirmReset(false),
-  })
   const currentPage = pageTitle(pathname)
   const counts = navigationCounts(workspace, user)
   const navigate = useNavigate()
@@ -96,9 +83,6 @@ export function AppFrame({ user, children }: { user: Person; children: ReactNode
               <SeasonCard workspace={workspace} />
             </div>
             <PrimaryShortcut user={user} />
-            <div className="hide-short">
-              <ResetDemoButton onReset={() => setConfirmReset(true)} />
-            </div>
           </div>
         </AppShellSidebar>
         <AppShellMain className="app-main">
@@ -133,12 +117,7 @@ export function AppFrame({ user, children }: { user: Person; children: ReactNode
           >
             <div className="mx-auto w-full max-w-360">{children}</div>
           </AppShellContent>
-          <MobileNavigation
-            user={user}
-            pathname={pathname}
-            counts={counts}
-            onReset={() => setConfirmReset(true)}
-          />
+          <MobileNavigation user={user} pathname={pathname} counts={counts} />
         </AppShellMain>
       </AppShell>
       <SearchDialog
@@ -146,16 +125,6 @@ export function AppFrame({ user, children }: { user: Person; children: ReactNode
         onOpenChange={setSearchOpen}
         user={user}
         workspace={workspace}
-      />
-      <ConfirmDialog
-        open={confirmReset}
-        onOpenChange={setConfirmReset}
-        title="¿Restablecer los datos de ejemplo?"
-        description="Se borrarán los presupuestos, partes y facturas creados en este navegador y se cargará de nuevo el escenario inicial."
-        confirmLabel="Restablecer"
-        destructive
-        pending={reset.isPending}
-        onConfirm={() => reset.mutate(undefined)}
       />
     </div>
   )

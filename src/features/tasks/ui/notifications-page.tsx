@@ -2,7 +2,12 @@ import { Button } from '@doscientos/ui'
 import { useNavigate } from '@tanstack/react-router'
 import { Bell, BellRing, CheckCheck } from 'lucide-react'
 
-import { useCurrentUser, useWorkspace, type AppNotification } from '@/features/workspace'
+import {
+  notificationTarget,
+  useCurrentUser,
+  useWorkspace,
+  type AppNotification,
+} from '@/features/workspace'
 import { formatShortDate } from '@/shared/lib/format'
 import { useCommand } from '@/shared/lib/use-command'
 import { EmptyPanel } from '@/shared/ui/empty-panel'
@@ -24,9 +29,12 @@ export function NotificationsPage() {
 
   function open(item: AppNotification) {
     if (!item.read) markRead.mutate([item.id])
-    if (item.kind.startsWith('gasto')) void navigate({ to: '/gastos' })
-    else if (item.workId) void navigate({ to: '/obras/$workId', params: { workId: item.workId } })
-    else if (item.kind.startsWith('ausencia')) void navigate({ to: '/ausencias' })
+    const target = notificationTarget(item)
+    if (!target) return
+    if (!('params' in target)) void navigate({ to: target.to })
+    else if ('workId' in target.params)
+      void navigate({ to: '/obras/$workId', params: target.params })
+    else void navigate({ to: '/presupuestos/$budgetId', params: target.params })
   }
 
   return (

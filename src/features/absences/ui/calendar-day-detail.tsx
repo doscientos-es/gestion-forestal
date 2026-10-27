@@ -1,5 +1,5 @@
 import { Button } from '@doscientos/ui'
-import { Check, X } from 'lucide-react'
+import { Check, Plus, X } from 'lucide-react'
 
 import {
   absenceImpact,
@@ -17,7 +17,19 @@ import { Panel, PanelHeader, Tag } from '@/shared/ui/surface'
 import { absencesApi } from '../api'
 
 /** Who is away on the chosen day, with the impact on the crew and approve/reject for the office. */
-export function CalendarDayDetail({ day, canDecide }: { day: GridDay; canDecide: boolean }) {
+export function CalendarDayDetail({
+  day,
+  canDecide,
+  onRegister,
+  onCancel,
+}: {
+  day: GridDay
+  canDecide: boolean
+  /** Office only: register an absence starting on this day. */
+  onRegister?: (date: string) => void
+  /** Office only: remove an absence registered by mistake. */
+  onCancel?: (absence: Absence) => void
+}) {
   const workspace = useWorkspace()
   const decide = useCommand(
     ({ absence, status }: { absence: Absence; status: 'aprobada' | 'rechazada' }) =>
@@ -28,6 +40,8 @@ export function CalendarDayDetail({ day, canDecide }: { day: GridDay; canDecide:
       }),
     },
   )
+  // «viernes, 16 de octubre» → first letter only (CSS `capitalize` would turn «de» into «De»).
+  const longDate = formatLongDate(day.date)
   const crewName = (crewId: string | null) =>
     workspace.crews.find((crew) => crew.id === crewId)?.name ?? ''
 
@@ -35,7 +49,7 @@ export function CalendarDayDetail({ day, canDecide }: { day: GridDay; canDecide:
     <Panel aria-labelledby="day-title" className="mt-4">
       <PanelHeader
         id="day-title"
-        title={<span className="capitalize">{formatLongDate(day.date)}</span>}
+        title={longDate.charAt(0).toLocaleUpperCase('es') + longDate.slice(1)}
         description={
           day.away.length === 0
             ? 'Nadie fuera este día.'
@@ -46,6 +60,13 @@ export function CalendarDayDetail({ day, canDecide }: { day: GridDay; canDecide:
                 : undefined
         }
         meta={day.away.length}
+        action={
+          onRegister ? (
+            <Button variant="outline" size="sm" onPress={() => onRegister(day.date)}>
+              <Plus aria-hidden="true" className="size-4" /> Registrar ausencia
+            </Button>
+          ) : undefined
+        }
       />
       <ul className="divide-border divide-y">
         {day.away.map(({ absence, person }) => {
@@ -68,6 +89,12 @@ export function CalendarDayDetail({ day, canDecide }: { day: GridDay; canDecide:
               <Tag tone={status.tone} dot>
                 {status.label}
               </Tag>
+              {onCancel && absence.status !== 'solicitada' ? (
+                <Button variant="ghost" size="sm" onPress={() => onCancel(absence)}>
+                  Anular
+                  <span className="sr-only"> ausencia de {person.name}</span>
+                </Button>
+              ) : null}
               {canDecide && absence.status === 'solicitada' ? (
                 <span className="flex gap-2">
                   <Button

@@ -1,12 +1,12 @@
 import { Button, MetricCard, MetricGrid } from '@doscientos/ui'
 import { useNavigate } from '@tanstack/react-router'
 import { Download, History } from 'lucide-react'
-import { useState } from 'react'
 
 import { activityKind, activityToCsv, lookup, useWorkspace } from '@/features/workspace'
 import { clock } from '@/shared/lib/clock'
 import { downloadTextFile } from '@/shared/lib/download'
 import { formatDateTime, formatMoney, pluralize } from '@/shared/lib/format'
+import { useUrlState, useUrlText } from '@/shared/lib/use-url-state'
 import { DataTable } from '@/shared/ui/data-table'
 import { EmptyPanel } from '@/shared/ui/empty-panel'
 import { FilterTabs, FilterToolbar, SearchField, type FilterOption } from '@/shared/ui/filter-tabs'
@@ -25,8 +25,13 @@ export function ActivityPage() {
   const workspace = useWorkspace()
   const navigate = useNavigate()
   const find = lookup(workspace)
-  const [filter, setFilter] = useState<FeedFilter>('todo')
-  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useUrlState<FeedFilter>('tipo', 'todo', [
+    'todo',
+    'envios',
+    'vistas',
+    'facturas',
+  ])
+  const [query, setQuery] = useUrlText('q')
   const today = clock.today()
   const events = filterActivity(workspace, filter, query)
   const followUp = followUpSummary(workspace, today)

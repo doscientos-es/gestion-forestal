@@ -97,7 +97,7 @@ export function InvoiceDocument({
         </tfoot>
       </table>
       <p className="mt-5 border-t border-zinc-200 pt-3 text-xs text-zinc-500">
-        Borrador interno con IVA de ejemplo. Tipos, retenciones, numeración y sistema fiscal
+        Borrador interno con IVA provisional. Tipos, retenciones, numeración y sistema fiscal
         (TicketBAI u otro) los confirma la gestoría, que emite la factura oficial.
       </p>
     </article>

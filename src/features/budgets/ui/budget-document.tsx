@@ -100,8 +100,7 @@ export function BudgetDocument({ budget, workspace }: { budget: Budget; workspac
 
       {budget.notes ? <p className="mt-6 text-zinc-600">{budget.notes}</p> : null}
       <p className="mt-8 border-t border-zinc-200 pt-4 text-xs text-zinc-500">
-        Propuesta válida durante 30 días desde su fecha. Documento de demostración con datos
-        ficticios.
+        Propuesta válida durante 30 días desde su fecha.
       </p>
     </article>
   )

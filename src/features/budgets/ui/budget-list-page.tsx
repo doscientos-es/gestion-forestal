@@ -15,6 +15,7 @@ import {
 import { clock } from '@/shared/lib/clock'
 import { downloadTextFile } from '@/shared/lib/download'
 import { formatMoney, formatNumber, formatShortDate } from '@/shared/lib/format'
+import { useUrlState, useUrlText } from '@/shared/lib/use-url-state'
 import { DataTable, RowMenu } from '@/shared/ui/data-table'
 import { EmptyPanel } from '@/shared/ui/empty-panel'
 import { FilterTabs, FilterToolbar, SearchField, type FilterOption } from '@/shared/ui/filter-tabs'
@@ -33,8 +34,14 @@ export function BudgetListPage() {
     void navigate({ to: '/presupuestos/$budgetId', params: { budgetId } })
   const [sending, setSending] = useState<Budget | null>(null)
   const [importing, setImporting] = useState(false)
-  const [filter, setFilter] = useState<BudgetFilter>('todos')
-  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useUrlState<BudgetFilter>('estado', 'todos', [
+    'todos',
+    'borrador',
+    'enviado',
+    'aceptado',
+    'rechazado',
+  ])
+  const [query, setQuery] = useUrlText('q')
   const find = lookup(workspace)
   const budgets = filterBudgets(workspace, filter, query)
   const count = (status: BudgetFilter) => filterBudgets(workspace, status, '').length
@@ -56,21 +63,22 @@ export function BudgetListPage() {
         description="Calcula peonadas, coste y precio a partir de superficie, densidad y rendimiento."
         actions={
           <>
-            <Button variant="outline" onPress={() => setImporting(true)}>
-              <FileUp aria-hidden="true" className="size-4" /> Importar CSV
-            </Button>
-            <Button
-              variant="outline"
-              isDisabled={budgets.length === 0}
-              onPress={() =>
-                downloadTextFile(
-                  `presupuestos-${clock.today()}.csv`,
-                  budgetsToCsv(workspace, budgets),
-                )
-              }
-            >
-              <Download aria-hidden="true" className="size-4" /> Exportar
-            </Button>
+            <RowMenu label="Importar o exportar presupuestos">
+              <DropdownMenuItem onAction={() => setImporting(true)}>
+                <FileUp aria-hidden="true" className="size-4" /> Importar desde CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                isDisabled={budgets.length === 0}
+                onAction={() =>
+                  downloadTextFile(
+                    `presupuestos-${clock.today()}.csv`,
+                    budgetsToCsv(workspace, budgets),
+                  )
+                }
+              >
+                <Download aria-hidden="true" className="size-4" /> Exportar la vista a CSV
+              </DropdownMenuItem>
+            </RowMenu>
             <Button onPress={() => void navigate({ to: '/presupuestos/nuevo' })}>
               <Plus aria-hidden="true" className="size-4" />
               Nuevo presupuesto
@@ -115,6 +123,19 @@ export function BudgetListPage() {
             getKey={(budget) => budget.id}
             openLabel={(budget) => `Abrir presupuesto ${budget.number}, ${budget.title}`}
             onOpen={(budget) => open(budget.id)}
+            narrow={(budget) => {
+              const status = budgetStatus[budget.status]
+              return (
+                <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <Tag tone={status.tone} dot>
+                    {status.label}
+                  </Tag>
+                  <span className="font-semibold tabular-nums">
+                    {formatMoney(estimateStoredBudget(budget, workspace.species).price)}
+                  </span>
+                </span>
+              )
+            }}
             footer={
               <span>
                 Pendiente de respuesta{' '}

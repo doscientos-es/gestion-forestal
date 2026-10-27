@@ -10,6 +10,7 @@ import { budgetCsvTemplate, importBudgets, parseBudgetCsv } from './budget-impor
 import {
   CommandError,
   acceptBudget,
+  cancelAbsence,
   createClient,
   createInvoiceDraft,
   createZone,
@@ -23,8 +24,19 @@ import {
   submitReport,
   type Context,
 } from './commands'
+import {
+  addWorker,
+  createCrew,
+  dissolveCrew,
+  moveWorker,
+  renameCrew,
+  setForeman,
+  updateWorker,
+} from './crew-management'
+import { crewProfitability } from './crew-profitability'
 import { invoiceTotals } from './invoice-draft'
 import type { Workspace } from './model'
+import { freshNotices, notificationTarget, notificationUrl } from './notification-target'
 import { findConflicts, suggestedEnd } from './planning'
 import { proposalLines } from './proposal'
 import {
@@ -417,6 +429,76 @@ describe('client work report and yield suggestions', () => {
   })
 })
 
+describe('alerts for the device', () => {
+  const workspace = buildSeed(TODAY)
+  // A proposal nobody has opened yet (the sent ones in the seed already have views).
+  const budget = workspace.budgets.find(
+    (item) =>
+      !workspace.activity.some((e) => e.kind === 'presupuesto_visto' && e.entityId === item.id),
+  )
+  const work = workspace.works[0]
+
+  it('alerts the office the first time the client opens a proposal or a report, not after', () => {
+    if (!budget || !work) throw new Error('seed needs a budget and a work')
+    const first = recordBudgetView(workspace, budget.id, context)
+    expect(first.notifications[0]).toMatchObject({
+      kind: 'propuesta_vista',
+      personId: 'p-nerea',
+      budgetId: budget.id,
+    })
+    const again = recordBudgetView(first, budget.id, context)
+    expect(again.notifications).toHaveLength(first.notifications.length)
+    const report = recordWorkReportView(workspace, work.id, context)
+    expect(report.notifications[0]).toMatchObject({ kind: 'informe_visto', workId: work.id })
+    expect(recordWorkReportView(report, work.id, context).notifications).toHaveLength(
+      report.notifications.length,
+    )
+  })
+
+  it('opens the screen each notice is about', () => {
+    expect(notificationTarget({ kind: 'gasto_pendiente', workId: 'w', budgetId: null })).toEqual({
+      to: '/gastos',
+    })
+    expect(notificationTarget({ kind: 'propuesta_vista', workId: null, budgetId: 'b1' })).toEqual({
+      to: '/presupuestos/$budgetId',
+      params: { budgetId: 'b1' },
+    })
+    expect(notificationTarget({ kind: 'obra_asignada', workId: 'w1', budgetId: null })).toEqual({
+      to: '/obras/$workId',
+      params: { workId: 'w1' },
+    })
+    expect(notificationTarget({ kind: 'ausencia_resuelta', workId: null, budgetId: null })).toEqual(
+      {
+        to: '/ausencias',
+      },
+    )
+    expect(notificationTarget({ kind: 'tarea_nueva', workId: null, budgetId: null })).toBeNull()
+    expect(notificationUrl({ kind: 'propuesta_vista', workId: null, budgetId: 'b1' })).toBe(
+      '/presupuestos/b1',
+    )
+    expect(notificationUrl({ kind: 'obra_asignada', workId: 'w1', budgetId: null })).toBe(
+      '/obras/w1',
+    )
+    expect(notificationUrl({ kind: 'tarea_nueva', workId: null, budgetId: null })).toBe('/avisos')
+  })
+
+  it('never replays the backlog and only reports unread notices it has not shown', () => {
+    const mine = workspace.notifications.filter((item) => item.personId === 'p-nerea')
+    const firstRun = freshNotices(workspace.notifications, 'p-nerea', null)
+    expect(firstRun.fresh).toEqual([])
+    expect(firstRun.seen).toEqual(mine.map((item) => item.id))
+    expect(freshNotices(workspace.notifications, 'p-nerea', firstRun.seen).fresh).toEqual([])
+    if (!budget) throw new Error('seed needs a budget')
+    const after = recordBudgetView(workspace, budget.id, context).notifications
+    const next = freshNotices(after, 'p-nerea', firstRun.seen)
+    expect(next.fresh.map((item) => item.kind)).toEqual(['propuesta_vista'])
+    expect(next.unread).toBe(firstRun.unread + 1)
+    expect(
+      freshNotices(after, 'p-javier', []).fresh.every((item) => item.personId === 'p-javier'),
+    ).toBe(true)
+  })
+})
+
 describe('team absence calendar', () => {
   const seeded = buildSeed(TODAY)
   /** No absences, so every case starts from a clean calendar. */
@@ -494,6 +576,137 @@ describe('team absence calendar', () => {
         .flat()
         .every((day) => day.away.length === 0),
     ).toBe(true)
+  })
+})
+
+describe('crews and workers', () => {
+  const base = buildSeed(TODAY)
+  const [crew, otherCrew] = base.crews
+  if (!crew || !otherCrew) throw new Error('seed needs two crews')
+  const worker = base.people.find((p) => p.crewId === crew.id && p.id !== crew.foremanId)
+  if (!worker) throw new Error('seed needs a worker')
+  const input = { name: 'Nuevo Peón', phone: '+34 600 111 222', email: '', dailyCost: 15_000 }
+
+  it('adds a worker into a crew and tells them; rejects bad data', () => {
+    const { workspace, person } = addWorker(base, { ...input, crewId: crew.id }, context)
+    expect(person).toMatchObject({ role: 'peon', crewId: crew.id, initials: 'NP' })
+    expect(workspace.notifications[0]).toMatchObject({
+      kind: 'cuadrilla_cambiada',
+      personId: person.id,
+    })
+    expect(addWorker(base, { ...input, crewId: null }, context).person.crewId).toBeNull()
+    expect(() => addWorker(base, { ...input, name: ' ', crewId: null }, context)).toThrow(
+      CommandError,
+    )
+    expect(() => addWorker(base, { ...input, name: worker.name, crewId: null }, context)).toThrow(
+      CommandError,
+    )
+    expect(() => addWorker(base, { ...input, dailyCost: 0, crewId: null }, context)).toThrow(
+      CommandError,
+    )
+    expect(() => addWorker(base, { ...input, email: 'sin-arroba', crewId: null }, context)).toThrow(
+      CommandError,
+    )
+  })
+
+  it('edits contact data and cost', () => {
+    const next = updateWorker(base, worker.id, { ...input, name: 'Otro Nombre' })
+    expect(next.people.find((p) => p.id === worker.id)).toMatchObject({
+      name: 'Otro Nombre',
+      initials: 'ON',
+      dailyCost: 15_000,
+    })
+  })
+
+  it('moves a worker, notifies them and keeps the foreman in place', () => {
+    const moved = moveWorker(base, worker.id, otherCrew.id, context)
+    expect(moved.people.find((p) => p.id === worker.id)?.crewId).toBe(otherCrew.id)
+    expect(moved.notifications[0]).toMatchObject({
+      kind: 'cuadrilla_cambiada',
+      personId: worker.id,
+    })
+    expect(
+      moveWorker(moved, worker.id, null, context).people.find((p) => p.id === worker.id)?.crewId,
+    ).toBeNull()
+    expect(moveWorker(base, worker.id, crew.id, context)).toBe(base)
+    expect(() => moveWorker(base, crew.foremanId, otherCrew.id, context)).toThrow(CommandError)
+    expect(() => moveWorker(base, 'p-nerea', crew.id, context)).toThrow(CommandError)
+  })
+
+  it('swaps the foreman and their roles', () => {
+    const next = setForeman(base, crew.id, worker.id, context)
+    expect(next.crews.find((c) => c.id === crew.id)?.foremanId).toBe(worker.id)
+    expect(next.people.find((p) => p.id === worker.id)).toMatchObject({ role: 'capataz' })
+    expect(next.people.find((p) => p.id === crew.foremanId)).toMatchObject({ role: 'peon' })
+    const outsider = base.people.find((p) => p.crewId === otherCrew.id && p.role === 'peon')
+    if (!outsider) throw new Error('missing outsider')
+    expect(() => setForeman(base, crew.id, outsider.id, context)).toThrow(CommandError)
+  })
+
+  it('creates, renames and dissolves a crew', () => {
+    const candidate = base.people.find((p) => p.crewId === crew.id && p.id !== crew.foremanId)
+    if (!candidate) throw new Error('missing candidate')
+    const created = createCrew(base, { name: 'Cuadrilla Costa', foremanId: candidate.id }, context)
+    expect(created.workspace.people.find((p) => p.id === candidate.id)).toMatchObject({
+      role: 'capataz',
+      crewId: created.crew.id,
+    })
+    expect(() =>
+      createCrew(created.workspace, { name: 'cuadrilla costa', foremanId: worker.id }, context),
+    ).toThrow(CommandError)
+    expect(() => createCrew(base, { name: 'Otra', foremanId: crew.foremanId }, context)).toThrow(
+      CommandError,
+    )
+    const renamed = renameCrew(created.workspace, created.crew.id, 'Costa Norte')
+    expect(renamed.people.find((p) => p.id === candidate.id)?.title).toBe('Capataz · Costa Norte')
+    const dissolved = dissolveCrew(renamed, created.crew.id)
+    expect(dissolved.crews.some((c) => c.id === created.crew.id)).toBe(false)
+    expect(dissolved.people.find((p) => p.id === candidate.id)).toMatchObject({
+      crewId: null,
+      role: 'peon',
+    })
+    expect(() => dissolveCrew(base, crew.id)).toThrow(CommandError)
+  })
+
+  it('cancels an absence and tells the person', () => {
+    const absence = base.absences[0]
+    if (!absence) throw new Error('seed needs an absence')
+    const next = cancelAbsence(base, absence.id, context)
+    expect(next.absences.some((item) => item.id === absence.id)).toBe(false)
+    expect(next.notifications[0]).toMatchObject({
+      kind: 'ausencia_resuelta',
+      personId: absence.personId,
+    })
+    expect(() => cancelAbsence(base, 'nope', context)).toThrow(CommandError)
+  })
+})
+
+describe('crew profitability', () => {
+  const workspace = buildSeed(TODAY)
+
+  it('splits the real cost of every work among the crews that reported it', () => {
+    const rows = crewProfitability(workspace, null)
+    const real = workspace.works.reduce(
+      (sum, work) =>
+        sum + calculatePerformance(work, workspace.reports, workspace.people).totalCost,
+      0,
+    )
+    expect(rows.reduce((sum, row) => sum + row.cost, 0)).toBe(real)
+    const prices = workspace.works.reduce((sum, work) => sum + work.planned.price, 0)
+    expect(rows.reduce((sum, row) => sum + row.revenue, 0)).toBeLessThanOrEqual(
+      prices + rows.length,
+    )
+    expect(rows.every((row) => row.margin === row.revenue - row.cost)).toBe(true)
+  })
+
+  it('ranks by margin rate, limits to a campaign and keeps crews without data', () => {
+    const all = crewProfitability(workspace, null)
+    const rates = all.filter((row) => row.revenue > 0).map((row) => row.marginRate)
+    expect(rates).toEqual([...rates].sort((a, b) => b - a))
+    expect(all).toHaveLength(workspace.crews.length)
+    const none = crewProfitability(workspace, 1999)
+    expect(none).toHaveLength(workspace.crews.length)
+    expect(none.every((row) => row.revenue === 0 && row.cost === 0 && row.works === 0)).toBe(true)
   })
 })
 

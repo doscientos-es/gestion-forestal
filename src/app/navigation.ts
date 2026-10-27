@@ -9,6 +9,7 @@ import {
   Receipt,
   Sun,
   TreePine,
+  UsersRound,
   WalletCards,
   type LucideIcon,
 } from 'lucide-react'
@@ -27,6 +28,7 @@ export type Destination = {
     | '/gastos'
     | '/avisos'
     | '/facturas'
+    | '/cuadrillas'
     | '/actividad'
     | '/informes'
   label: string
@@ -99,6 +101,14 @@ export const destinations: Destination[] = [
     label: 'Facturas',
     short: 'Facturas',
     icon: Receipt,
+    group: 'Administración',
+  },
+  {
+    area: 'cuadrillas',
+    to: '/cuadrillas',
+    label: 'Cuadrillas',
+    short: 'Equipos',
+    icon: UsersRound,
     group: 'Administración',
   },
   {
