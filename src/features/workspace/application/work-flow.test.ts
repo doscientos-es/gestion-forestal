@@ -217,6 +217,7 @@ describe('budget → work → report → invoice', () => {
       incident: 'ninguna' as const,
       notes: '',
       authorId: 'p-javier',
+      photos: [],
     }
     workspace = submitReport(workspace, report, context)
     workspace = submitReport(workspace, { ...report, plants: 1100 }, context)
