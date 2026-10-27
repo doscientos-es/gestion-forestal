@@ -7,31 +7,31 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from "recharts";
+} from 'recharts'
 
-import type { MonthPoint, QuarterPoint } from "@/features/workspace";
-import { formatMonth, formatMoney } from "@/shared/lib/format";
-import { ChartDataTable, ChartTooltip, axisProps, chartColors } from "@/shared/ui/charts";
+import type { MonthPoint, QuarterPoint } from '@/features/workspace'
+import { formatMonth, formatMoney } from '@/shared/lib/format'
+import { ChartDataTable, ChartTooltip, axisProps, chartColors } from '@/shared/ui/charts'
 
 function yearColor(index: number, total: number) {
   return index === total - 1
     ? chartColors.brand
     : index === total - 2
       ? chartColors.brandSoft
-      : chartColors.muted;
+      : chartColors.muted
 }
 
-const money = (cents: number) => formatMoney(cents);
-const quarterLabel = (quarter: string | number) => `T${quarter}`;
+const money = (cents: number) => formatMoney(cents)
+const quarterLabel = (quarter: string | number) => `T${quarter}`
 
 export function QuarterlyChart({
   points,
   years,
   metricLabel,
 }: {
-  points: QuarterPoint[];
-  years: number[];
-  metricLabel: string;
+  points: QuarterPoint[]
+  years: number[]
+  metricLabel: string
 }) {
   return (
     <figure className="m-0">
@@ -42,7 +42,7 @@ export function QuarterlyChart({
             <XAxis dataKey="quarter" {...axisProps} tickFormatter={quarterLabel} />
             <YAxis {...axisProps} width={72} tickFormatter={money} />
             <Tooltip
-              cursor={{ fill: "#f1f3f5" }}
+              cursor={{ fill: '#f1f3f5' }}
               content={({ active, payload, label }) => (
                 <ChartTooltip
                   active={active}
@@ -69,14 +69,14 @@ export function QuarterlyChart({
       </div>
       <ChartDataTable
         caption={`${metricLabel} por trimestre y año`}
-        headers={["Trimestre", ...years.map(String)]}
+        headers={['Trimestre', ...years.map(String)]}
         rows={points.map((point) => [
           quarterLabel(point.quarter),
           ...years.map((year) => formatMoney(point[String(year)] ?? 0)),
         ])}
       />
     </figure>
-  );
+  )
 }
 
 export function MonthlyAccountsChart({ points, year }: { points: MonthPoint[]; year: number }) {
@@ -89,7 +89,7 @@ export function MonthlyAccountsChart({ points, year }: { points: MonthPoint[]; y
             <XAxis dataKey="month" {...axisProps} tickFormatter={formatMonth} />
             <YAxis {...axisProps} width={72} tickFormatter={money} />
             <Tooltip
-              cursor={{ fill: "#f1f3f5" }}
+              cursor={{ fill: '#f1f3f5' }}
               content={({ active, payload, label }) => (
                 <ChartTooltip
                   active={active}
@@ -120,7 +120,7 @@ export function MonthlyAccountsChart({ points, year }: { points: MonthPoint[]; y
       </div>
       <ChartDataTable
         caption={`Ingresos y gastos por mes en ${year}`}
-        headers={["Mes", "Ingresos", "Gastos", "Resultado"]}
+        headers={['Mes', 'Ingresos', 'Gastos', 'Resultado']}
         rows={points.map((point) => [
           formatMonth(point.month),
           formatMoney(point.income),
@@ -129,5 +129,5 @@ export function MonthlyAccountsChart({ points, year }: { points: MonthPoint[]; y
         ])}
       />
     </figure>
-  );
+  )
 }

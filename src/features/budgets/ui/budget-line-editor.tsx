@@ -11,6 +11,7 @@ import { formatNumber } from '@/shared/lib/format'
 import { ChoiceField, NumberField, TextField } from '@/shared/ui/form-controls'
 
 import { plantingDefaults } from '../application/budget-draft'
+import { NewSpeciesShortcut } from './quick-create-dialogs'
 
 export function BudgetLineEditor({
   index,
@@ -58,6 +59,16 @@ export function BudgetLineEditor({
               onChange({ speciesId, ...plantingDefaults(workspace, speciesId) })
             }
             options={workspace.species.map((item) => ({ value: item.id, label: item.name }))}
+            footer={
+              <NewSpeciesShortcut
+                onCreated={(species) =>
+                  onChange({
+                    speciesId: species.id,
+                    ...plantingDefaults(workspace, species.id),
+                  })
+                }
+              />
+            }
           />
           <NumberField
             label="Superficie"

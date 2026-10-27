@@ -1,23 +1,23 @@
-import { Button } from "@doscientos/ui";
-import { Pencil, Plus, Sprout } from "lucide-react";
-import { useState } from "react";
+import { Button } from '@doscientos/ui'
+import { Pencil, Plus, Sprout } from 'lucide-react'
+import { useState } from 'react'
 
-import { speciesKind, useWorkspace, type Species } from "@/features/workspace";
-import { formatMoney } from "@/shared/lib/format";
-import { PageTop } from "@/shared/ui/page-top";
-import { Panel, PanelHeader } from "@/shared/ui/surface";
+import { speciesKind, useWorkspace, type Species } from '@/features/workspace'
+import { formatMoney } from '@/shared/lib/format'
+import { PageTop } from '@/shared/ui/page-top'
+import { Panel, PanelHeader } from '@/shared/ui/surface'
 
-import { SpeciesDialog } from "./species-dialog";
+import { SpeciesDialog } from './species-dialog'
 
-type Dialog = { species?: Species } | null;
+type Dialog = { species?: Species } | null
 
 export function CatalogPage() {
-  const workspace = useWorkspace();
-  const [dialog, setDialog] = useState<Dialog>(null);
+  const workspace = useWorkspace()
+  const [dialog, setDialog] = useState<Dialog>(null)
   const used = (id: string) =>
     workspace.budgets.filter((budget) =>
-      budget.lines.some((line) => line.kind === "plantacion" && line.speciesId === id),
-    ).length;
+      budget.lines.some((line) => line.kind === 'plantacion' && line.speciesId === id),
+    ).length
 
   return (
     <>
@@ -41,7 +41,7 @@ export function CatalogPage() {
           <table className="w-full min-w-160 text-sm">
             <thead>
               <tr className="text-muted-foreground border-border border-b text-left text-xs">
-                {["Especie", "Tipo", "Coste por planta", "Presupuestos que la usan", ""].map(
+                {['Especie', 'Tipo', 'Coste por planta', 'Presupuestos que la usan', ''].map(
                   (header, index) => (
                     <th key={index} scope="col" className="px-5 py-3 font-medium">
                       {header || <span className="sr-only">Acciones</span>}
@@ -77,11 +77,11 @@ export function CatalogPage() {
       </Panel>
       {dialog ? (
         <SpeciesDialog
-          key={dialog.species?.id ?? "new"}
+          key={dialog.species?.id ?? 'new'}
           {...(dialog.species ? { species: dialog.species } : {})}
           onClose={() => setDialog(null)}
         />
       ) : null}
     </>
-  );
+  )
 }

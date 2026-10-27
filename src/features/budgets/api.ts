@@ -8,6 +8,7 @@ import {
   recordBudgetView,
   respondToBudget,
   saveBudget,
+  saveSpecies,
   sendBudgetEmail,
   setBudgetStatus,
   type ApiDeps,
@@ -62,6 +63,11 @@ export function createBudgetsApi(deps: ApiDeps): BudgetsApi {
       mutate(deps, (workspace, context) => {
         const { workspace: next, zone } = createZone(workspace, name, context)
         return { workspace: next, result: zone }
+      }),
+    createSpecies: (input) =>
+      mutate(deps, (workspace, context) => {
+        const { workspace: next, species } = saveSpecies(workspace, input, context)
+        return { workspace: next, result: species }
       }),
     setStatus: (budgetId, status) =>
       mutate(deps, (workspace, context) => ({

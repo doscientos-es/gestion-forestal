@@ -143,3 +143,62 @@ export function NewZoneShortcut({ onCreated }: { onCreated: (zone: Zone) => void
     </>
   )
 }
+
+export function NewSpeciesShortcut({ onCreated }: { onCreated: (species: Species) => void }) {
+  const [open, setOpen] = useState(false)
+  const [name, setName] = useState('')
+  const [kind, setKind] = useState<SpeciesKind>('conifera')
+  const [cost, setCost] = useState(1)
+  const unitCost = Math.round(cost * 100)
+  const save = useCommand(() => budgetsApi.createSpecies({ name, kind, unitCost }), {
+    success: (species) => ({ title: 'Especie creada', description: species.name }),
+    onSuccess: (species) => {
+      onCreated(species)
+      setOpen(false)
+      setName('')
+    },
+  })
+
+  return (
+    <>
+      <CreateShortcut label="Nueva especie" onPress={() => setOpen(true)} />
+      <DialogRoot open={open} onOpenChange={setOpen}>
+        <DialogContent className="w-[min(26rem,calc(100vw-2rem))] rounded-xl">
+          <DialogHeader>
+            <DialogTitle>Nueva especie</DialogTitle>
+            <DialogDescription>
+              Queda en el catálogo. El administrador puede cambiar su precio cuando quiera.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <TextField
+              className="sm:col-span-2"
+              label="Nombre"
+              placeholder="Ej. Alcornoque"
+              value={name}
+              onChange={setName}
+            />
+            <ChoiceField
+              label="Tipo"
+              value={kind}
+              onChange={(value) => setKind(value as SpeciesKind)}
+              options={Object.entries(speciesKind).map(([value, label]) => ({ value, label }))}
+            />
+            <NumberField label="Coste por planta" suffix="€" value={cost} onChange={setCost} />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onPress={() => setOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onPress={() => save.mutate(undefined)}
+              isDisabled={save.isPending || !name.trim() || unitCost <= 0}
+            >
+              Crear especie
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogRoot>
+    </>
+  )
+}
