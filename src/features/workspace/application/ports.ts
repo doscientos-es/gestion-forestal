@@ -2,6 +2,7 @@ import type { Repository } from '@/shared/data/repository'
 import type { IsoDate } from '@/shared/lib/dates'
 
 import type {
+  ActivityEvent,
   AppNotification,
   WorkTask,
   Absence,
@@ -34,6 +35,7 @@ export type Repositories = {
   tasks: Repository<WorkTask>
   notifications: Repository<AppNotification>
   expenses: Repository<Expense>
+  activity: Repository<ActivityEvent>
 }
 
 /** Who is signed in. Production replaces it with the Supabase Auth session. */
@@ -60,4 +62,8 @@ export type ApiDeps = {
   repositories: Repositories
   newId: () => string
   today: () => IsoDate
+  /** ISO date-time, stamped on activity events. */
+  now: () => string
+  /** Signed-in person; events are attributed to them. */
+  currentUserId: () => Promise<string | null>
 }

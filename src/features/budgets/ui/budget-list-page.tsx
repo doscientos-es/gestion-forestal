@@ -1,28 +1,38 @@
 import { Button, DropdownMenuItem } from '@doscientos/ui'
 import { useNavigate } from '@tanstack/react-router'
-import { Calculator, FileText, Plus } from 'lucide-react'
+import { Calculator, Download, Eye, FileText, FileUp, Plus } from 'lucide-react'
 import { useState } from 'react'
 
-import { budgetStatus, estimateStoredBudget, lookup, useWorkspace } from '@/features/workspace'
+import {
+  budgetStatus,
+  budgetTracking,
+  estimateStoredBudget,
+  eventDate,
+  lookup,
+  useWorkspace,
+  type Budget,
+} from '@/features/workspace'
+import { clock } from '@/shared/lib/clock'
+import { downloadTextFile } from '@/shared/lib/download'
 import { formatMoney, formatNumber, formatShortDate } from '@/shared/lib/format'
-import { useCommand } from '@/shared/lib/use-command'
 import { DataTable, RowMenu } from '@/shared/ui/data-table'
 import { EmptyPanel } from '@/shared/ui/empty-panel'
 import { FilterTabs, FilterToolbar, SearchField, type FilterOption } from '@/shared/ui/filter-tabs'
 import { PageTop } from '@/shared/ui/page-top'
 import { Panel, PanelHeader, Tag } from '@/shared/ui/surface'
 
-import { budgetsApi } from '../api'
 import { filterBudgets, type BudgetFilter } from '../application/budget-draft'
+import { budgetsToCsv } from '../application/budget-export'
+import { ImportBudgetsDialog } from './import-budgets-dialog'
+import { SendBudgetDialog } from './send-budget-dialog'
 
 export function BudgetListPage() {
   const workspace = useWorkspace()
   const navigate = useNavigate()
   const open = (budgetId: string) =>
     void navigate({ to: '/presupuestos/$budgetId', params: { budgetId } })
-  const markSent = useCommand((budgetId: string) => budgetsApi.setStatus(budgetId, 'enviado'), {
-    success: 'Marcado como enviado al cliente',
-  })
+  const [sending, setSending] = useState<Budget | null>(null)
+  const [importing, setImporting] = useState(false)
   const [filter, setFilter] = useState<BudgetFilter>('todos')
   const [query, setQuery] = useState('')
   const find = lookup(workspace)
@@ -45,10 +55,27 @@ export function BudgetListPage() {
         title="Presupuestos"
         description="Calcula peonadas, coste y precio a partir de superficie, densidad y rendimiento."
         actions={
-          <Button onPress={() => void navigate({ to: '/presupuestos/nuevo' })}>
-            <Plus aria-hidden="true" className="size-4" />
-            Nuevo presupuesto
-          </Button>
+          <>
+            <Button variant="outline" onPress={() => setImporting(true)}>
+              <FileUp aria-hidden="true" className="size-4" /> Importar CSV
+            </Button>
+            <Button
+              variant="outline"
+              isDisabled={budgets.length === 0}
+              onPress={() =>
+                downloadTextFile(
+                  `presupuestos-${clock.today()}.csv`,
+                  budgetsToCsv(workspace, budgets),
+                )
+              }
+            >
+              <Download aria-hidden="true" className="size-4" /> Exportar
+            </Button>
+            <Button onPress={() => void navigate({ to: '/presupuestos/nuevo' })}>
+              <Plus aria-hidden="true" className="size-4" />
+              Nuevo presupuesto
+            </Button>
+          </>
         }
       />
       <FilterToolbar
@@ -123,6 +150,29 @@ export function BudgetListPage() {
                 },
               },
               {
+                id: 'tracking',
+                header: 'Seguimiento',
+                secondary: true,
+                className: 'text-muted-foreground text-sm',
+                cell: (budget) => {
+                  const tracking = budgetTracking(workspace.activity, budget.id)
+                  if (!tracking.sentAt)
+                    return <span className="text-muted-foreground/70">Sin enviar</span>
+                  return (
+                    <span className="flex items-center gap-1.5 whitespace-nowrap">
+                      {formatShortDate(eventDate({ at: tracking.sentAt }))}
+                      <span aria-hidden="true">·</span>
+                      <Eye aria-hidden="true" className="size-3.5" />
+                      <span
+                        className={tracking.views === 0 ? 'font-medium text-amber-700' : undefined}
+                      >
+                        {tracking.views === 0 ? 'Sin abrir' : `${formatNumber(tracking.views)}×`}
+                      </span>
+                    </span>
+                  )
+                },
+              },
+              {
                 id: 'scope',
                 header: 'Alcance',
                 secondary: true,
@@ -170,9 +220,9 @@ export function BudgetListPage() {
                 >
                   Duplicar
                 </DropdownMenuItem>
-                {budget.status === 'borrador' ? (
-                  <DropdownMenuItem onAction={() => markSent.mutate(budget.id)}>
-                    Marcar como enviado
+                {budget.status === 'borrador' || budget.status === 'enviado' ? (
+                  <DropdownMenuItem onAction={() => setSending(budget)}>
+                    {budget.status === 'enviado' ? 'Reenviar al cliente' : 'Enviar al cliente'}
                   </DropdownMenuItem>
                 ) : null}
               </RowMenu>
@@ -180,6 +230,8 @@ export function BudgetListPage() {
           />
         )}
       </Panel>
+      <SendBudgetDialog budget={sending} onClose={() => setSending(null)} />
+      <ImportBudgetsDialog open={importing} onOpenChange={setImporting} />
     </>
   )
 }

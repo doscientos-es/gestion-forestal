@@ -1,6 +1,5 @@
 import {
   apiDeps,
-  commandContext,
   createInvoiceDraft,
   finishWork,
   mutate,
@@ -17,17 +16,13 @@ export type WorksApi = {
 export function createWorksApi(deps: ApiDeps): WorksApi {
   return {
     finish: (workId) =>
-      mutate(deps, (workspace) => ({
-        workspace: finishWork(workspace, workId, commandContext(deps)),
+      mutate(deps, (workspace, context) => ({
+        workspace: finishWork(workspace, workId, context),
         result: undefined,
       })),
     createInvoiceDraft: (workId) =>
-      mutate(deps, (workspace) => {
-        const { workspace: next, invoice } = createInvoiceDraft(
-          workspace,
-          workId,
-          commandContext(deps),
-        )
+      mutate(deps, (workspace, context) => {
+        const { workspace: next, invoice } = createInvoiceDraft(workspace, workId, context)
         return { workspace: next, result: invoice }
       }),
   }

@@ -8,6 +8,7 @@ export const seedClients: Client[] = [
     name: 'Ayuntamiento de Valdemonte',
     kind: 'ayuntamiento',
     taxId: 'P0000001A',
+    email: 'obras@valdemonte.example',
     town: 'Valdemonte',
   },
   {
@@ -15,6 +16,7 @@ export const seedClients: Client[] = [
     name: 'Diputación · Servicio de Montes',
     kind: 'diputacion',
     taxId: 'S0000002B',
+    email: 'montes@diputacion.example',
     town: 'Capital',
   },
   {
@@ -22,6 +24,7 @@ export const seedClients: Client[] = [
     name: 'Comunidad de Montes San Lorenzo',
     kind: 'comunidad',
     taxId: 'G0000003C',
+    email: 'junta@sanlorenzo.example',
     town: 'San Lorenzo',
   },
   {
@@ -29,6 +32,7 @@ export const seedClients: Client[] = [
     name: 'Maderas del Norte S.L.',
     kind: 'empresa',
     taxId: 'B0000004D',
+    email: 'compras@maderasdelnorte.example',
     town: 'Puerto Alto',
   },
   {
@@ -36,6 +40,7 @@ export const seedClients: Client[] = [
     name: 'Finca Los Robles',
     kind: 'particular',
     taxId: '00000005E',
+    email: 'info@fincalosrobles.example',
     town: 'Ribera Baja',
   },
   {
@@ -43,6 +48,7 @@ export const seedClients: Client[] = [
     name: 'Asociación Forestal Comarcal',
     kind: 'comunidad',
     taxId: 'G0000006F',
+    email: 'secretaria@forestalcomarcal.example',
     town: 'Monte Alto',
   },
   {
@@ -50,6 +56,7 @@ export const seedClients: Client[] = [
     name: 'Ayuntamiento de Ribera Baja',
     kind: 'ayuntamiento',
     taxId: 'P0000007G',
+    email: 'urbanismo@riberabaja.example',
     town: 'Ribera Baja',
   },
   {
@@ -57,6 +64,7 @@ export const seedClients: Client[] = [
     name: 'Cooperativa Silvícola del Valle',
     kind: 'empresa',
     taxId: 'F0000008H',
+    email: 'administracion@silvicolavalle.example',
     town: 'Valle Alto',
   },
   {
@@ -64,6 +72,7 @@ export const seedClients: Client[] = [
     name: 'Consorcio de Aguas del Norte',
     kind: 'diputacion',
     taxId: 'Q0000009I',
+    email: 'proyectos@aguasdelnorte.example',
     town: 'Capital',
   },
   {
@@ -71,6 +80,7 @@ export const seedClients: Client[] = [
     name: 'Pinares del Cantábrico S.A.',
     kind: 'empresa',
     taxId: 'A0000010J',
+    email: 'patrimonio@pinaresdelcantabrico.example',
     town: 'Puerto Alto',
   },
 ]

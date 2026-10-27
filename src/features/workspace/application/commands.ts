@@ -1,6 +1,7 @@
 import type { IsoDate } from '@/shared/lib/dates'
 import { DomainError as CommandError } from '@/shared/lib/errors'
 
+import { logActivity } from './activity'
 import { estimateBudget, toPlannedFigures, validateBudget } from './budget-calculation'
 import { DEFAULT_VAT_RATE, nextInvoiceReference, proposeDraft } from './invoice-draft'
 import type {
@@ -27,7 +28,14 @@ export type BudgetInput = Pick<
   'title' | 'clientId' | 'zoneId' | 'date' | 'lines' | 'params' | 'notes'
 >
 
-export type Context = { id: () => string; today: IsoDate }
+export type Context = {
+  id: () => string
+  today: IsoDate
+  /** ISO date-time of the command, stamped on activity events. */
+  now: string
+  /** Signed-in person, or null when unknown (tests, background work). */
+  actorId: string | null
+}
 
 function nextBudgetNumber(workspace: Workspace, year: number) {
   const prefix = `P-${year}-`
@@ -43,7 +51,7 @@ function nextWorkCode(workspace: Workspace, year: number) {
   return `${prefix}${String(count + 1).padStart(2, '0')}`
 }
 
-export type ClientInput = Pick<Client, 'name' | 'kind' | 'taxId' | 'town'>
+export type ClientInput = Pick<Client, 'name' | 'kind' | 'taxId' | 'town'> & { email?: string }
 
 const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase()
 
@@ -63,6 +71,7 @@ export function createClient(
     kind: input.kind,
     taxId: input.taxId.trim(),
     town: input.town.trim(),
+    email: input.email?.trim() ?? '',
   }
   return { workspace: { ...workspace, clients: [client, ...workspace.clients] }, client }
 }
@@ -86,6 +95,7 @@ export function saveBudget(
   input: BudgetInput,
   context: Context,
   budgetId?: string,
+  origin: 'manual' | 'csv' = 'manual',
 ): { workspace: Workspace; budget: Budget } {
   const issues = validateBudget(input)
   if (issues[0]) throw new CommandError(issues[0].message)
@@ -104,20 +114,49 @@ export function saveBudget(
   const budgets = existing
     ? workspace.budgets.map((item) => (item.id === budget.id ? budget : item))
     : [budget, ...workspace.budgets]
-  return { workspace: { ...workspace, budgets }, budget }
+  const saved = { ...workspace, budgets }
+  return {
+    workspace: existing
+      ? saved
+      : logActivity(
+          saved,
+          {
+            kind: origin === 'csv' ? 'presupuesto_importado' : 'presupuesto_creado',
+            entity: 'budget',
+            entityId: budget.id,
+            summary: origin === 'csv' ? `${budget.number} · desde CSV` : budget.number,
+          },
+          context,
+        ),
+    budget,
+  }
 }
 
 export function setBudgetStatus(
   workspace: Workspace,
   budgetId: string,
   status: Exclude<BudgetStatus, 'aceptado'>,
+  context: Context,
 ): Workspace {
-  return {
+  const current = workspace.budgets.find((budget) => budget.id === budgetId)
+  if (!current || current.status === 'aceptado' || current.status === status) return workspace
+  const next = {
     ...workspace,
     budgets: workspace.budgets.map((budget) =>
-      budget.id === budgetId && budget.status !== 'aceptado' ? { ...budget, status } : budget,
+      budget.id === budgetId ? { ...budget, status } : budget,
     ),
   }
+  if (status === 'borrador') return next
+  return logActivity(
+    next,
+    {
+      kind: status === 'enviado' ? 'presupuesto_enviado' : 'presupuesto_rechazado',
+      entity: 'budget',
+      entityId: budgetId,
+      summary: status === 'enviado' ? 'Marcado como enviado a mano' : 'Rechazado por el cliente',
+    },
+    context,
+  )
 }
 
 /** Accepting freezes the estimate into a work so actuals can be compared later. */
@@ -150,13 +189,22 @@ export function acceptBudget(
   }
   return {
     work,
-    workspace: {
-      ...workspace,
-      works: [work, ...workspace.works],
-      budgets: workspace.budgets.map((item) =>
-        item.id === budgetId ? { ...item, status: 'aceptado', workId: work.id } : item,
-      ),
-    },
+    workspace: logActivity(
+      {
+        ...workspace,
+        works: [work, ...workspace.works],
+        budgets: workspace.budgets.map((item) =>
+          item.id === budgetId ? { ...item, status: 'aceptado', workId: work.id } : item,
+        ),
+      },
+      {
+        kind: 'presupuesto_aceptado',
+        entity: 'budget',
+        entityId: budgetId,
+        summary: `Obra ${work.code} creada`,
+      },
+      context,
+    ),
   }
 }
 
@@ -489,7 +537,11 @@ export function createInvoiceDraft(
     sentOn: null,
     paidOn: null,
   }
-  const next = { ...workspace, invoices: [invoice, ...workspace.invoices] }
+  const next = logActivity(
+    { ...workspace, invoices: [invoice, ...workspace.invoices] },
+    { kind: 'factura_creada', entity: 'invoice', entityId: invoice.id, summary: invoice.reference },
+    context,
+  )
   return {
     invoice,
     workspace: proposal.kind === 'final' ? updateWork(next, workId, { status: 'facturada' }) : next,
@@ -502,7 +554,10 @@ export function setInvoiceStatus(
   status: 'enviada' | 'cobrada',
   context: Context,
 ): Workspace {
-  return {
+  const changed = workspace.invoices.filter(
+    (invoice) => invoiceIds.includes(invoice.id) && invoice.status !== status,
+  )
+  const next = {
     ...workspace,
     invoices: workspace.invoices.map((invoice) => {
       if (!invoiceIds.includes(invoice.id)) return invoice
@@ -511,4 +566,15 @@ export function setInvoiceStatus(
         : { ...invoice, status, sentOn: invoice.sentOn ?? context.today, paidOn: context.today }
     }),
   }
+  return logActivity(
+    next,
+    changed.map((invoice) => ({
+      kind:
+        status === 'enviada' ? ('factura_enviada_gestoria' as const) : ('factura_cobrada' as const),
+      entity: 'invoice' as const,
+      entityId: invoice.id,
+      summary: invoice.reference,
+    })),
+    context,
+  )
 }

@@ -1,7 +1,8 @@
 import { Button, IconButton, MetricCard, MetricGrid } from '@doscientos/ui'
 import { Link, useNavigate } from '@tanstack/react-router'
-import { ArrowUpRight, ChevronRight, Inbox, Plus, TreePine } from 'lucide-react'
+import { ArrowUpRight, ChevronRight, Inbox, Mail, Plus, TreePine } from 'lucide-react'
 
+import { followUpSummary } from '@/features/activity'
 import { YieldDeviation } from '@/features/works'
 import {
   absenceType,
@@ -16,7 +17,7 @@ import {
 } from '@/features/workspace'
 import { formatMoney, formatNumber, formatPercent, formatShortDate } from '@/shared/lib/format'
 import { PageTop } from '@/shared/ui/page-top'
-import { Panel, PanelHeader, ProgressBar } from '@/shared/ui/surface'
+import { Panel, PanelHeader, ProgressBar, Tag } from '@/shared/ui/surface'
 
 export function AdminHome({
   user,
@@ -37,6 +38,7 @@ export function AdminHome({
       work,
       performance: calculatePerformance(work, workspace.reports, workspace.people),
     }))
+  const followUp = followUpSummary(workspace, today)
   const pendingCollection = workspace.invoices
     .filter((item) => item.status === 'enviada')
     .reduce((sum, item) => sum + invoiceTotals(item).total, 0)
@@ -162,31 +164,71 @@ export function AdminHome({
             ))}
           </ul>
         </Panel>
-        <Panel aria-labelledby="todo-title">
-          <PanelHeader
-            id="todo-title"
-            icon={<Inbox className="size-5" strokeWidth={1.75} />}
-            title="Pendiente de ti"
-            meta={todo.length}
-          />
-          {todo.length === 0 ? (
-            <p className="text-muted-foreground px-5 py-8 text-sm">Nada pendiente. Buen trabajo.</p>
-          ) : (
-            <ul className="divide-border divide-y">
-              {todo.map((item) => (
-                <li key={item.id}>
-                  <Link to={item.to} className="panel-row flex items-center gap-3 px-5 py-3.5">
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium">{item.title}</span>
-                      <span className="text-muted-foreground block text-xs">{item.meta}</span>
-                    </span>
-                    <ChevronRight aria-hidden="true" className="text-muted-foreground size-4" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
+        <div className="space-y-5">
+          <Panel aria-labelledby="todo-title">
+            <PanelHeader
+              id="todo-title"
+              icon={<Inbox className="size-5" strokeWidth={1.75} />}
+              title="Pendiente de ti"
+              meta={todo.length}
+            />
+            {todo.length === 0 ? (
+              <p className="text-muted-foreground px-5 py-8 text-sm">
+                Nada pendiente. Buen trabajo.
+              </p>
+            ) : (
+              <ul className="divide-border divide-y">
+                {todo.map((item) => (
+                  <li key={item.id}>
+                    <Link to={item.to} className="panel-row flex items-center gap-3 px-5 py-3.5">
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium">{item.title}</span>
+                        <span className="text-muted-foreground block text-xs">{item.meta}</span>
+                      </span>
+                      <ChevronRight aria-hidden="true" className="text-muted-foreground size-4" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+          <Panel aria-labelledby="followup-title">
+            <PanelHeader
+              id="followup-title"
+              icon={<Mail className="size-5" strokeWidth={1.75} />}
+              title="Propuestas esperando respuesta"
+              description={`${formatMoney(followUp.waitingValue)} en juego · ${followUp.viewsThisWeek} aperturas esta semana`}
+              meta={followUp.waiting.length}
+            />
+            {followUp.waiting.length === 0 ? (
+              <p className="text-muted-foreground px-5 py-6 text-sm">
+                No hay propuestas enviadas pendientes de respuesta.
+              </p>
+            ) : (
+              <ul className="divide-border divide-y">
+                {followUp.waiting.map(({ budget, views, price }) => (
+                  <li key={budget.id}>
+                    <Link
+                      to="/presupuestos/$budgetId"
+                      params={{ budgetId: budget.id }}
+                      className="panel-row flex items-center gap-3 px-5 py-3.5"
+                    >
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium">{budget.title}</span>
+                        <span className="text-muted-foreground block truncate text-xs">
+                          {find.client(budget.clientId)?.name} · {formatMoney(price)}
+                        </span>
+                      </span>
+                      <Tag tone={views === 0 ? 'amber' : 'purple'} dot>
+                        {views === 0 ? 'Sin abrir' : `Visto ${views}×`}
+                      </Tag>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+        </div>
       </div>
       <p className="text-muted-foreground mt-6 text-xs">
         Hoy: {formatShortDate(today)} · {workStatus.en_curso.label}: {active.length} · Datos de

@@ -22,12 +22,13 @@ export const collections = [
   'tasks',
   'notifications',
   'expenses',
+  'activity',
 ] as const
 
 export type CollectionName = (typeof collections)[number]
 
 /** Bump when the seed or the stored shape changes: the demo re-seeds on mismatch. */
-export const DATABASE_VERSION = 3
+export const DATABASE_VERSION = 4
 
 const META_KEY = 'db:meta'
 

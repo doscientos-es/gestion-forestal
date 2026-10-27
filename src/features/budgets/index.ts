@@ -1,4 +1,5 @@
 export { BudgetListPage } from './ui/budget-list-page'
 export { BudgetEditorPage } from './ui/budget-editor-page'
 export { BudgetDetailPage } from './ui/budget-detail-page'
+export { BudgetPublicPage } from './ui/budget-public-page'
 export { draftFromBudget, duplicateDraft, emptyDraft } from './application/budget-draft'

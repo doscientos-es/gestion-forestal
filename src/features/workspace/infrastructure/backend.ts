@@ -13,4 +13,6 @@ export const apiDeps: ApiDeps = {
   repositories: backend.repositories,
   newId: () => clock.id(),
   today: () => clock.today(),
+  now: () => clock.now(),
+  currentUserId: () => backend.session.currentUserId(),
 }

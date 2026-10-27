@@ -1,15 +1,18 @@
 import { Button, DropdownMenuItem, MetricCard, MetricGrid, SelectionToolbar } from '@doscientos/ui'
-import { Banknote, Download, Receipt } from 'lucide-react'
+import { Banknote, Download, FileSpreadsheet, Receipt } from 'lucide-react'
 import { useState } from 'react'
 
 import {
+  accountingLookup,
   invoiceStatus,
   invoiceTotals,
+  invoicesToCsv,
   lookup,
   useWorkspace,
   type InvoiceDraft,
   type InvoiceStatus,
 } from '@/features/workspace'
+import { clock } from '@/shared/lib/clock'
 import { downloadTextFile } from '@/shared/lib/download'
 import { formatMoney, formatShortDate } from '@/shared/lib/format'
 import { useCommand } from '@/shared/lib/use-command'
@@ -70,12 +73,26 @@ export function InvoicesPage() {
         title="Facturas"
         description="Borradores generados desde las obras. La gestoría emite la factura oficial."
         actions={
-          <Button
-            isDisabled={drafts.length === 0 || handOver.isPending}
-            onPress={() => handOver.mutate(drafts)}
-          >
-            <Download aria-hidden="true" className="size-4" /> Enviar borradores a gestoría
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              isDisabled={rows.length === 0}
+              onPress={() =>
+                downloadTextFile(
+                  `facturas-${clock.today()}.csv`,
+                  invoicesToCsv(rows, accountingLookup(workspace)),
+                )
+              }
+            >
+              <FileSpreadsheet aria-hidden="true" className="size-4" /> Exportar vista
+            </Button>
+            <Button
+              isDisabled={drafts.length === 0 || handOver.isPending}
+              onPress={() => handOver.mutate(drafts)}
+            >
+              <Download aria-hidden="true" className="size-4" /> Enviar borradores a gestoría
+            </Button>
+          </>
         }
       />
       <MetricGrid className="mb-5 grid gap-3 sm:grid-cols-3">

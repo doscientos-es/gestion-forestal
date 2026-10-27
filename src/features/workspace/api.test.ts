@@ -24,6 +24,8 @@ function setup() {
     repositories: backend.repositories,
     newId: () => `new-${(sequence += 1)}`,
     today: () => TODAY,
+    now: () => `${TODAY}T09:15:00.000Z`,
+    currentUserId: () => backend.session.currentUserId(),
   }
   return {
     workspace: createWorkspaceApi(deps, backend),
@@ -91,6 +93,24 @@ describe('api layer over the local backend', () => {
       (item) => item.id === draft.id,
     )
     expect(stored?.status).toBe('enviada')
+  })
+
+  it('attributes activity to the signed-in person and persists client views', async () => {
+    const before = await api.workspace.getWorkspace()
+    const admin = before.people.find((person) => person.role === 'admin')
+    const draft = before.budgets.find((budget) => budget.status === 'borrador')
+    if (!admin || !draft) throw new Error('missing admin or draft budget')
+    await api.workspace.signIn(admin.id)
+    await api.budgets.sendEmail(draft.id, {
+      to: 'cliente@example.org',
+      subject: 'Propuesta',
+      message: '',
+    })
+    await api.budgets.recordView(draft.id)
+    const after = await api.workspace.getWorkspace()
+    expect(after.activity[0]).toMatchObject({ kind: 'presupuesto_visto', actorId: null })
+    expect(after.activity[1]).toMatchObject({ kind: 'presupuesto_enviado', actorId: admin.id })
+    expect(after.budgets.find((budget) => budget.id === draft.id)?.status).toBe('enviado')
   })
 
   it('restores the seed on reset and handles the session', async () => {

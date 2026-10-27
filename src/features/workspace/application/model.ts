@@ -11,6 +11,8 @@ export type Client = {
   kind: ClientKind
   taxId: string
   town: string
+  /** Where proposals and invoice copies are sent. Empty when unknown. */
+  email: string
 }
 
 export type Zone = { id: string; name: string }
@@ -266,6 +268,37 @@ export type Expense = {
   reimbursedOn: IsoDate | null
 }
 
+export type ActivityKind =
+  | 'presupuesto_creado'
+  | 'presupuesto_importado'
+  | 'presupuesto_enviado'
+  | 'presupuesto_visto'
+  | 'presupuesto_aceptado'
+  | 'presupuesto_rechazado'
+  | 'factura_creada'
+  | 'factura_enviada_cliente'
+  | 'factura_enviada_gestoria'
+  | 'factura_cobrada'
+
+export type ActivityEntity = 'budget' | 'invoice'
+
+/**
+ * Audit trail of what happened to proposals and invoices: who sent what to whom and how many
+ * times the client opened it. Emails are simulated in the demo; production writes the same events.
+ */
+export type ActivityEvent = {
+  id: string
+  /** ISO date-time (UTC). */
+  at: string
+  kind: ActivityKind
+  entity: ActivityEntity
+  entityId: string
+  /** Person who did it; null when the client or the system did. */
+  actorId: string | null
+  /** One line of detail, e.g. the recipient address. */
+  summary: string
+}
+
 export type Workspace = {
   version: 1
   /** Monday the synthetic data is anchored to. */
@@ -284,4 +317,6 @@ export type Workspace = {
   tasks: WorkTask[]
   notifications: AppNotification[]
   expenses: Expense[]
+  /** Newest first. */
+  activity: ActivityEvent[]
 }

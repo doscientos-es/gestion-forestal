@@ -53,6 +53,7 @@ function createDatabase(storage: () => KeyValueStorage, today: () => IsoDate): D
       tasks: data.tasks,
       notifications: data.notifications,
       expenses: data.expenses,
+      activity: data.activity,
     } satisfies Record<keyof Omit<Workspace, 'version' | 'anchor'>, unknown[]>
     for (const [name, items] of Object.entries(collections)) {
       writeCollection(name as CollectionName, items, storage())
@@ -91,6 +92,7 @@ export function createLocalBackend(
       tasks: createLocalRepository('tasks', storage),
       notifications: createLocalRepository('notifications', storage),
       expenses: createLocalRepository('expenses', storage),
+      activity: createLocalRepository('activity', storage),
     },
     session: createSession(storage),
     database: createDatabase(storage, today),

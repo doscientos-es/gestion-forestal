@@ -4,6 +4,7 @@ import {
   CalendarRange,
   ChartColumn,
   ClipboardCheck,
+  History,
   House,
   Receipt,
   Sun,
@@ -26,6 +27,7 @@ export type Destination = {
     | '/gastos'
     | '/avisos'
     | '/facturas'
+    | '/actividad'
     | '/informes'
   label: string
   short: string
@@ -97,6 +99,14 @@ export const destinations: Destination[] = [
     label: 'Facturas',
     short: 'Facturas',
     icon: Receipt,
+    group: 'Administración',
+  },
+  {
+    area: 'actividad',
+    to: '/actividad',
+    label: 'Actividad',
+    short: 'Actividad',
+    icon: History,
     group: 'Administración',
   },
   {

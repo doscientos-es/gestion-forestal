@@ -22,6 +22,7 @@ import type {
   Workspace,
 } from '../application/model'
 import { availableMembers } from '../application/planning'
+import { seedActivity } from './seed-activity'
 import { seedClients, seedCrews, seedPeople, seedSpecies, seedZones } from './seed-catalog'
 import {
   defaultParams,
@@ -65,6 +66,7 @@ export function buildSeed(today: IsoDate): Workspace {
     tasks: [],
     notifications: [],
     expenses: [],
+    activity: [],
   }
   const codeCount = new Map<number, number>()
   const budgetCount = new Map<number, number>()
@@ -138,6 +140,7 @@ export function buildSeed(today: IsoDate): Workspace {
   addProgressInvoice(workspace, anchor)
   workspace.invoices.sort((a, b) => b.date.localeCompare(a.date))
   workspace.budgets.sort((a, b) => b.date.localeCompare(a.date))
+  workspace.activity = seedActivity(workspace, today)
   return workspace
 }
 

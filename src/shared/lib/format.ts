@@ -53,6 +53,19 @@ export function formatDate(iso: IsoDate) {
   )
 }
 
+/** «4 nov, 10:30» from an ISO date-time, always in the office's time zone. */
+export function formatDateTime(isoDateTime: string) {
+  return new Intl.DateTimeFormat(LOCALE, {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Europe/Madrid',
+  })
+    .format(new Date(isoDateTime))
+    .replace('.', '')
+}
+
 /** «martes, 3 de noviembre» */
 export function formatLongDate(iso: IsoDate) {
   return new Intl.DateTimeFormat(LOCALE, {

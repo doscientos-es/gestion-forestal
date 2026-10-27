@@ -37,7 +37,9 @@ Una herramienta para integrar la operativa de una empresa forestal que planta á
 
 ## Fuera de alcance
 
-Facturación fiscal certificada, login real, envío de correos o WhatsApp, importación real del programa de presupuestos, control horario, mapas y costes de maquinaria. Los módulos opcionales se presentarán como ampliaciones sin simularlos.
+Facturación fiscal certificada, login real, WhatsApp, importación real del programa de presupuestos, control horario, mapas y costes de maquinaria. Los módulos opcionales se presentarán como ampliaciones sin simularlos.
+
+El envío de propuestas y copias de factura por correo **sí se simula** (queda anotado en el historial, no sale ningún correo), igual que las aperturas del cliente mediante el enlace de la propuesta. La importación CSV usa una plantilla propia.
 
 ## Identidad
 

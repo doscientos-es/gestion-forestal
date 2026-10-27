@@ -22,6 +22,7 @@ const collectionNames = [
   'tasks',
   'notifications',
   'expenses',
+  'activity',
 ] as const satisfies readonly (keyof Collections & keyof Repositories)[]
 
 /** Reads every aggregate and assembles the snapshot the domain functions work on. */
@@ -57,17 +58,20 @@ export async function commit(deps: ApiDeps, previous: Workspace, next: Workspace
   }
 }
 
-export function commandContext(deps: ApiDeps): Context {
-  return { id: deps.newId, today: deps.today() }
+export function commandContext(deps: ApiDeps, actorId: string | null = null): Context {
+  return { id: deps.newId, today: deps.today(), now: deps.now(), actorId }
 }
 
-/** Load → run a pure domain function → persist the difference → return its result. */
+/**
+ * Load → run a pure domain function → persist the difference → return its result.
+ * The operation receives the context with the signed-in person, so events are attributed.
+ */
 export async function mutate<Result>(
   deps: ApiDeps,
-  operation: (workspace: Workspace) => { workspace: Workspace; result: Result },
+  operation: (workspace: Workspace, context: Context) => { workspace: Workspace; result: Result },
 ): Promise<Result> {
-  const previous = await loadWorkspace(deps)
-  const { workspace, result } = operation(previous)
+  const [previous, actorId] = await Promise.all([loadWorkspace(deps), deps.currentUserId()])
+  const { workspace, result } = operation(previous, commandContext(deps, actorId))
   await commit(deps, previous, workspace)
   return result
 }

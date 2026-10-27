@@ -31,7 +31,8 @@ export function NewClientShortcut({ onCreated }: { onCreated: (client: Client) =
   const [kind, setKind] = useState<ClientKind>('ayuntamiento')
   const [taxId, setTaxId] = useState('')
   const [town, setTown] = useState('')
-  const save = useCommand(() => budgetsApi.createClient({ name, kind, taxId, town }), {
+  const [email, setEmail] = useState('')
+  const save = useCommand(() => budgetsApi.createClient({ name, kind, taxId, town, email }), {
     success: (client) => ({ title: 'Cliente creado', description: client.name }),
     onSuccess: (client) => {
       onCreated(client)
@@ -39,6 +40,7 @@ export function NewClientShortcut({ onCreated }: { onCreated: (client: Client) =
       setName('')
       setTaxId('')
       setTown('')
+      setEmail('')
     },
   })
 
@@ -68,11 +70,12 @@ export function NewClientShortcut({ onCreated }: { onCreated: (client: Client) =
               options={Object.entries(clientKind).map(([value, label]) => ({ value, label }))}
             />
             <TextField label="CIF / NIF" value={taxId} onChange={setTaxId} />
+            <TextField label="Localidad" value={town} onChange={setTown} />
             <TextField
-              className="sm:col-span-2"
-              label="Localidad"
-              value={town}
-              onChange={setTown}
+              label="Correo para propuestas"
+              placeholder="obras@cliente.es"
+              value={email}
+              onChange={setEmail}
             />
           </div>
           <DialogFooter>
