@@ -8,143 +8,153 @@ import {
   Landmark,
   House,
   Receipt,
+  Sprout,
   Sun,
   TreePine,
   UsersRound,
   WalletCards,
   type LucideIcon,
-} from 'lucide-react'
+} from "lucide-react";
 
-import type { Area, Person, Workspace } from '@/features/workspace'
+import type { Area, Person, Workspace } from "@/features/workspace";
 
 export type Destination = {
-  area: Area
+  area: Area;
   to:
-    | '/'
-    | '/presupuestos'
-    | '/obras'
-    | '/planificacion'
-    | '/parte'
-    | '/ausencias'
-    | '/gastos'
-    | '/avisos'
-    | '/facturas'
-    | '/contabilidad'
-    | '/cuadrillas'
-    | '/actividad'
-    | '/informes'
-  label: string
-  short: string
-  icon: LucideIcon
-  group: 'Operativa' | 'Administración'
-}
+    | "/"
+    | "/presupuestos"
+    | "/obras"
+    | "/planificacion"
+    | "/parte"
+    | "/ausencias"
+    | "/gastos"
+    | "/avisos"
+    | "/facturas"
+    | "/contabilidad"
+    | "/catalogo"
+    | "/cuadrillas"
+    | "/actividad"
+    | "/informes";
+  label: string;
+  short: string;
+  icon: LucideIcon;
+  group: "Operativa" | "Administración";
+};
 
 export const destinations: Destination[] = [
   {
-    area: 'inicio',
-    to: '/',
-    label: 'Inicio',
-    short: 'Inicio',
+    area: "inicio",
+    to: "/",
+    label: "Inicio",
+    short: "Inicio",
     icon: House,
-    group: 'Operativa',
+    group: "Operativa",
   },
   {
-    area: 'presupuestos',
-    to: '/presupuestos',
-    label: 'Presupuestos',
-    short: 'Presup.',
+    area: "presupuestos",
+    to: "/presupuestos",
+    label: "Presupuestos",
+    short: "Presup.",
     icon: Calculator,
-    group: 'Operativa',
+    group: "Operativa",
   },
   {
-    area: 'obras',
-    to: '/obras',
-    label: 'Obras',
-    short: 'Obras',
+    area: "obras",
+    to: "/obras",
+    label: "Obras",
+    short: "Obras",
     icon: TreePine,
-    group: 'Operativa',
+    group: "Operativa",
   },
   {
-    area: 'planificacion',
-    to: '/planificacion',
-    label: 'Planificación',
-    short: 'Plan',
+    area: "planificacion",
+    to: "/planificacion",
+    label: "Planificación",
+    short: "Plan",
     icon: CalendarRange,
-    group: 'Operativa',
+    group: "Operativa",
   },
   {
-    area: 'parte',
-    to: '/parte',
-    label: 'Parte diario',
-    short: 'Parte',
+    area: "parte",
+    to: "/parte",
+    label: "Parte diario",
+    short: "Parte",
     icon: ClipboardCheck,
-    group: 'Operativa',
+    group: "Operativa",
   },
   {
-    area: 'gastos',
-    to: '/gastos',
-    label: 'Gastos',
-    short: 'Gastos',
+    area: "gastos",
+    to: "/gastos",
+    label: "Gastos",
+    short: "Gastos",
     icon: WalletCards,
-    group: 'Operativa',
+    group: "Operativa",
   },
   {
-    area: 'ausencias',
-    to: '/ausencias',
-    label: 'Vacaciones y ausencias',
-    short: 'Ausencias',
+    area: "ausencias",
+    to: "/ausencias",
+    label: "Vacaciones y ausencias",
+    short: "Ausencias",
     icon: Sun,
-    group: 'Operativa',
+    group: "Operativa",
   },
   {
-    area: 'avisos',
-    to: '/avisos',
-    label: 'Avisos',
-    short: 'Avisos',
+    area: "avisos",
+    to: "/avisos",
+    label: "Avisos",
+    short: "Avisos",
     icon: Bell,
-    group: 'Operativa',
+    group: "Operativa",
   },
   {
-    area: 'facturas',
-    to: '/facturas',
-    label: 'Facturas',
-    short: 'Facturas',
+    area: "facturas",
+    to: "/facturas",
+    label: "Facturas",
+    short: "Facturas",
     icon: Receipt,
-    group: 'Administración',
+    group: "Administración",
   },
   {
-    area: 'contabilidad',
-    to: '/contabilidad',
-    label: 'Contabilidad',
-    short: 'Conta',
+    area: "contabilidad",
+    to: "/contabilidad",
+    label: "Contabilidad",
+    short: "Conta",
     icon: Landmark,
-    group: 'Administración',
+    group: "Administración",
   },
   {
-    area: 'cuadrillas',
-    to: '/cuadrillas',
-    label: 'Cuadrillas',
-    short: 'Equipos',
+    area: "catalogo",
+    to: "/catalogo",
+    label: "Catálogo",
+    short: "Catálogo",
+    icon: Sprout,
+    group: "Administración",
+  },
+  {
+    area: "cuadrillas",
+    to: "/cuadrillas",
+    label: "Cuadrillas",
+    short: "Equipos",
     icon: UsersRound,
-    group: 'Administración',
+    group: "Administración",
   },
   {
-    area: 'actividad',
-    to: '/actividad',
-    label: 'Actividad',
-    short: 'Actividad',
+    area: "actividad",
+    to: "/actividad",
+    label: "Actividad",
+    short: "Actividad",
     icon: History,
-    group: 'Administración',
+    group: "Administración",
   },
   {
-    area: 'informes',
-    to: '/informes',
-    label: 'Informes',
-    short: 'Informes',
+    area: "informes",
+    to: "/informes",
+    label: "Informes",
+    short: "Informes",
     icon: ChartColumn,
-    group: 'Administración',
+    group: "Administración",
   },
-]
+];
 
 /** Small counters next to each destination, scoped to what the user can act on. */
 export function navigationCounts(
@@ -153,53 +163,53 @@ export function navigationCounts(
 ): Partial<Record<Area, number>> {
   const avisos = workspace.notifications.filter(
     (item) => item.personId === user.id && !item.read,
-  ).length
-  if (user.role === 'admin') {
+  ).length;
+  if (user.role === "admin") {
     return {
       presupuestos: workspace.budgets.filter(
-        (b) => b.status === 'borrador' || b.status === 'enviado',
+        (b) => b.status === "borrador" || b.status === "enviado",
       ).length,
-      obras: workspace.works.filter((w) => w.status !== 'facturada').length,
-      ausencias: workspace.absences.filter((a) => a.status === 'solicitada').length,
-      gastos: workspace.expenses.filter((e) => e.status === 'pendiente').length,
-      facturas: workspace.invoices.filter((i) => i.status === 'borrador').length,
+      obras: workspace.works.filter((w) => w.status !== "facturada").length,
+      ausencias: workspace.absences.filter((a) => a.status === "solicitada").length,
+      gastos: workspace.expenses.filter((e) => e.status === "pendiente").length,
+      facturas: workspace.invoices.filter((i) => i.status === "borrador").length,
       avisos,
-    }
+    };
   }
-  const own = workspace.absences.filter((a) => a.personId === user.id && a.status === 'solicitada')
+  const own = workspace.absences.filter((a) => a.personId === user.id && a.status === "solicitada");
   const mine = workspace.works.filter(
     (work) =>
       workspace.assignments.some(
         (assignment) => assignment.workId === work.id && assignment.crewId === user.crewId,
       ) &&
-      (work.status === 'en_curso' || work.status === 'planificada'),
-  )
+      (work.status === "en_curso" || work.status === "planificada"),
+  );
   const rejected = workspace.expenses.filter(
-    (e) => e.createdBy === user.id && e.status === 'rechazado',
-  ).length
+    (e) => e.createdBy === user.id && e.status === "rechazado",
+  ).length;
   return {
     obras: mine.length,
     ausencias: own.length,
     gastos: rejected,
     avisos,
-  }
+  };
 }
 
 export function isActive(to: string, pathname: string) {
-  return to === '/' ? pathname === '/' : pathname.startsWith(to)
+  return to === "/" ? pathname === "/" : pathname.startsWith(to);
 }
 
 /** On a detail page (e.g. /obras/123) the section it belongs to, so mobile can offer "back". */
 export function parentDestination(pathname: string) {
   return destinations.find(
     (item) =>
-      item.to !== '/' && pathname.startsWith(`${item.to}/`) && pathname.length > item.to.length + 1,
-  )
+      item.to !== "/" && pathname.startsWith(`${item.to}/`) && pathname.length > item.to.length + 1,
+  );
 }
 
 export function pageTitle(pathname: string) {
   const match = [...destinations]
     .sort((a, b) => b.to.length - a.to.length)
-    .find((item) => (item.to === '/' ? pathname === '/' : pathname.startsWith(item.to)))
-  return match?.label ?? 'Gestión forestal'
+    .find((item) => (item.to === "/" ? pathname === "/" : pathname.startsWith(item.to)));
+  return match?.label ?? "Gestión forestal";
 }

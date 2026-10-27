@@ -1,6 +1,6 @@
-import { MetricCard, MetricGrid } from '@doscientos/ui'
-import { ChartColumn, Landmark } from 'lucide-react'
-import { useState } from 'react'
+import { MetricCard, MetricGrid } from "@doscientos/ui";
+import { ChartColumn, Landmark } from "lucide-react";
+import { useState } from "react";
 
 import {
   accountingYears,
@@ -11,41 +11,41 @@ import {
   relativeChange,
   useWorkspace,
   type AccountingMetric,
-} from '@/features/workspace'
-import { formatMoney, formatSignedPercent } from '@/shared/lib/format'
-import { FilterTabs } from '@/shared/ui/filter-tabs'
-import { PageTop } from '@/shared/ui/page-top'
-import { Panel, PanelHeader } from '@/shared/ui/surface'
+} from "@/features/workspace";
+import { formatMoney, formatSignedPercent } from "@/shared/lib/format";
+import { FilterTabs } from "@/shared/ui/filter-tabs";
+import { PageTop } from "@/shared/ui/page-top";
+import { Panel, PanelHeader } from "@/shared/ui/surface";
 
-import { MonthlyAccountsChart, QuarterlyChart } from './accounting-charts'
+import { MonthlyAccountsChart, QuarterlyChart } from "./accounting-charts";
 
 const metricLabels: Record<AccountingMetric, string> = {
-  income: 'Ingresos',
-  expenses: 'Gastos',
-  result: 'Resultado',
-}
+  income: "Ingresos",
+  expenses: "Gastos",
+  result: "Resultado",
+};
 
 export function AccountingPage() {
-  const workspace = useWorkspace()
-  const years = accountingYears(workspace)
-  const [metric, setMetric] = useState<AccountingMetric>('income')
-  const [picked, setPicked] = useState<number | null>(null)
-  const year = picked ?? years.at(-1) ?? new Date().getFullYear()
-  const previousYear = year - 1
+  const workspace = useWorkspace();
+  const years = accountingYears(workspace);
+  const [metric, setMetric] = useState<AccountingMetric>("income");
+  const [picked, setPicked] = useState<number | null>(null);
+  const year = picked ?? years.at(-1) ?? new Date().getFullYear();
+  const previousYear = year - 1;
   // The selected year against the two before it (only those that have data).
   const compared = [year - 2, year - 1, year].filter(
     (item) => years.includes(item) || item === year,
-  )
+  );
 
-  const current = periodTotals(workspace, year)
-  const previous = periodTotals(workspace, previousYear)
+  const current = periodTotals(workspace, year);
+  const previous = periodTotals(workspace, previousYear);
   const delta = (now: number, before: number) => {
-    const change = relativeChange(now, before)
+    const change = relativeChange(now, before);
     return {
-      trend: change < 0 ? ('down' as const) : ('up' as const),
+      trend: change < 0 ? ("down" as const) : ("up" as const),
       delta: `${formatSignedPercent(change)} vs ${previousYear}`,
-    }
-  }
+    };
+  };
 
   return (
     <>
@@ -62,7 +62,7 @@ export function AccountingPage() {
             value: String(item),
             label: String(item),
             count: workspace.invoices.filter(
-              (invoice) => invoice.status !== 'borrador' && invoice.date.startsWith(String(item)),
+              (invoice) => invoice.status !== "borrador" && invoice.date.startsWith(String(item)),
             ).length,
           }))}
         />
@@ -79,14 +79,14 @@ export function AccountingPage() {
           value={formatMoney(current.expenses)}
           description={`${previousYear}: ${formatMoney(previous.expenses)}`}
           {...delta(current.expenses, previous.expenses)}
-          tone={current.expenses <= previous.expenses ? 'success' : 'warning'}
+          tone={current.expenses <= previous.expenses ? "success" : "warning"}
         />
         <MetricCard
           label="Resultado"
           value={formatMoney(current.result)}
           description={`${previousYear}: ${formatMoney(previous.result)}`}
           {...delta(current.result, previous.result)}
-          tone={current.result >= previous.result ? 'success' : 'warning'}
+          tone={current.result >= previous.result ? "success" : "warning"}
         />
       </MetricGrid>
       <div className="grid gap-5 xl:grid-cols-2">
@@ -135,12 +135,12 @@ export function AccountingPage() {
             <thead>
               <tr className="text-muted-foreground border-border border-b text-left text-xs">
                 {[
-                  'Trimestre',
-                  'Ingresos',
-                  'Gastos',
-                  'Resultado',
+                  "Trimestre",
+                  "Ingresos",
+                  "Gastos",
+                  "Resultado",
                   `Resultado ${previousYear}`,
-                  'Variación',
+                  "Variación",
                 ].map((header) => (
                   <th key={header} scope="col" className="px-5 py-3 font-medium">
                     {header}
@@ -150,8 +150,8 @@ export function AccountingPage() {
             </thead>
             <tbody>
               {quarters.map((quarter) => {
-                const now = periodTotals(workspace, year, quarter)
-                const before = periodTotals(workspace, previousYear, quarter)
+                const now = periodTotals(workspace, year, quarter);
+                const before = periodTotals(workspace, previousYear, quarter);
                 return (
                   <tr key={quarter} className="border-border border-b last:border-b-0">
                     <th scope="row" className="px-5 py-3 text-left font-semibold">
@@ -167,16 +167,16 @@ export function AccountingPage() {
                     </td>
                     <td className="px-5 py-3 tabular-nums">
                       {before.result === 0
-                        ? '—'
+                        ? "—"
                         : formatSignedPercent(relativeChange(now.result, before.result))}
                     </td>
                   </tr>
-                )
+                );
               })}
             </tbody>
           </table>
         </div>
       </Panel>
     </>
-  )
+  );
 }

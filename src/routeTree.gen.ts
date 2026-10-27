@@ -15,6 +15,7 @@ import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppActividadRouteImport } from './routes/_app.actividad'
 import { Route as AppAusenciasRouteImport } from './routes/_app.ausencias'
 import { Route as AppAvisosRouteImport } from './routes/_app.avisos'
+import { Route as AppCatalogoRouteImport } from './routes/_app.catalogo'
 import { Route as AppContabilidadRouteImport } from './routes/_app.contabilidad'
 import { Route as AppCuadrillasRouteImport } from './routes/_app.cuadrillas'
 import { Route as AppFacturasRouteImport } from './routes/_app.facturas'
@@ -58,6 +59,11 @@ const AppAusenciasRoute = AppAusenciasRouteImport.update({
 const AppAvisosRoute = AppAvisosRouteImport.update({
   id: '/avisos',
   path: '/avisos',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCatalogoRoute = AppCatalogoRouteImport.update({
+  id: '/catalogo',
+  path: '/catalogo',
   getParentRoute: () => AppRoute,
 } as any)
 const AppContabilidadRoute = AppContabilidadRouteImport.update({
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/actividad': typeof AppActividadRoute
   '/ausencias': typeof AppAusenciasRoute
   '/avisos': typeof AppAvisosRoute
+  '/catalogo': typeof AppCatalogoRoute
   '/contabilidad': typeof AppContabilidadRoute
   '/cuadrillas': typeof AppCuadrillasRoute
   '/facturas': typeof AppFacturasRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/actividad': typeof AppActividadRoute
   '/ausencias': typeof AppAusenciasRoute
   '/avisos': typeof AppAvisosRoute
+  '/catalogo': typeof AppCatalogoRoute
   '/contabilidad': typeof AppContabilidadRoute
   '/cuadrillas': typeof AppCuadrillasRoute
   '/facturas': typeof AppFacturasRoute
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/_app/actividad': typeof AppActividadRoute
   '/_app/ausencias': typeof AppAusenciasRoute
   '/_app/avisos': typeof AppAvisosRoute
+  '/_app/catalogo': typeof AppCatalogoRoute
   '/_app/contabilidad': typeof AppContabilidadRoute
   '/_app/cuadrillas': typeof AppCuadrillasRoute
   '/_app/facturas': typeof AppFacturasRoute
@@ -214,6 +223,7 @@ export interface FileRouteTypes {
     | '/actividad'
     | '/ausencias'
     | '/avisos'
+    | '/catalogo'
     | '/contabilidad'
     | '/cuadrillas'
     | '/facturas'
@@ -235,6 +245,7 @@ export interface FileRouteTypes {
     | '/actividad'
     | '/ausencias'
     | '/avisos'
+    | '/catalogo'
     | '/contabilidad'
     | '/cuadrillas'
     | '/facturas'
@@ -258,6 +269,7 @@ export interface FileRouteTypes {
     | '/_app/actividad'
     | '/_app/ausencias'
     | '/_app/avisos'
+    | '/_app/catalogo'
     | '/_app/contabilidad'
     | '/_app/cuadrillas'
     | '/_app/facturas'
@@ -325,6 +337,13 @@ declare module '@tanstack/react-router' {
       path: '/avisos'
       fullPath: '/avisos'
       preLoaderRoute: typeof AppAvisosRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/catalogo': {
+      id: '/_app/catalogo'
+      path: '/catalogo'
+      fullPath: '/catalogo'
+      preLoaderRoute: typeof AppCatalogoRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/contabilidad': {
@@ -439,6 +458,7 @@ interface AppRouteChildren {
   AppActividadRoute: typeof AppActividadRoute
   AppAusenciasRoute: typeof AppAusenciasRoute
   AppAvisosRoute: typeof AppAvisosRoute
+  AppCatalogoRoute: typeof AppCatalogoRoute
   AppContabilidadRoute: typeof AppContabilidadRoute
   AppCuadrillasRoute: typeof AppCuadrillasRoute
   AppFacturasRoute: typeof AppFacturasRoute
@@ -459,6 +479,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppActividadRoute: AppActividadRoute,
   AppAusenciasRoute: AppAusenciasRoute,
   AppAvisosRoute: AppAvisosRoute,
+  AppCatalogoRoute: AppCatalogoRoute,
   AppContabilidadRoute: AppContabilidadRoute,
   AppCuadrillasRoute: AppCuadrillasRoute,
   AppFacturasRoute: AppFacturasRoute,

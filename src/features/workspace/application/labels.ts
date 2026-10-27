@@ -9,6 +9,7 @@ import type {
   ExpenseStatus,
   Incident,
   InvoiceStatus,
+  SpeciesKind,
   Workspace,
   WorkStatus,
 } from './model'
@@ -87,6 +88,12 @@ export const clientKind: Record<ClientKind, string> = {
   particular: 'Particular',
   empresa: 'Empresa',
   comunidad: 'Comunidad / asociación',
+}
+
+export const speciesKind: Record<SpeciesKind, string> = {
+  conifera: 'Conífera',
+  frondosa: 'Frondosa',
+  arbusto: 'Arbusto',
 }
 
 const zoneTones: Tone[] = ['green', 'teal', 'amber', 'purple', 'blue']
