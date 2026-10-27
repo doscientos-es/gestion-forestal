@@ -14,7 +14,10 @@ import { Panel, PanelHeader, Tag } from '@/shared/ui/surface'
 /** Lets each person turn on system alerts on this device and install the app on the home screen. */
 export function DeviceAlertsPanel() {
   const [permission, setPermission] = useState(alertPermission)
-  const canInstall = useSyncExternalStore(installPrompt.subscribe, installPrompt.available)
+  const canInstall = useSyncExternalStore(
+    (listener) => installPrompt.subscribe(listener),
+    () => installPrompt.available(),
+  )
   const installed = isInstalled()
 
   async function turnOn() {

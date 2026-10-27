@@ -34,7 +34,7 @@ self.addEventListener('fetch', (event) => {
         fetch(request).then((response) => {
           if (response.ok && new URL(request.url).pathname.startsWith('/assets/')) {
             const copy = response.clone()
-            caches.open(CACHE).then((cache) => cache.put(request, copy))
+            void caches.open(CACHE).then((cache) => cache.put(request, copy))
           }
           return response
         }),
