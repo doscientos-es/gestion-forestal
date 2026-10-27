@@ -20,10 +20,10 @@ import {
 } from '@/features/workspace'
 import { clock } from '@/shared/lib/clock'
 import { useCommand } from '@/shared/lib/use-command'
+import { AttachmentField } from '@/shared/ui/attachment-field'
 import { ChoiceField, NumberField, TextField } from '@/shared/ui/form-controls'
 
 import { expensesApi } from '../api'
-import { AttachmentField } from './attachment-field'
 
 const GENERAL = 'general'
 

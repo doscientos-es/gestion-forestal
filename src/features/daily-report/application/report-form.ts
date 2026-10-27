@@ -2,6 +2,7 @@ import {
   assignmentOn,
   availableMembers,
   crewMembers,
+  type Attachment,
   type DailyReport,
   type Incident,
   type Person,
@@ -16,7 +17,10 @@ export type ReportForm = {
   hectares: number
   incident: Incident
   notes: string
+  photos: Attachment[]
 }
+
+export const MAX_REPORT_PHOTOS = 3
 
 export type ReportContext = {
   work: Work
@@ -57,8 +61,8 @@ export function reportContext(
 
 export function initialForm(context: ReportContext, workspace: Workspace): ReportForm {
   if (context.existing) {
-    const { workerIds, plants, hectares, incident, notes } = context.existing
-    return { workerIds, plants, hectares, incident, notes }
+    const { workerIds, plants, hectares, incident, notes, photos } = context.existing
+    return { workerIds, plants, hectares, incident, notes, photos }
   }
   const available = availableMembers(
     context.crewId,
@@ -76,6 +80,7 @@ export function initialForm(context: ReportContext, workspace: Workspace): Repor
     hectares: plantsPerHa > 0 ? Math.round((context.target / plantsPerHa) * 100) / 100 : 0,
     incident: 'ninguna',
     notes: '',
+    photos: [],
   }
 }
 

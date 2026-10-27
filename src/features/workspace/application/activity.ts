@@ -15,6 +15,8 @@ export const activityKind: Record<ActivityKind, { label: string; tone: Tone }> =
   factura_enviada_cliente: { label: 'Copia enviada por correo', tone: 'blue' },
   factura_enviada_gestoria: { label: 'Enviada a la gestoría', tone: 'blue' },
   factura_cobrada: { label: 'Cobrada', tone: 'green' },
+  informe_enviado: { label: 'Informe de obra enviado', tone: 'blue' },
+  informe_visto: { label: 'Informe visto por el cliente', tone: 'purple' },
 }
 
 export type ActivityInput = Pick<ActivityEvent, 'kind' | 'entity' | 'entityId' | 'summary'> & {

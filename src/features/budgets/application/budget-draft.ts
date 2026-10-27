@@ -1,4 +1,11 @@
-import type { Budget, BudgetInput, BudgetLine, BudgetParams, Workspace } from '@/features/workspace'
+import {
+  suggestedYield,
+  type Budget,
+  type BudgetInput,
+  type BudgetLine,
+  type BudgetParams,
+  type Workspace,
+} from '@/features/workspace'
 
 export const DEFAULT_PARAMS: BudgetParams = {
   crewSize: 5,
@@ -17,9 +24,26 @@ const speciesDefaults: Record<string, { density: number; yieldPerDay: number }> 
   's-abedul': { density: 1100, yieldPerDay: 320 },
 }
 
-export function newPlantingLine(speciesId = 's-radiata'): BudgetLine {
-  const defaults = speciesDefaults[speciesId] ?? { density: 1100, yieldPerDay: 300 }
-  return { id: crypto.randomUUID(), kind: 'plantacion', speciesId, hectares: 5, ...defaults }
+/**
+ * Starting density and yield for a species. The yield is the company's real one when finished
+ * works give a history (so new budgets stop repeating an optimistic figure), else the typical one.
+ */
+export function plantingDefaults(workspace: Workspace | undefined, speciesId: string) {
+  const typical = speciesDefaults[speciesId] ?? { density: 1100, yieldPerDay: 300 }
+  const suggestion = workspace
+    ? suggestedYield(workspace, speciesId, typical.yieldPerDay)
+    : { value: typical.yieldPerDay }
+  return { density: typical.density, yieldPerDay: suggestion.value }
+}
+
+export function newPlantingLine(workspace?: Workspace, speciesId = 's-radiata'): BudgetLine {
+  return {
+    id: crypto.randomUUID(),
+    kind: 'plantacion',
+    speciesId,
+    hectares: 5,
+    ...plantingDefaults(workspace, speciesId),
+  }
 }
 
 export function newTreatmentLine(): BudgetLine {
@@ -32,11 +56,7 @@ export function newTreatmentLine(): BudgetLine {
   }
 }
 
-export function speciesDefaultsFor(speciesId: string) {
-  return speciesDefaults[speciesId] ?? null
-}
-
-export function emptyDraft(today: string): BudgetInput {
+export function emptyDraft(today: string, workspace?: Workspace): BudgetInput {
   return {
     title: '',
     clientId: '',
@@ -44,7 +64,7 @@ export function emptyDraft(today: string): BudgetInput {
     date: today,
     notes: '',
     params: DEFAULT_PARAMS,
-    lines: [newPlantingLine()],
+    lines: [newPlantingLine(workspace)],
   }
 }
 

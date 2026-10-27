@@ -14,7 +14,10 @@ export const Route = createFileRoute('/_app/presupuestos/nuevo')({
 
 function NewBudgetRoute() {
   const { desde } = Route.useSearch()
-  const source = useWorkspace().budgets.find((budget) => budget.id === desde)
-  const initial = source ? duplicateDraft(source, clock.today()) : emptyDraft(clock.today())
+  const workspace = useWorkspace()
+  const source = workspace.budgets.find((budget) => budget.id === desde)
+  const initial = source
+    ? duplicateDraft(source, clock.today())
+    : emptyDraft(clock.today(), workspace)
   return <BudgetEditorPage key={desde ?? 'new'} initial={initial} />
 }

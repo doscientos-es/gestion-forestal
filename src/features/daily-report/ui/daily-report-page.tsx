@@ -14,6 +14,7 @@ import {
 import { clock } from '@/shared/lib/clock'
 import { formatLongDate, formatNumber, formatPercent } from '@/shared/lib/format'
 import { useCommand } from '@/shared/lib/use-command'
+import { AttachmentField } from '@/shared/ui/attachment-field'
 import { EmptyPanel } from '@/shared/ui/empty-panel'
 import { NumberField, StepperField } from '@/shared/ui/form-controls'
 import { PageTop } from '@/shared/ui/page-top'
@@ -21,6 +22,7 @@ import { Panel, ProgressBar } from '@/shared/ui/surface'
 
 import { dailyReportApi } from '../api'
 import {
+  MAX_REPORT_PHOTOS,
   hectaresFor,
   initialForm,
   reportContext,
@@ -157,6 +159,35 @@ export function DailyReportPage() {
               </Button>
             ))}
           </div>
+        </fieldset>
+        <fieldset className="space-y-2">
+          <legend className="mb-1 text-sm font-semibold">Fotos del día</legend>
+          <p className="text-muted-foreground text-xs">
+            Opcional. El cliente las verá en el informe de la obra.
+          </p>
+          {form.photos.map((photo, index) => (
+            <AttachmentField
+              key={`${photo.name}-${index}`}
+              label={`Foto ${index + 1}`}
+              value={photo}
+              onChange={(next) =>
+                update({
+                  photos: next
+                    ? form.photos.map((item, at) => (at === index ? next : item))
+                    : form.photos.filter((_item, at) => at !== index),
+                })
+              }
+            />
+          ))}
+          {form.photos.length < MAX_REPORT_PHOTOS ? (
+            <AttachmentField
+              key={`new-${form.photos.length}`}
+              label="Añadir foto"
+              value={null}
+              pickLabel="Hacer foto"
+              onChange={(next) => next && update({ photos: [...form.photos, next] })}
+            />
+          ) : null}
         </fieldset>
         <div>
           <label htmlFor="report-notes" className="mb-2 block text-sm font-semibold">

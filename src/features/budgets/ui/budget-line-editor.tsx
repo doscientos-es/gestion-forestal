@@ -10,7 +10,7 @@ import {
 import { formatNumber } from '@/shared/lib/format'
 import { ChoiceField, NumberField, TextField } from '@/shared/ui/form-controls'
 
-import { speciesDefaultsFor } from '../application/budget-draft'
+import { plantingDefaults } from '../application/budget-draft'
 
 export function BudgetLineEditor({
   index,
@@ -54,7 +54,9 @@ export function BudgetLineEditor({
             className="col-span-2 sm:col-span-3"
             label="Especie"
             value={line.speciesId}
-            onChange={(speciesId) => onChange({ speciesId, ...speciesDefaultsFor(speciesId) })}
+            onChange={(speciesId) =>
+              onChange({ speciesId, ...plantingDefaults(workspace, speciesId) })
+            }
             options={workspace.species.map((item) => ({ value: item.id, label: item.name }))}
           />
           <NumberField
@@ -128,12 +130,14 @@ function HistoryHint({
   onApply: () => void
 }) {
   const optimistic = current > real * 1.03
+  const differs = Math.abs(current - real) > real * 0.03
   const Icon = optimistic ? TrendingDown : TrendingUp
   return (
     <Badge variant={optimistic ? 'warning' : 'success'} className="gap-1.5">
       <Icon aria-hidden="true" className="size-3.5" />
       Real en {works} {works === 1 ? 'obra' : 'obras'}: {formatNumber(real)} pl/peón
-      {optimistic ? (
+      {optimistic ? ' · tu cifra es optimista' : ''}
+      {differs ? (
         <Button variant="link" size="xs" onPress={onApply}>
           Usar
         </Button>

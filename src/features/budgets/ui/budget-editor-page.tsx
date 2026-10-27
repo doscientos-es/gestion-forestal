@@ -132,7 +132,7 @@ export function BudgetEditorPage({
                   <Button
                     variant="outline"
                     size="sm"
-                    onPress={() => patch({ lines: [...draft.lines, newPlantingLine()] })}
+                    onPress={() => patch({ lines: [...draft.lines, newPlantingLine(workspace)] })}
                   >
                     <Plus aria-hidden="true" className="size-4" /> Plantación
                   </Button>

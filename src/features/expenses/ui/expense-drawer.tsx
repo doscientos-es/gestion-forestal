@@ -24,11 +24,11 @@ import {
 import { downloadDataUrl } from '@/shared/lib/download'
 import { formatDate, formatMoney } from '@/shared/lib/format'
 import { useCommand } from '@/shared/lib/use-command'
+import { AttachmentField } from '@/shared/ui/attachment-field'
 import { TextField } from '@/shared/ui/form-controls'
 import { Tag } from '@/shared/ui/surface'
 
 import { expensesApi } from '../api'
-import { AttachmentField } from './attachment-field'
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (

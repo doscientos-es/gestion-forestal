@@ -68,6 +68,26 @@ export function budgetEmailDraft(
   }
 }
 
+export function workReportEmailDraft(
+  workTitle: string,
+  client: Client | undefined,
+  progress: number,
+  link: string,
+): EmailDraft {
+  return {
+    to: client?.email ?? '',
+    subject: `Informe de avance · ${workTitle}`,
+    message: [
+      `Buenos días${client ? `, ${client.name}` : ''}:`,
+      '',
+      `La obra «${workTitle}» lleva un ${Math.round(progress * 100)} % de avance.`,
+      `Pueden ver el informe con fotos aquí: ${link}`,
+      '',
+      'Un saludo.',
+    ].join('\n'),
+  }
+}
+
 export function invoiceEmailDraft(
   reference: string,
   workTitle: string,

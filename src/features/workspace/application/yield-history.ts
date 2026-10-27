@@ -1,6 +1,25 @@
 import type { Workspace } from './model'
 import { calculatePerformance } from './work-performance'
 
+export type YieldSuggestion = {
+  /** Plants per worker and day, rounded to 5 so it reads like a budget figure. */
+  value: number
+  source: 'real' | 'tipico'
+  /** Finished works the figure comes from; 0 for the typical value. */
+  works: number
+}
+
+/** What to start a planting line with: the company's real yield if there is history, else the typical one. */
+export function suggestedYield(
+  workspace: Workspace,
+  speciesId: string,
+  typical: number,
+): YieldSuggestion {
+  const history = historicYield(workspace, speciesId)
+  if (!history) return { value: typical, source: 'tipico', works: 0 }
+  return { value: Math.max(5, Math.round(history.yield / 5) * 5), source: 'real', works: history.works }
+}
+
 export type YieldHistory = { yield: number; budgeted: number; works: number }
 
 /**

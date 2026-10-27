@@ -13,6 +13,7 @@ import { estimateBudget, toPlannedFigures } from '../application/budget-calculat
 import { DEFAULT_VAT_RATE } from '../application/invoice-draft'
 import type {
   Assignment,
+  Attachment,
   Budget,
   DailyReport,
   Expense,
@@ -140,6 +141,7 @@ export function buildSeed(today: IsoDate): Workspace {
   addProgressInvoice(workspace, anchor)
   workspace.invoices.sort((a, b) => b.date.localeCompare(a.date))
   workspace.budgets.sort((a, b) => b.date.localeCompare(a.date))
+  addReportPhotos(workspace)
   workspace.activity = seedActivity(workspace, today)
   return workspace
 }
@@ -191,9 +193,37 @@ function simulateReports(
       incident,
       notes: rain ? 'Parada parcial por lluvia.' : '',
       authorId: crew.foremanId,
+      photos: [],
     })
   }
   return reports
+}
+
+/** Illustration standing in for a phone photo: a hillside with rows of planted trees. */
+function demoPhoto(label: string, hue: number): Attachment {
+  const trees = Array.from({ length: 14 }, (_, index) => {
+    const x = 30 + (index % 7) * 85 + (index > 6 ? 40 : 0)
+    const y = index > 6 ? 250 : 200
+    return `<path d="M${x} ${y - 28}l11 26h-22z" fill="hsl(${hue} 45% 28%)"/><rect x="${x - 1.5}" y="${y - 2}" width="3" height="8" fill="#6b4f2a"/>`
+  }).join('')
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><rect width="640" height="360" fill="hsl(${hue} 55% 82%)"/><path d="M0 170Q180 110 340 160T640 140V360H0z" fill="hsl(${hue} 35% 55%)"/><path d="M0 240Q220 190 400 230T640 215V360H0z" fill="hsl(${hue} 40% 42%)"/>${trees}<text x="16" y="344" font-family="sans-serif" font-size="16" fill="#fff">${label}</text></svg>`
+  return {
+    name: `${label}.svg`,
+    mime: 'image/svg+xml',
+    dataUrl: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
+  }
+}
+
+/** The foreman's latest reports of works in progress or finished carry an example photo. */
+function addReportPhotos(workspace: Workspace) {
+  workspace.works.forEach((work, index) => {
+    if (work.status === 'pendiente' || work.status === 'planificada') return
+    const own = workspace.reports.filter((report) => report.workId === work.id)
+    const sorted = [...own].sort((a, b) => b.date.localeCompare(a.date))
+    const photos = [demoPhoto('Frente de plantación', 135 + (index % 4) * 10)]
+    if (sorted[0]) sorted[0].photos = photos
+    if (sorted[3]) sorted[3].photos = [demoPhoto('Planta acopiada en pista', 95 + (index % 3) * 12)]
+  })
 }
 
 function finalInvoice(work: Work, status: 'cobrada' | 'enviada', sequence: number): InvoiceDraft {

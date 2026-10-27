@@ -114,6 +114,43 @@ export function respondToBudget(
   return { workspace: next, work }
 }
 
+/** Records that the work report was emailed to the client (simulated). */
+export function sendWorkReportEmail(
+  workspace: Workspace,
+  workId: string,
+  input: EmailInput,
+  context: Context,
+): Workspace {
+  if (!workspace.works.some((item) => item.id === workId))
+    throw new CommandError('Obra no encontrada.')
+  validateEmail(input)
+  return logActivity(
+    workspace,
+    { kind: 'informe_enviado', entity: 'work', entityId: workId, summary: input.to.trim() },
+    context,
+  )
+}
+
+/** The client opened the public report link. Unknown works are ignored: the link is public. */
+export function recordWorkReportView(
+  workspace: Workspace,
+  workId: string,
+  context: Context,
+): Workspace {
+  if (!workspace.works.some((item) => item.id === workId)) return workspace
+  return logActivity(
+    workspace,
+    {
+      kind: 'informe_visto',
+      entity: 'work',
+      entityId: workId,
+      summary: 'Enlace del informe',
+      actorId: null,
+    },
+    context,
+  )
+}
+
 export function sendInvoiceEmail(
   workspace: Workspace,
   invoiceId: string,

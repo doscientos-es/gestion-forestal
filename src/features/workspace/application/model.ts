@@ -152,6 +152,8 @@ export type DailyReport = {
   incident: Incident
   notes: string
   authorId: string
+  /** Photos of the day (up to 3). The client sees them in the work report. */
+  photos: Attachment[]
 }
 
 export type AbsenceType = 'vacaciones' | 'baja' | 'permiso'
@@ -282,8 +284,10 @@ export type ActivityKind =
   | 'factura_enviada_cliente'
   | 'factura_enviada_gestoria'
   | 'factura_cobrada'
+  | 'informe_enviado'
+  | 'informe_visto'
 
-export type ActivityEntity = 'budget' | 'invoice'
+export type ActivityEntity = 'budget' | 'invoice' | 'work'
 
 /**
  * Audit trail of what happened to proposals and invoices: who sent what to whom and how many
