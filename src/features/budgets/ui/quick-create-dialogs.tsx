@@ -10,9 +10,17 @@ import {
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 
-import { clientKind, type Client, type ClientKind, type Zone } from '@/features/workspace'
+import {
+  clientKind,
+  speciesKind,
+  type Client,
+  type ClientKind,
+  type Species,
+  type SpeciesKind,
+  type Zone,
+} from '@/features/workspace'
 import { useCommand } from '@/shared/lib/use-command'
-import { ChoiceField, TextField } from '@/shared/ui/form-controls'
+import { ChoiceField, NumberField, TextField } from '@/shared/ui/form-controls'
 
 import { budgetsApi } from '../api'
 

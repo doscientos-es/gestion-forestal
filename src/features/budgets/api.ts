@@ -18,6 +18,8 @@ import {
   type ClientInput,
   type EmailInput,
   type ImportedBudget,
+  type Species,
+  type SpeciesInput,
   type Work,
   type Zone,
 } from '@/features/workspace'
@@ -29,6 +31,8 @@ export type BudgetsApi = {
   /** New clients and zones are created from the budget form, where they are needed. */
   createClient(input: ClientInput): Promise<Client>
   createZone(name: string): Promise<Zone>
+  /** New species are also created from the budget form; the full catalogue lives in «Catálogo». */
+  createSpecies(input: SpeciesInput): Promise<Species>
   setStatus(budgetId: string, status: Exclude<BudgetStatus, 'aceptado'>): Promise<void>
   /** Freezes the estimate into a new work. */
   accept(budgetId: string): Promise<Work>
