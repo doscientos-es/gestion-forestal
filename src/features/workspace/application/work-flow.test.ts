@@ -383,11 +383,10 @@ describe('client work report and yield suggestions', () => {
     const report = clientWorkReport(withPhotos, workspace)
     expect(report.progress).toBeLessThanOrEqual(1)
     expect(report.photos.length).toBeGreaterThan(0)
-    expect(report.days.map((day) => day.date)).toEqual(
-      [...report.days.map((day) => day.date)].sort(),
-    )
+    const diary = report.days.map((day) => day.date)
+    expect(diary).toEqual([...diary].sort((a, b) => a.localeCompare(b)))
     const dates = report.photos.map((item) => item.date)
-    expect(dates).toEqual([...dates].sort().reverse())
+    expect(dates).toEqual([...dates].sort((a, b) => b.localeCompare(a)))
     expect(JSON.stringify(report)).not.toContain('dailyCost')
   })
 
