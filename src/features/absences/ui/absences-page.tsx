@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 import {
   absenceStatus,
+  absenceImpact,
   absenceType,
   absenceWorkingDays,
   lookup,
@@ -24,14 +25,18 @@ import { Panel, PanelHeader, Tag } from '@/shared/ui/surface'
 
 import { absencesApi } from '../api'
 import { AbsenceRequestDialog } from './absence-request-dialog'
+import { TeamCalendar } from './team-calendar'
+import { VacationBalances } from './vacation-balances'
 
 type Filter = 'todas' | AbsenceStatus
+type View = 'solicitudes' | 'calendario' | 'saldos'
 
 export function AbsencesPage() {
   const workspace = useWorkspace()
   const user = useCurrentUser()
   const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState<Filter>('solicitada')
+  const [view, setView] = useState<View>('solicitudes')
   const decide = useCommand(
     ({ absence, status }: { absence: Absence; status: 'aprobada' | 'rechazada' }) =>
       absencesApi.decide(absence.id, status),
@@ -58,6 +63,7 @@ export function AbsencesPage() {
     scope.filter((item) => value === 'todas' || item.status === value).length
   const balance = vacationBalance(user.id, year, workspace.absences)
   const upcoming = scope.filter((item) => item.status !== 'rechazada' && item.end >= today).length
+  const balances = workspace.people.filter((person) => person.role !== 'admin').length
 
   return (
     <>
@@ -94,21 +100,38 @@ export function AbsencesPage() {
           />
         </MetricGrid>
       ) : (
-        <div className="mb-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <FilterTabs
-            label="Filtrar por estado"
-            value={filter}
-            onChange={setFilter}
+            label="Vista de ausencias"
+            value={view}
+            onChange={setView}
             options={[
-              { value: 'solicitada', label: 'Pendientes', count: count('solicitada') },
-              { value: 'aprobada', label: 'Aprobadas', count: count('aprobada') },
-              { value: 'rechazada', label: 'Rechazadas', count: count('rechazada') },
-              { value: 'todas', label: 'Todas', count: count('todas') },
+              { value: 'solicitudes', label: 'Solicitudes', count: count('solicitada') },
+              { value: 'calendario', label: 'Calendario del equipo', count: upcoming },
+              { value: 'saldos', label: 'Saldos', count: balances },
             ]}
           />
+          {view === 'solicitudes' ? (
+            <FilterTabs
+              label="Filtrar por estado"
+              value={filter}
+              onChange={setFilter}
+              options={[
+                { value: 'solicitada', label: 'Pendientes', count: count('solicitada') },
+                { value: 'aprobada', label: 'Aprobadas', count: count('aprobada') },
+                { value: 'rechazada', label: 'Rechazadas', count: count('rechazada') },
+                { value: 'todas', label: 'Todas', count: count('todas') },
+              ]}
+            />
+          ) : null}
         </div>
       )}
-      <Panel aria-labelledby="absences-title">
+      {isAdmin && view === 'calendario' ? <TeamCalendar /> : null}
+      {isAdmin && view === 'saldos' ? <VacationBalances /> : null}
+      <Panel
+        aria-labelledby="absences-title"
+        className={isAdmin && view !== 'solicitudes' ? 'hidden' : undefined}
+      >
         <PanelHeader
           id="absences-title"
           icon={<Sun className="size-5" strokeWidth={1.75} />}
@@ -137,6 +160,7 @@ export function AbsencesPage() {
             {rows.map((absence) => {
               const person = find.person(absence.personId)
               const status = absenceStatus[absence.status]
+              const impact = absenceImpact(absence, workspace)
               const conflicts = workspace.assignments.filter(
                 (item) =>
                   item.crewId === person?.crewId &&
@@ -158,6 +182,19 @@ export function AbsencesPage() {
                       <p className="mt-1 text-xs text-amber-800">
                         Coincide con{' '}
                         {conflicts.map((item) => find.work(item.workId)?.title).join(', ')}
+                      </p>
+                    ) : null}
+                    {isAdmin &&
+                    impact &&
+                    absence.status === 'solicitada' &&
+                    impact.overlapping.length > 0 ? (
+                      <p className="mt-1 text-xs text-amber-800">
+                        También fuera:{' '}
+                        {impact.overlapping.map((item) => item.person.name).join(', ')}
+                        {' · '}
+                        {impact.understaffed
+                          ? `la cuadrilla se queda con ${impact.minAvailable} de ${impact.crewSize}`
+                          : `quedan ${impact.minAvailable} de ${impact.crewSize}`}
                       </p>
                     ) : null}
                   </div>

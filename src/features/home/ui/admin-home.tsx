@@ -3,12 +3,13 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { ArrowUpRight, ChevronRight, Inbox, Mail, Plus, TreePine } from 'lucide-react'
 
 import { followUpSummary } from '@/features/activity'
-import { YieldDeviation } from '@/features/works'
+import { MarginAlerts, YieldDeviation } from '@/features/works'
 import {
   absenceType,
   calculatePerformance,
   invoiceTotals,
   lookup,
+  marginAlerts,
   proposeDraft,
   summarizeYear,
   workStatus,
@@ -88,6 +89,7 @@ export function AdminHome({
           </Button>
         }
       />
+      <MarginAlerts alerts={marginAlerts(workspace)} />
       <MetricGrid className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Obras en curso"

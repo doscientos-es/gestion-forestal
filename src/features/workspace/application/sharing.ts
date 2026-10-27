@@ -1,6 +1,13 @@
 import { logActivity } from './activity'
-import { CommandError, type Context } from './commands'
-import type { Workspace } from './model'
+import {
+  CommandError,
+  acceptBudget,
+  adminIds,
+  notify,
+  setBudgetStatus,
+  type Context,
+} from './commands'
+import type { Work, Workspace } from './model'
 
 /**
  * Sending documents. The demo never delivers anything: these commands only record what a real
@@ -65,6 +72,46 @@ export function recordBudgetView(
     },
     context,
   )
+}
+
+/**
+ * The client answers from the public link. Only a proposal that was sent can be answered, the
+ * action is attributed to the client (no signed-in person) and the office gets a notice.
+ */
+export function respondToBudget(
+  workspace: Workspace,
+  budgetId: string,
+  decision: 'aceptado' | 'rechazado',
+  context: Context,
+): { workspace: Workspace; work: Work | null } {
+  const budget = workspace.budgets.find((item) => item.id === budgetId)
+  if (!budget) throw new CommandError('Propuesta no encontrada.')
+  if (budget.status !== 'enviado')
+    throw new CommandError('Esta propuesta ya no admite respuesta desde el enlace.')
+  const client = { ...context, actorId: null }
+  let next = workspace
+  let work: Work | null = null
+  if (decision === 'aceptado') {
+    const accepted = acceptBudget(workspace, budgetId, client)
+    next = accepted.workspace
+    work = accepted.work
+  } else next = setBudgetStatus(workspace, budgetId, 'rechazado', client)
+  const clientName = workspace.clients.find((item) => item.id === budget.clientId)?.name
+  next = notify(
+    next,
+    adminIds(workspace),
+    {
+      kind: 'presupuesto_respondido',
+      title:
+        decision === 'aceptado'
+          ? `${clientName ?? 'El cliente'} ha aceptado la propuesta`
+          : `${clientName ?? 'El cliente'} ha rechazado la propuesta`,
+      body: `${budget.number} · ${budget.title}`,
+      workId: work?.id ?? null,
+    },
+    context,
+  )
+  return { workspace: next, work }
 }
 
 export function sendInvoiceEmail(

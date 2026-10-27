@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { parseCsv } from '@/shared/lib/csv'
 
 import { buildSeed } from '../infrastructure/build-seed'
+import { absenceImpact, crewCalendar, vacationRows } from './absence-calendar'
 import { budgetTracking } from './activity'
 import { estimateStoredBudget } from './budget-calculation'
 import { budgetCsvTemplate, importBudgets, parseBudgetCsv } from './budget-import'
@@ -14,6 +15,7 @@ import {
   createZone,
   moveAssignment,
   removeAssignment,
+  requestAbsence,
   saveBudget,
   scheduleWork,
   setBudgetStatus,
@@ -22,9 +24,12 @@ import {
   type Context,
 } from './commands'
 import { invoiceTotals } from './invoice-draft'
+import type { Workspace } from './model'
 import { findConflicts, suggestedEnd } from './planning'
 import { proposalLines } from './proposal'
-import { recordBudgetView, sendBudgetEmail, sendInvoiceEmail } from './sharing'
+import { recordBudgetView, respondToBudget, sendBudgetEmail, sendInvoiceEmail } from './sharing'
+import { callLink, dialNumber, whatsappLink } from './whatsapp'
+import { marginAlerts } from './work-alerts'
 import { calculatePerformance } from './work-performance'
 import { availableYears, summarizeYear } from './year-comparison'
 
@@ -301,6 +306,120 @@ describe('sending proposals and following them up', () => {
       expect(lines.reduce((sum, line) => sum + line.amount, 0)).toBe(price)
       expect(lines.every((line) => line.amount > 0)).toBe(true)
     }
+  })
+})
+
+describe('client answers from the public link', () => {
+  const workspace = buildSeed(TODAY)
+  const sent = workspace.budgets.find((budget) => budget.id === 'b-open-1')
+  const draft = workspace.budgets.find((budget) => budget.status === 'borrador')
+
+  it('accepting creates the work, attributes it to the client and notifies the office', () => {
+    if (!sent) throw new Error('missing sent budget')
+    const result = respondToBudget(workspace, sent.id, 'aceptado', context)
+    expect(result.work?.budgetId).toBe(sent.id)
+    expect(result.workspace.budgets.find((b) => b.id === sent.id)?.status).toBe('aceptado')
+    expect(result.workspace.activity[0]).toMatchObject({
+      kind: 'presupuesto_aceptado',
+      actorId: null,
+    })
+    expect(result.workspace.notifications[0]).toMatchObject({
+      kind: 'presupuesto_respondido',
+      personId: 'p-nerea',
+    })
+  })
+
+  it('declining logs a rejection and nothing can be answered twice or before sending', () => {
+    if (!sent || !draft) throw new Error('missing budgets')
+    const declined = respondToBudget(workspace, sent.id, 'rechazado', context).workspace
+    expect(declined.activity[0]).toMatchObject({ kind: 'presupuesto_rechazado', actorId: null })
+    expect(() => respondToBudget(declined, sent.id, 'aceptado', context)).toThrow(CommandError)
+    expect(() => respondToBudget(workspace, draft.id, 'aceptado', context)).toThrow(CommandError)
+  })
+})
+
+describe('margin alerts and WhatsApp links', () => {
+  const workspace = buildSeed(TODAY)
+
+  it('warns about the work running below budgeted yield and ignores healthy ones', () => {
+    const alerts = marginAlerts(workspace)
+    const hero = alerts.find((alert) => alert.work.title === 'Maderas del Norte · parcela 14')
+    expect(hero).toBeDefined()
+    expect(hero?.projectedRate).toBeLessThan(hero?.plannedRate ?? 0)
+    expect(hero?.lostMargin).toBeGreaterThan(0)
+    expect(alerts.every((alert) => alert.work.status === 'en_curso')).toBe(true)
+  })
+
+  it('builds wa.me links with country code and encoded text', () => {
+    expect(whatsappLink('+34 600 000 001', 'Hola, ¿qué tal?')).toBe(
+      'https://wa.me/34600000001?text=Hola%2C%20%C2%BFqu%C3%A9%20tal%3F',
+    )
+    expect(dialNumber('600000001')).toBe('34600000001')
+    expect(whatsappLink('123', 'x')).toBeNull()
+    expect(callLink('')).toBeNull()
+    expect(workspace.people.every((person) => dialNumber(person.phone) !== null)).toBe(true)
+  })
+})
+
+describe('team absence calendar', () => {
+  const seeded = buildSeed(TODAY)
+  /** No absences, so every case starts from a clean calendar. */
+  const base: Workspace = { ...seeded, absences: [] }
+  const crew = base.crews[0]
+  const members = base.people.filter((person) => person.crewId === crew?.id)
+  const request = (personId: string) => ({
+    personId,
+    type: 'vacaciones' as const,
+    start: '2027-02-01',
+    end: '2027-02-05',
+    note: '',
+  })
+
+  it('flags overlaps and understaffing from the same crew, ignoring other crews', () => {
+    let workspace = base
+    for (const member of members.slice(0, 3))
+      workspace = requestAbsence(workspace, request(member.id), context)
+    const last = workspace.absences[0]
+    if (!last) throw new Error('missing absence')
+    const impact = absenceImpact(last, workspace)
+    expect(impact?.overlapping).toHaveLength(2)
+    expect(impact?.minAvailable).toBe(members.length - 3)
+    expect(impact?.understaffed).toBe(true)
+
+    const other = base.people.find((person) => person.crewId && person.crewId !== crew?.id)
+    if (!other) throw new Error('missing other crew')
+    const alone = requestAbsence(base, request(other.id), context)
+    expect(absenceImpact(alone.absences[0] ?? last, alone)?.overlapping).toHaveLength(0)
+  })
+
+  it('splits vacation days into approved, pending and remaining', () => {
+    const person = members[0]
+    if (!person) throw new Error('missing person')
+    let workspace = base
+    workspace = requestAbsence(
+      workspace,
+      { ...request(person.id), start: '2026-12-07', end: '2026-12-11' },
+      context,
+      true,
+    )
+    workspace = requestAbsence(
+      workspace,
+      { ...request(person.id), start: '2026-12-14', end: '2026-12-15' },
+      context,
+    )
+    const row = vacationRows(workspace, 2026).find((item) => item.person.id === person.id)
+    expect(row).toMatchObject({ approved: 5, pending: 2, remaining: 22 - 7 })
+    expect(vacationRows(workspace, 2026).some((item) => item.person.role === 'admin')).toBe(false)
+  })
+
+  it('marks crowded days in the crew calendar', () => {
+    let workspace = base
+    for (const member of members.slice(0, 2))
+      workspace = requestAbsence(workspace, request(member.id), context)
+    const days = ['2027-02-01', '2027-02-06', '2027-02-08']
+    const rows = crewCalendar(crew?.id ?? '', days, workspace)
+    expect(rows[0]?.cells.map((cell) => cell.crowded)).toEqual([true, false, false])
+    expect(rows[0]?.cells[1]?.weekend).toBe(true)
   })
 })
 

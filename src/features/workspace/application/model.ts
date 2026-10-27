@@ -36,6 +36,8 @@ export type Person = {
   role: Role
   title: string
   email: string
+  /** Mobile number with country code, used for WhatsApp and calls. Empty when unknown. */
+  phone: string
   crewId: string | null
   /** Cost of one working day (peonada) including social security. */
   dailyCost: Cents
@@ -211,6 +213,7 @@ export type NotificationKind =
   | 'tarea_nueva'
   | 'ausencia_solicitada'
   | 'ausencia_resuelta'
+  | 'presupuesto_respondido'
 
 /** In-app notice. Push delivery is a production adapter; the demo only stores these. */
 export type AppNotification = {

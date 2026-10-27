@@ -111,6 +111,8 @@ export const seedCrews: Crew[] = [
 const FOREMAN_COST = 19_000
 const WORKER_COST = 15_500
 
+let phoneSequence = 0
+
 function person(
   id: string,
   name: string,
@@ -131,6 +133,8 @@ function person(
     role,
     title,
     email: `${handle}@demo.example`,
+    // Fictitious numbers: 600 000 0NN, in the order the people are created.
+    phone: `+34 600 000 ${String((phoneSequence += 1)).padStart(3, '0')}`,
     crewId,
     dailyCost: role === 'capataz' ? FOREMAN_COST : role === 'peon' ? WORKER_COST : 0,
   }

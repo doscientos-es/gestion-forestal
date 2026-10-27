@@ -18,6 +18,8 @@ Dominio puro (`features/workspace/application`), pantallas, rutas, contratos `Re
 | Enviar a gestoría        | `invoicesApi.sendToAccounting` | CSV descargado           | correo o portal de la gestoría           | admin                   | `api.test.ts`       | Mock   |
 | Enviar propuesta         | `budgetsApi.sendEmail`         | evento en `activity`     | servidor de correo (Resend, SMTP)        | admin                   | `api.test.ts`       | Mock   |
 | Enlace público propuesta | `budgetsApi.recordView`        | evento en `activity`     | ruta pública con token firmado           | anónimo, solo lectura   | `work-flow.test.ts` | Mock   |
+| Responder propuesta      | `budgetsApi.respond`           | `budgets` + `works`      | RPC con token firmado                    | anónimo con token       | `work-flow.test.ts` | Mock   |
+| Avisar por WhatsApp      | enlaces `wa.me` (sin api)      | teléfono en `people`     | igual; o WhatsApp Business API           | admin / capataz         | `work-flow.test.ts` | Demo   |
 | Importar presupuestos    | `budgetsApi.importCsv`         | colección `budgets`      | RPC transaccional                        | admin                   | `work-flow.test.ts` | Demo   |
 | Copia de factura         | `invoicesApi.sendEmail`        | evento en `activity`     | servidor de correo                       | admin                   | `work-flow.test.ts` | Mock   |
 | Actividad                | lectura de `activity`          | colección `activity`     | tabla `activity_events` (solo inserción) | admin                   | `work-flow.test.ts` | Demo   |

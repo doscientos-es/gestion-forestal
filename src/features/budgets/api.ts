@@ -6,6 +6,7 @@ import {
   importBudgets,
   mutate,
   recordBudgetView,
+  respondToBudget,
   saveBudget,
   sendBudgetEmail,
   setBudgetStatus,
@@ -35,6 +36,8 @@ export type BudgetsApi = {
   sendEmail(budgetId: string, email: EmailInput): Promise<void>
   /** The client opened the public proposal link. */
   recordView(budgetId: string): Promise<void>
+  /** The client accepts or declines from the public link; accepting creates the work. */
+  respond(budgetId: string, decision: 'aceptado' | 'rechazado'): Promise<void>
   /** Creates one draft per imported work, adding the clients and zones that are missing. */
   importCsv(budgets: ImportedBudget[]): Promise<Budget[]>
 }
@@ -74,6 +77,11 @@ export function createBudgetsApi(deps: ApiDeps): BudgetsApi {
     recordView: (budgetId) =>
       mutate(deps, (workspace, context) => ({
         workspace: recordBudgetView(workspace, budgetId, { ...context, actorId: null }),
+        result: undefined,
+      })),
+    respond: (budgetId, decision) =>
+      mutate(deps, (workspace, context) => ({
+        workspace: respondToBudget(workspace, budgetId, decision, context).workspace,
         result: undefined,
       })),
     importCsv: (budgets) =>

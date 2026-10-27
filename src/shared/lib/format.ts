@@ -76,6 +76,15 @@ export function formatLongDate(iso: IsoDate) {
   }).format(toDate(iso))
 }
 
+/** «noviembre de 2026» */
+export function formatMonthYear(year: number, month: number) {
+  return new Intl.DateTimeFormat(LOCALE, {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year, month - 1, 1)))
+}
+
 /** «lun» */
 export function formatWeekday(iso: IsoDate) {
   return new Intl.DateTimeFormat(LOCALE, { weekday: 'short', timeZone: 'UTC' })

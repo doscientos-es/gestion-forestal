@@ -4,12 +4,13 @@ import { CalendarPlus, CheckCheck, FileText, Receipt, TrendingUp } from 'lucide-
 import { useState } from 'react'
 
 import { WorkExpensesPanel } from '@/features/expenses'
-import { AssignDialog } from '@/features/planning'
+import { AssignDialog, CrewContactPanel } from '@/features/planning'
 import { TaskChecklist } from '@/features/tasks'
 import {
   calculatePerformance,
   cumulativeProgress,
   lookup,
+  marginAlerts,
   proposeDraft,
   useCurrentUser,
   useWorkspace,
@@ -24,6 +25,7 @@ import { Panel, PanelHeader, Stat, Tag } from '@/shared/ui/surface'
 
 import { worksApi } from '../api'
 import { CrewWorkSummary } from './crew-work-summary'
+import { MarginAlerts } from './margin-alerts'
 import { ProgressChart } from './progress-chart'
 import { WorkFigures } from './work-figures'
 import { WorkReports } from './work-reports'
@@ -42,6 +44,8 @@ export function WorkDetailPage({ work }: { work: Work }) {
   const invoices = workspace.invoices.filter((item) => item.workId === work.id)
   const status = workStatus[work.status]
   const isAdmin = user?.role === 'admin'
+  const canContact = isAdmin || user?.role === 'capataz'
+  const alerts = marginAlerts(workspace).filter((alert) => alert.work.id === work.id)
 
   const invoice = useCommand(() => worksApi.createInvoiceDraft(work.id), {
     success: () => ({
@@ -118,6 +122,7 @@ export function WorkDetailPage({ work }: { work: Work }) {
           </Tag>
         ))}
       </div>
+      {isAdmin ? <MarginAlerts alerts={alerts} linkToWork={false} /> : null}
       {isAdmin ? (
         <WorkFigures work={work} performance={performance} />
       ) : (
@@ -182,6 +187,9 @@ export function WorkDetailPage({ work }: { work: Work }) {
                 />
               </div>
             </Panel>
+          ) : null}
+          {canContact ? (
+            <CrewContactPanel work={work} assignments={assignments} sender={user} />
           ) : null}
           <WorkExpensesPanel work={work} />
         </div>
