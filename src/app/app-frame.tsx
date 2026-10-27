@@ -19,6 +19,7 @@ import { MobileNavigation } from './mobile-navigation'
 import { navigationCounts, pageTitle, parentDestination } from './navigation'
 import { SearchDialog } from './search-dialog'
 import { NavigationGroups, PrimaryShortcut, SeasonCard, UserHeader } from './sidebar-parts'
+import { useDeviceAlerts } from './use-device-alerts'
 
 export function AppFrame({ user, children }: { user: Person; children: ReactNode }) {
   const workspace = useWorkspace()
@@ -30,6 +31,7 @@ export function AppFrame({ user, children }: { user: Person; children: ReactNode
   const navigate = useNavigate()
   const [searchOpen, setSearchOpen] = useState(false)
   const parentSection = parentDestination(pathname)
+  useDeviceAlerts(user)
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {

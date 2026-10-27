@@ -15,6 +15,7 @@ import { PageTop } from '@/shared/ui/page-top'
 import { Panel, PanelHeader } from '@/shared/ui/surface'
 
 import { tasksApi } from '../api'
+import { DeviceAlertsPanel } from './device-alerts-panel'
 
 export function NotificationsPage() {
   const workspace = useWorkspace()
@@ -52,6 +53,7 @@ export function NotificationsPage() {
           </Button>
         }
       />
+      <DeviceAlertsPanel />
       <Panel aria-labelledby="notices-title">
         <PanelHeader
           id="notices-title"
