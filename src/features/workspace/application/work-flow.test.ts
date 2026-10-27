@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { parseCsv } from '@/shared/lib/csv'
 
 import { buildSeed } from '../infrastructure/build-seed'
-import { absenceImpact, crewCalendar, vacationRows } from './absence-calendar'
+import { absenceImpact, monthGrid, vacationRows } from './absence-calendar'
 import { budgetTracking } from './activity'
 import { estimateStoredBudget } from './budget-calculation'
 import { budgetCsvTemplate, importBudgets, parseBudgetCsv } from './budget-import'
@@ -469,14 +469,32 @@ describe('team absence calendar', () => {
     expect(vacationRows(workspace, 2026).some((item) => item.person.role === 'admin')).toBe(false)
   })
 
-  it('marks crowded days in the crew calendar', () => {
+  it('builds Monday-first weeks and rates each day by how many are away', () => {
+    const crewIds = [crew?.id ?? '']
     let workspace = base
     for (const member of members.slice(0, 2))
       workspace = requestAbsence(workspace, request(member.id), context)
-    const days = ['2027-02-01', '2027-02-06', '2027-02-08']
-    const rows = crewCalendar(crew?.id ?? '', days, workspace)
-    expect(rows[0]?.cells.map((cell) => cell.crowded)).toEqual([true, false, false])
-    expect(rows[0]?.cells[1]?.weekend).toBe(true)
+    const weeks = monthGrid(2027, 2, crewIds, workspace)
+    expect(weeks.every((week) => week.length === 7)).toBe(true)
+    expect(weeks[0]?.[0]?.date).toBe('2027-02-01')
+    const byDate = new Map(weeks.flat().map((day) => [day.date, day]))
+    expect(byDate.get('2027-02-01')).toMatchObject({ inMonth: true, load: 'varios' })
+    expect(byDate.get('2027-02-01')?.away).toHaveLength(2)
+    expect(byDate.get('2027-02-06')).toMatchObject({ weekend: true, load: 'libre' })
+    expect(byDate.get('2027-02-08')?.away).toHaveLength(0)
+    expect(weeks.flat().at(-1)?.date).toBe('2027-02-28')
+
+    for (const member of members.slice(2, 3))
+      workspace = requestAbsence(workspace, request(member.id), context)
+    const loaded = monthGrid(2027, 2, crewIds, workspace).flat()
+    expect(loaded.find((day) => day.date === '2027-02-03')?.load).toBe('critico')
+    // Another crew's calendar is unaffected.
+    const other = base.crews.find((item) => item.id !== crew?.id)
+    expect(
+      monthGrid(2027, 2, [other?.id ?? ''], workspace)
+        .flat()
+        .every((day) => day.away.length === 0),
+    ).toBe(true)
   })
 })
 

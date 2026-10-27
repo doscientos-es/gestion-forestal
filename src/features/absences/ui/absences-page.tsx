@@ -25,7 +25,7 @@ import { Panel, PanelHeader, Tag } from '@/shared/ui/surface'
 
 import { absencesApi } from '../api'
 import { AbsenceRequestDialog } from './absence-request-dialog'
-import { TeamCalendar } from './team-calendar'
+import { MonthCalendar } from './month-calendar'
 import { VacationBalances } from './vacation-balances'
 
 type Filter = 'todas' | AbsenceStatus
@@ -50,6 +50,7 @@ export function AbsencesPage() {
   if (!user) return null
   const find = lookup(workspace)
   const isAdmin = user.role === 'admin'
+  const canCalendar = isAdmin || user.role === 'capataz'
   const today = clock.today()
   const year = Number(today.slice(0, 4))
   const scope = isAdmin
@@ -99,19 +100,24 @@ export function AbsencesPage() {
             description="Solicitadas o aprobadas"
           />
         </MetricGrid>
-      ) : (
+      ) : null}
+      {canCalendar ? (
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <FilterTabs
             label="Vista de ausencias"
             value={view}
             onChange={setView}
             options={[
-              { value: 'solicitudes', label: 'Solicitudes', count: count('solicitada') },
-              { value: 'calendario', label: 'Calendario del equipo', count: upcoming },
-              { value: 'saldos', label: 'Saldos', count: balances },
+              {
+                value: 'solicitudes',
+                label: isAdmin ? 'Solicitudes' : 'Mis solicitudes',
+                count: count('solicitada'),
+              },
+              { value: 'calendario', label: 'Calendario', count: upcoming },
+              ...(isAdmin ? [{ value: 'saldos' as const, label: 'Saldos', count: balances }] : []),
             ]}
           />
-          {view === 'solicitudes' ? (
+          {isAdmin && view === 'solicitudes' ? (
             <FilterTabs
               label="Filtrar por estado"
               value={filter}
@@ -125,12 +131,17 @@ export function AbsencesPage() {
             />
           ) : null}
         </div>
-      )}
-      {isAdmin && view === 'calendario' ? <TeamCalendar /> : null}
+      ) : null}
+      {canCalendar && view === 'calendario' ? (
+        <MonthCalendar
+          {...(isAdmin || !user.crewId ? {} : { crewId: user.crewId })}
+          canDecide={isAdmin}
+        />
+      ) : null}
       {isAdmin && view === 'saldos' ? <VacationBalances /> : null}
       <Panel
         aria-labelledby="absences-title"
-        className={isAdmin && view !== 'solicitudes' ? 'hidden' : undefined}
+        className={canCalendar && view !== 'solicitudes' ? 'hidden' : undefined}
       >
         <PanelHeader
           id="absences-title"

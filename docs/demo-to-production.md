@@ -6,24 +6,25 @@ Dominio puro (`features/workspace/application`), pantallas, rutas, contratos `Re
 
 ## Matriz pantalla / acción
 
-| Pantalla / acción        | api.ts                         | Persistencia demo        | Producción                               | Permiso (RLS)           | Prueba              | Estado |
-| ------------------------ | ------------------------------ | ------------------------ | ---------------------------------------- | ----------------------- | ------------------- | ------ |
-| Entrar                   | `workspaceApi.signIn`          | selector, `localStorage` | Supabase Auth                            | sesión → rol            | `api.test.ts`       | Mock   |
-| Crear/editar presupuesto | `budgetsApi.save`              | colección `budgets`      | tabla `budgets` + líneas                 | admin                   | cálculo y api       | Demo   |
-| Aceptar presupuesto      | `budgetsApi.accept`            | `budgets` + `works`      | RPC transaccional                        | admin                   | `api.test.ts`       | Demo   |
-| Asignar cuadrilla        | `planningApi.assign`           | `assignments`            | tabla `assignments`                      | admin                   | `work-flow.test.ts` | Demo   |
-| Parte diario             | `dailyReportApi.submit`        | `reports`                | tabla `reports`                          | capataz de su cuadrilla | `work-flow.test.ts` | Demo   |
-| Ausencias                | `absencesApi.request/decide`   | `absences`               | tabla `absences`                         | propio / admin          | —                   | Demo   |
-| Borrador de factura      | `worksApi.createInvoiceDraft`  | `invoices`               | tabla `invoice_drafts`                   | admin                   | `work-flow.test.ts` | Demo   |
-| Enviar a gestoría        | `invoicesApi.sendToAccounting` | CSV descargado           | correo o portal de la gestoría           | admin                   | `api.test.ts`       | Mock   |
-| Enviar propuesta         | `budgetsApi.sendEmail`         | evento en `activity`     | servidor de correo (Resend, SMTP)        | admin                   | `api.test.ts`       | Mock   |
-| Enlace público propuesta | `budgetsApi.recordView`        | evento en `activity`     | ruta pública con token firmado           | anónimo, solo lectura   | `work-flow.test.ts` | Mock   |
-| Responder propuesta      | `budgetsApi.respond`           | `budgets` + `works`      | RPC con token firmado                    | anónimo con token       | `work-flow.test.ts` | Mock   |
-| Avisar por WhatsApp      | enlaces `wa.me` (sin api)      | teléfono en `people`     | igual; o WhatsApp Business API           | admin / capataz         | `work-flow.test.ts` | Demo   |
-| Importar presupuestos    | `budgetsApi.importCsv`         | colección `budgets`      | RPC transaccional                        | admin                   | `work-flow.test.ts` | Demo   |
-| Copia de factura         | `invoicesApi.sendEmail`        | evento en `activity`     | servidor de correo                       | admin                   | `work-flow.test.ts` | Mock   |
-| Actividad                | lectura de `activity`          | colección `activity`     | tabla `activity_events` (solo inserción) | admin                   | `work-flow.test.ts` | Demo   |
-| Informes                 | cálculo en cliente             | lectura de todo          | vistas SQL                               | admin                   | `work-flow.test.ts` | Demo   |
+| Pantalla / acción        | api.ts                                      | Persistencia demo                         | Producción                               | Permiso (RLS)             | Prueba              | Estado |
+| ------------------------ | ------------------------------------------- | ----------------------------------------- | ---------------------------------------- | ------------------------- | ------------------- | ------ |
+| Entrar                   | `workspaceApi.signIn`                       | selector, `localStorage`                  | Supabase Auth                            | sesión → rol              | `api.test.ts`       | Mock   |
+| Crear/editar presupuesto | `budgetsApi.save`                           | colección `budgets`                       | tabla `budgets` + líneas                 | admin                     | cálculo y api       | Demo   |
+| Aceptar presupuesto      | `budgetsApi.accept`                         | `budgets` + `works`                       | RPC transaccional                        | admin                     | `api.test.ts`       | Demo   |
+| Asignar cuadrilla        | `planningApi.assign`                        | `assignments`                             | tabla `assignments`                      | admin                     | `work-flow.test.ts` | Demo   |
+| Parte diario             | `dailyReportApi.submit`                     | `reports`                                 | tabla `reports`                          | capataz de su cuadrilla   | `work-flow.test.ts` | Demo   |
+| Ausencias                | `absencesApi.request/decide`                | `absences`                                | tabla `absences`                         | propio / admin            | —                   | Demo   |
+| Borrador de factura      | `worksApi.createInvoiceDraft`               | `invoices`                                | tabla `invoice_drafts`                   | admin                     | `work-flow.test.ts` | Demo   |
+| Enviar a gestoría        | `invoicesApi.sendToAccounting`              | CSV descargado                            | correo o portal de la gestoría           | admin                     | `api.test.ts`       | Mock   |
+| Enviar propuesta         | `budgetsApi.sendEmail`                      | evento en `activity`                      | servidor de correo (Resend, SMTP)        | admin                     | `api.test.ts`       | Mock   |
+| Enlace público propuesta | `budgetsApi.recordView`                     | evento en `activity`                      | ruta pública con token firmado           | anónimo, solo lectura     | `work-flow.test.ts` | Mock   |
+| Informe de obra cliente  | `worksApi.sendReportEmail/recordReportView` | evento en `activity` + fotos en `reports` | enlace firmado + Storage para fotos      | admin / anónimo con token | `work-flow.test.ts` | Mock   |
+| Responder propuesta      | `budgetsApi.respond`                        | `budgets` + `works`                       | RPC con token firmado                    | anónimo con token         | `work-flow.test.ts` | Mock   |
+| Avisar por WhatsApp      | enlaces `wa.me` (sin api)                   | teléfono en `people`                      | igual; o WhatsApp Business API           | admin / capataz           | `work-flow.test.ts` | Demo   |
+| Importar presupuestos    | `budgetsApi.importCsv`                      | colección `budgets`                       | RPC transaccional                        | admin                     | `work-flow.test.ts` | Demo   |
+| Copia de factura         | `invoicesApi.sendEmail`                     | evento en `activity`                      | servidor de correo                       | admin                     | `work-flow.test.ts` | Mock   |
+| Actividad                | lectura de `activity`                       | colección `activity`                      | tabla `activity_events` (solo inserción) | admin                     | `work-flow.test.ts` | Demo   |
+| Informes                 | cálculo en cliente                          | lectura de todo                           | vistas SQL                               | admin                     | `work-flow.test.ts` | Demo   |
 
 ## Pasos
 

@@ -1,4 +1,11 @@
-import { eachDay, isWorkingDay, rangesOverlap, type IsoDate } from '@/shared/lib/dates'
+import {
+  addDays,
+  eachDay,
+  isWorkingDay,
+  rangesOverlap,
+  startOfWeek,
+  type IsoDate,
+} from '@/shared/lib/dates'
 
 import type { Absence, Person, Workspace } from './model'
 import {
@@ -91,32 +98,61 @@ export function vacationRows(workspace: Workspace, year: number): VacationRow[] 
     .sort((a, b) => a.remaining - b.remaining)
 }
 
-export type CalendarCell = {
+export type DayLoad = 'libre' | 'varios' | 'critico'
+
+export type GridDay = {
   date: IsoDate
+  inMonth: boolean
   weekend: boolean
-  absence: Absence | null
-  /** Two or more people of the crew are away this day. */
-  crowded: boolean
+  /** Active absences of the people shown, newest request last. */
+  away: { absence: Absence; person: Person }[]
+  /** `varios`: two or more of one crew away. `critico`: a crew is below the coverage it needs. */
+  load: DayLoad
 }
 
-export type CalendarRow = { person: Person; cells: CalendarCell[] }
+function pad(value: number) {
+  return String(value).padStart(2, '0')
+}
 
-/** One row per person of the crew for the days given, flagging days with several people away. */
-export function crewCalendar(crewId: string, days: IsoDate[], workspace: Workspace): CalendarRow[] {
-  const members = crewMembers(crewId, workspace.people)
+/**
+ * Month as weeks starting on Monday, for the crews given. Each day lists who is away and how
+ * loaded the day is, so the office sees at a glance where holidays pile up.
+ */
+export function monthGrid(
+  year: number,
+  month: number,
+  crewIds: string[],
+  workspace: Workspace,
+): GridDay[][] {
+  const first = `${year}-${pad(month)}-01`
+  const last = `${year}-${pad(month)}-${pad(new Date(Date.UTC(year, month, 0)).getUTCDate())}`
+  const gridStart = startOfWeek(first)
+  const gridEnd = addDays(startOfWeek(last), 6)
+  const people = workspace.people.filter((p) => p.crewId && crewIds.includes(p.crewId))
   const active = activeAbsences(workspace.absences)
-  const awayOn = (day: IsoDate) =>
-    members.filter((member) => isAbsentOn(member.id, day, active)).length
-  return members.map((person) => ({
-    person,
-    cells: days.map((date) => ({
+  const days = eachDay(gridStart, gridEnd).map<GridDay>((date) => {
+    const away = active
+      .filter((item) => item.start <= date && date <= item.end)
+      .flatMap((absence) => {
+        const person = people.find((item) => item.id === absence.personId)
+        return person ? [{ absence, person }] : []
+      })
+    let load: DayLoad = 'libre'
+    if (isWorkingDay(date)) {
+      for (const crewId of crewIds) {
+        const size = crewMembers(crewId, workspace.people).length
+        const out = away.filter((item) => item.person.crewId === crewId).length
+        if (out >= 2) load = load === 'critico' ? load : 'varios'
+        if (size > 0 && (size - out) / size < MIN_COVERAGE) load = 'critico'
+      }
+    }
+    return {
       date,
+      inMonth: date >= first && date <= last,
       weekend: !isWorkingDay(date),
-      absence:
-        active.find(
-          (item) => item.personId === person.id && item.start <= date && date <= item.end,
-        ) ?? null,
-      crowded: isWorkingDay(date) && awayOn(date) >= 2,
-    })),
-  }))
+      away,
+      load,
+    }
+  })
+  return Array.from({ length: days.length / 7 }, (_, week) => days.slice(week * 7, week * 7 + 7))
 }
