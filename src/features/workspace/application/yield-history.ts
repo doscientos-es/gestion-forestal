@@ -17,7 +17,11 @@ export function suggestedYield(
 ): YieldSuggestion {
   const history = historicYield(workspace, speciesId)
   if (!history) return { value: typical, source: 'tipico', works: 0 }
-  return { value: Math.max(5, Math.round(history.yield / 5) * 5), source: 'real', works: history.works }
+  return {
+    value: Math.max(5, Math.round(history.yield / 5) * 5),
+    source: 'real',
+    works: history.works,
+  }
 }
 
 export type YieldHistory = { yield: number; budgeted: number; works: number }

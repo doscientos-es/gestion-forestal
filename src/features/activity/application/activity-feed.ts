@@ -16,10 +16,12 @@ const sends = new Set<ActivityEvent['kind']>([
   'presupuesto_enviado',
   'factura_enviada_cliente',
   'factura_enviada_gestoria',
+  'informe_enviado',
 ])
 
 export type ActivityDocument =
   | { label: string; to: '/presupuestos/$budgetId'; budgetId: string }
+  | { label: string; to: '/obras/$workId'; workId: string }
   | { label: string; to: '/facturas' }
 
 /** Human name of the budget or invoice an event is about, and where to open it. */
@@ -32,6 +34,14 @@ export function activityDocument(workspace: Workspace, event: ActivityEvent): Ac
       budgetId: event.entityId,
     }
   }
+  if (event.entity === 'work') {
+    const work = workspace.works.find((item) => item.id === event.entityId)
+    return {
+      label: work ? `${work.code} · ${work.title}` : 'Obra eliminada',
+      to: '/obras/$workId',
+      workId: event.entityId,
+    }
+  }
   const invoice = workspace.invoices.find((item) => item.id === event.entityId)
   const client = workspace.clients.find((item) => item.id === invoice?.clientId)
   return {
@@ -42,7 +52,8 @@ export function activityDocument(workspace: Workspace, event: ActivityEvent): Ac
 
 export function matchesFilter(event: ActivityEvent, filter: FeedFilter) {
   if (filter === 'envios') return sends.has(event.kind)
-  if (filter === 'vistas') return event.kind === 'presupuesto_visto'
+  if (filter === 'vistas')
+    return event.kind === 'presupuesto_visto' || event.kind === 'informe_visto'
   if (filter === 'facturas') return event.entity === 'invoice'
   return true
 }

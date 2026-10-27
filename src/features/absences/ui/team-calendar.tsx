@@ -119,17 +119,21 @@ export function TeamCalendar() {
                   {cells.map((cell) => (
                     <td key={cell.date} className={cn('p-px', cell.weekend && 'bg-muted/60')}>
                       {cell.absence ? (
-                        <span
-                          role="img"
-                          aria-label={`${person.name}: ${absenceType[cell.absence.type]} del ${formatShortDate(cell.absence.start)} al ${formatShortDate(cell.absence.end)}${cell.absence.status === 'solicitada' ? ', pendiente' : ''}${cell.crowded ? ', coincide con otra persona de la cuadrilla' : ''}`}
-                          title={`${absenceType[cell.absence.type]} · ${formatShortDate(cell.absence.start)} – ${formatShortDate(cell.absence.end)}`}
-                          className={cn(
-                            'block h-6 rounded-sm',
-                            typeColor[cell.absence.type],
-                            cell.absence.status === 'solicitada' && 'opacity-50',
-                            cell.crowded && 'ring-2 ring-amber-500 ring-inset',
-                          )}
-                        />
+                        <>
+                          <span className="sr-only">
+                            {`${absenceType[cell.absence.type]} del ${formatShortDate(cell.absence.start)} al ${formatShortDate(cell.absence.end)}${cell.absence.status === 'solicitada' ? ', pendiente' : ''}${cell.crowded ? ', coincide con otra persona de la cuadrilla' : ''}`}
+                          </span>
+                          <span
+                            aria-hidden="true"
+                            title={`${absenceType[cell.absence.type]} · ${formatShortDate(cell.absence.start)} – ${formatShortDate(cell.absence.end)}`}
+                            className={cn(
+                              'block h-6 rounded-sm',
+                              typeColor[cell.absence.type],
+                              cell.absence.status === 'solicitada' && 'opacity-50',
+                              cell.crowded && 'ring-2 ring-amber-500 ring-inset',
+                            )}
+                          />
+                        </>
                       ) : (
                         <span aria-hidden="true" className="block h-6" />
                       )}

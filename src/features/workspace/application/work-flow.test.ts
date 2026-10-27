@@ -27,11 +27,20 @@ import { invoiceTotals } from './invoice-draft'
 import type { Workspace } from './model'
 import { findConflicts, suggestedEnd } from './planning'
 import { proposalLines } from './proposal'
-import { recordBudgetView, respondToBudget, sendBudgetEmail, sendInvoiceEmail } from './sharing'
+import {
+  recordBudgetView,
+  recordWorkReportView,
+  respondToBudget,
+  sendBudgetEmail,
+  sendInvoiceEmail,
+  sendWorkReportEmail,
+} from './sharing'
 import { callLink, dialNumber, whatsappLink } from './whatsapp'
 import { marginAlerts } from './work-alerts'
 import { calculatePerformance } from './work-performance'
+import { clientWorkReport } from './work-report'
 import { availableYears, summarizeYear } from './year-comparison'
+import { historicYield, suggestedYield } from './yield-history'
 
 const TODAY = '2026-11-04'
 let sequence = 0
@@ -358,6 +367,53 @@ describe('margin alerts and WhatsApp links', () => {
     expect(whatsappLink('123', 'x')).toBeNull()
     expect(callLink('')).toBeNull()
     expect(workspace.people.every((person) => dialNumber(person.phone) !== null)).toBe(true)
+  })
+})
+
+describe('client work report and yield suggestions', () => {
+  const workspace = buildSeed(TODAY)
+  const withPhotos = workspace.works.find((work) =>
+    workspace.reports.some((report) => report.workId === work.id && report.photos.length > 0),
+  )
+  const email = { to: 'cliente@example.org', subject: 'Informe', message: '' }
+
+  it('shows progress, diary and photos newest first, capped at 100 %', () => {
+    if (!withPhotos) throw new Error('seed needs a work with photos')
+    const report = clientWorkReport(withPhotos, workspace)
+    expect(report.progress).toBeLessThanOrEqual(1)
+    expect(report.photos.length).toBeGreaterThan(0)
+    expect(report.days.map((day) => day.date)).toEqual(
+      [...report.days.map((day) => day.date)].sort(),
+    )
+    const dates = report.photos.map((item) => item.date)
+    expect(dates).toEqual([...dates].sort().reverse())
+    expect(JSON.stringify(report)).not.toContain('dailyCost')
+  })
+
+  it('records the email and the client views against the work', () => {
+    if (!withPhotos) throw new Error('seed needs a work with photos')
+    const sent = sendWorkReportEmail(workspace, withPhotos.id, email, context)
+    expect(sent.activity[0]).toMatchObject({ kind: 'informe_enviado', entity: 'work' })
+    const viewed = recordWorkReportView(sent, withPhotos.id, context)
+    expect(viewed.activity[0]).toMatchObject({ kind: 'informe_visto', actorId: null })
+    expect(recordWorkReportView(workspace, 'nope', context)).toBe(workspace)
+    expect(() =>
+      sendWorkReportEmail(workspace, withPhotos.id, { ...email, to: 'x' }, context),
+    ).toThrow(CommandError)
+  })
+
+  it('suggests the real yield when there is history and the typical one otherwise', () => {
+    const species = workspace.species.find((item) => historicYield(workspace, item.id))
+    if (!species) throw new Error('seed needs a species with finished works')
+    const real = suggestedYield(workspace, species.id, 999)
+    expect(real.source).toBe('real')
+    expect(real.value % 5).toBe(0)
+    expect(real.value).not.toBe(999)
+    expect(suggestedYield({ ...workspace, works: [] }, species.id, 300)).toEqual({
+      value: 300,
+      source: 'tipico',
+      works: 0,
+    })
   })
 })
 

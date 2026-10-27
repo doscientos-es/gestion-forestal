@@ -29,12 +29,16 @@ const icons: Record<ActivityKind, LucideIcon> = {
   factura_enviada_cliente: Mail,
   factura_enviada_gestoria: Landmark,
   factura_cobrada: Banknote,
+  informe_enviado: Mail,
+  informe_visto: Eye,
 }
 
 /** Who did it: the signed-in person, or the client when nobody from the office did. */
 export function actorName(workspace: Workspace, event: ActivityEvent) {
   if (event.actorId) return workspace.people.find((p) => p.id === event.actorId)?.name ?? 'Equipo'
-  return event.kind === 'presupuesto_visto' ? 'Cliente' : 'Sistema'
+  return event.kind === 'presupuesto_visto' || event.kind === 'informe_visto'
+    ? 'Cliente'
+    : 'Sistema'
 }
 
 export function ActivityIcon({ kind }: { kind: ActivityKind }) {

@@ -24,6 +24,7 @@ import { PageTop } from '@/shared/ui/page-top'
 import { Panel, PanelHeader, Stat, Tag } from '@/shared/ui/surface'
 
 import { worksApi } from '../api'
+import { ClientReportPanel } from './client-report-panel'
 import { CrewWorkSummary } from './crew-work-summary'
 import { MarginAlerts } from './margin-alerts'
 import { ProgressChart } from './progress-chart'
@@ -188,6 +189,7 @@ export function WorkDetailPage({ work }: { work: Work }) {
               </div>
             </Panel>
           ) : null}
+          {isAdmin ? <ClientReportPanel work={work} /> : null}
           {canContact ? (
             <CrewContactPanel work={work} assignments={assignments} sender={user} />
           ) : null}

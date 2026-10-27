@@ -128,6 +128,8 @@ export function ActivityPage() {
             onOpen={(event) => {
               const document = activityDocument(workspace, event)
               if (document.to === '/facturas') void navigate({ to: '/facturas' })
+              else if (document.to === '/obras/$workId')
+                void navigate({ to: '/obras/$workId', params: { workId: document.workId } })
               else open(document.budgetId)
             }}
             columns={[

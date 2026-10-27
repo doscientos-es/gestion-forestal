@@ -20,6 +20,7 @@ import { Route as AppGastosRouteImport } from './routes/_app.gastos'
 import { Route as AppInformesRouteImport } from './routes/_app.informes'
 import { Route as AppParteRouteImport } from './routes/_app.parte'
 import { Route as AppPlanificacionRouteImport } from './routes/_app.planificacion'
+import { Route as InformeWorkIdRouteImport } from './routes/informe.$workId'
 import { Route as PropuestaBudgetIdRouteImport } from './routes/propuesta.$budgetId'
 import { Route as AppObrasIndexRouteImport } from './routes/_app.obras.index'
 import { Route as AppObrasWorkIdRouteImport } from './routes/_app.obras.$workId'
@@ -82,6 +83,11 @@ const AppPlanificacionRoute = AppPlanificacionRouteImport.update({
   path: '/planificacion',
   getParentRoute: () => AppRoute,
 } as any)
+const InformeWorkIdRoute = InformeWorkIdRouteImport.update({
+  id: '/informe/$workId',
+  path: '/informe/$workId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PropuestaBudgetIdRoute = PropuestaBudgetIdRouteImport.update({
   id: '/propuesta/$budgetId',
   path: '/propuesta/$budgetId',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/informes': typeof AppInformesRoute
   '/parte': typeof AppParteRoute
   '/planificacion': typeof AppPlanificacionRoute
+  '/informe/$workId': typeof InformeWorkIdRoute
   '/propuesta/$budgetId': typeof PropuestaBudgetIdRoute
   '/obras/$workId': typeof AppObrasWorkIdRoute
   '/presupuestos/nuevo': typeof AppPresupuestosNuevoRoute
@@ -149,6 +156,7 @@ export interface FileRoutesByTo {
   '/informes': typeof AppInformesRoute
   '/parte': typeof AppParteRoute
   '/planificacion': typeof AppPlanificacionRoute
+  '/informe/$workId': typeof InformeWorkIdRoute
   '/propuesta/$budgetId': typeof PropuestaBudgetIdRoute
   '/': typeof AppIndexRoute
   '/obras/$workId': typeof AppObrasWorkIdRoute
@@ -170,6 +178,7 @@ export interface FileRoutesById {
   '/_app/informes': typeof AppInformesRoute
   '/_app/parte': typeof AppParteRoute
   '/_app/planificacion': typeof AppPlanificacionRoute
+  '/informe/$workId': typeof InformeWorkIdRoute
   '/propuesta/$budgetId': typeof PropuestaBudgetIdRoute
   '/_app/': typeof AppIndexRoute
   '/_app/obras/$workId': typeof AppObrasWorkIdRoute
@@ -192,6 +201,7 @@ export interface FileRouteTypes {
     | '/informes'
     | '/parte'
     | '/planificacion'
+    | '/informe/$workId'
     | '/propuesta/$budgetId'
     | '/obras/$workId'
     | '/presupuestos/nuevo'
@@ -210,6 +220,7 @@ export interface FileRouteTypes {
     | '/informes'
     | '/parte'
     | '/planificacion'
+    | '/informe/$workId'
     | '/propuesta/$budgetId'
     | '/'
     | '/obras/$workId'
@@ -230,6 +241,7 @@ export interface FileRouteTypes {
     | '/_app/informes'
     | '/_app/parte'
     | '/_app/planificacion'
+    | '/informe/$workId'
     | '/propuesta/$budgetId'
     | '/_app/'
     | '/_app/obras/$workId'
@@ -243,6 +255,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   EntrarRoute: typeof EntrarRoute
+  InformeWorkIdRoute: typeof InformeWorkIdRoute
   PropuestaBudgetIdRoute: typeof PropuestaBudgetIdRoute
 }
 
@@ -324,6 +337,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/planificacion'
       preLoaderRoute: typeof AppPlanificacionRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/informe/$workId': {
+      id: '/informe/$workId'
+      path: '/informe/$workId'
+      fullPath: '/informe/$workId'
+      preLoaderRoute: typeof InformeWorkIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/propuesta/$budgetId': {
       id: '/propuesta/$budgetId'
@@ -418,6 +438,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   EntrarRoute: EntrarRoute,
+  InformeWorkIdRoute: InformeWorkIdRoute,
   PropuestaBudgetIdRoute: PropuestaBudgetIdRoute,
 }
 export const routeTree = rootRouteImport

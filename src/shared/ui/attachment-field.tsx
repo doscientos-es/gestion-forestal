@@ -2,8 +2,7 @@ import { Button, IconButton, toast } from '@doscientos/ui'
 import { Camera, FileText, Trash2 } from 'lucide-react'
 import { useRef, useState } from 'react'
 
-import type { Attachment } from '@/features/workspace'
-import { readAttachment } from '@/shared/lib/attachment'
+import { readAttachment, type StoredFile as Attachment } from '@/shared/lib/attachment'
 import { DomainError } from '@/shared/lib/errors'
 
 /** Photo or PDF picker. On a phone the system offers the camera first, which is the common case. */
