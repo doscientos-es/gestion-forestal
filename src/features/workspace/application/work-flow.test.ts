@@ -4,6 +4,13 @@ import { parseCsv } from '@/shared/lib/csv'
 
 import { buildSeed } from '../infrastructure/build-seed'
 import { absenceImpact, monthGrid, vacationRows } from './absence-calendar'
+import {
+  accountingYears,
+  monthlyAccounts,
+  periodTotals,
+  quarterOf,
+  quarterlyComparison,
+} from './accounting'
 import { budgetTracking } from './activity'
 import { estimateStoredBudget } from './budget-calculation'
 import { budgetCsvTemplate, importBudgets, parseBudgetCsv } from './budget-import'
@@ -69,10 +76,18 @@ describe('clients and zones', () => {
   it('adds a client and a zone to the catalogue', () => {
     const withClient = createClient(
       workspace,
-      { name: ' Ayuntamiento Nuevo ', kind: 'ayuntamiento', taxId: ' P1 ', town: 'Aldea' },
+      {
+        name: ' Ayuntamiento Nuevo ',
+        kind: 'ayuntamiento',
+        taxId: ' P1 ',
+        town: 'Aldea',
+      },
       context,
     )
-    expect(withClient.client).toMatchObject({ name: 'Ayuntamiento Nuevo', taxId: 'P1' })
+    expect(withClient.client).toMatchObject({
+      name: 'Ayuntamiento Nuevo',
+      taxId: 'P1',
+    })
     expect(withClient.workspace.clients).toHaveLength(workspace.clients.length + 1)
     const withZone = createZone(withClient.workspace, 'Valle Alto', context)
     expect(withZone.workspace.zones[0]).toEqual(withZone.zone)
@@ -98,7 +113,11 @@ describe('changing the plan', () => {
     const moved = moveAssignment(
       workspace,
       assignment.id,
-      { crewId: assignment.crewId, start: assignment.start, end: assignment.end },
+      {
+        crewId: assignment.crewId,
+        start: assignment.start,
+        end: assignment.end,
+      },
       context,
     )
     expect(moved.notifications.length).toBeGreaterThan(workspace.notifications.length)
@@ -187,7 +206,12 @@ describe('budget → work → report → invoice', () => {
         zoneId: 'z-norte',
         date: TODAY,
         notes: '',
-        params: { crewSize: 5, dailyCost: 16_000, travelPerCrewDay: 9_000, targetMargin: 0.2 },
+        params: {
+          crewSize: 5,
+          dailyCost: 16_000,
+          travelPerCrewDay: 9_000,
+          targetMargin: 0.2,
+        },
         lines: [
           {
             id: 'l',
@@ -262,7 +286,11 @@ describe('budget → work → report → invoice', () => {
 describe('sending proposals and following them up', () => {
   const workspace = buildSeed(TODAY)
   const draft = workspace.budgets.find((budget) => budget.status === 'borrador')
-  const email = { to: 'cliente@example.org', subject: 'Propuesta', message: 'Hola' }
+  const email = {
+    to: 'cliente@example.org',
+    subject: 'Propuesta',
+    message: 'Hola',
+  }
 
   it('seeds a follow-up history for the proposal that is waiting for an answer', () => {
     const sent = workspace.budgets.find((budget) => budget.id === 'b-open-1')
@@ -282,8 +310,14 @@ describe('sending proposals and following them up', () => {
       sentCount: 1,
       views: 2,
     })
-    expect(viewed.activity[0]).toMatchObject({ kind: 'presupuesto_visto', actorId: null })
-    expect(sent.activity[0]).toMatchObject({ kind: 'presupuesto_enviado', actorId: 'p-nerea' })
+    expect(viewed.activity[0]).toMatchObject({
+      kind: 'presupuesto_visto',
+      actorId: null,
+    })
+    expect(sent.activity[0]).toMatchObject({
+      kind: 'presupuesto_enviado',
+      actorId: 'p-nerea',
+    })
   })
 
   it('rejects invalid addresses and proposals that already have an answer', () => {
@@ -318,7 +352,10 @@ describe('sending proposals and following them up', () => {
     const paid = setInvoiceStatus(handed, [id], 'cobrada', context)
     expect(paid.activity[0]?.kind).toBe('factura_cobrada')
     const mailed = sendInvoiceEmail(paid, id, email, context)
-    expect(mailed.activity[0]).toMatchObject({ kind: 'factura_enviada_cliente', summary: email.to })
+    expect(mailed.activity[0]).toMatchObject({
+      kind: 'factura_enviada_cliente',
+      summary: email.to,
+    })
   })
 
   it('shows the client lines that add up to the sale price without internal costs', () => {
@@ -354,7 +391,10 @@ describe('client answers from the public link', () => {
   it('declining logs a rejection and nothing can be answered twice or before sending', () => {
     if (!sent || !draft) throw new Error('missing budgets')
     const declined = respondToBudget(workspace, sent.id, 'rechazado', context).workspace
-    expect(declined.activity[0]).toMatchObject({ kind: 'presupuesto_rechazado', actorId: null })
+    expect(declined.activity[0]).toMatchObject({
+      kind: 'presupuesto_rechazado',
+      actorId: null,
+    })
     expect(() => respondToBudget(declined, sent.id, 'aceptado', context)).toThrow(CommandError)
     expect(() => respondToBudget(workspace, draft.id, 'aceptado', context)).toThrow(CommandError)
   })
@@ -405,9 +445,15 @@ describe('client work report and yield suggestions', () => {
   it('records the email and the client views against the work', () => {
     if (!withPhotos) throw new Error('seed needs a work with photos')
     const sent = sendWorkReportEmail(workspace, withPhotos.id, email, context)
-    expect(sent.activity[0]).toMatchObject({ kind: 'informe_enviado', entity: 'work' })
+    expect(sent.activity[0]).toMatchObject({
+      kind: 'informe_enviado',
+      entity: 'work',
+    })
     const viewed = recordWorkReportView(sent, withPhotos.id, context)
-    expect(viewed.activity[0]).toMatchObject({ kind: 'informe_visto', actorId: null })
+    expect(viewed.activity[0]).toMatchObject({
+      kind: 'informe_visto',
+      actorId: null,
+    })
     expect(recordWorkReportView(workspace, 'nope', context)).toBe(workspace)
     expect(() =>
       sendWorkReportEmail(workspace, withPhotos.id, { ...email, to: 'x' }, context),
@@ -449,33 +495,62 @@ describe('alerts for the device', () => {
     const again = recordBudgetView(first, budget.id, context)
     expect(again.notifications).toHaveLength(first.notifications.length)
     const report = recordWorkReportView(workspace, work.id, context)
-    expect(report.notifications[0]).toMatchObject({ kind: 'informe_visto', workId: work.id })
+    expect(report.notifications[0]).toMatchObject({
+      kind: 'informe_visto',
+      workId: work.id,
+    })
     expect(recordWorkReportView(report, work.id, context).notifications).toHaveLength(
       report.notifications.length,
     )
   })
 
   it('opens the screen each notice is about', () => {
-    expect(notificationTarget({ kind: 'gasto_pendiente', workId: 'w', budgetId: null })).toEqual({
+    expect(
+      notificationTarget({
+        kind: 'gasto_pendiente',
+        workId: 'w',
+        budgetId: null,
+      }),
+    ).toEqual({
       to: '/gastos',
     })
-    expect(notificationTarget({ kind: 'propuesta_vista', workId: null, budgetId: 'b1' })).toEqual({
+    expect(
+      notificationTarget({
+        kind: 'propuesta_vista',
+        workId: null,
+        budgetId: 'b1',
+      }),
+    ).toEqual({
       to: '/presupuestos/$budgetId',
       params: { budgetId: 'b1' },
     })
-    expect(notificationTarget({ kind: 'obra_asignada', workId: 'w1', budgetId: null })).toEqual({
+    expect(
+      notificationTarget({
+        kind: 'obra_asignada',
+        workId: 'w1',
+        budgetId: null,
+      }),
+    ).toEqual({
       to: '/obras/$workId',
       params: { workId: 'w1' },
     })
-    expect(notificationTarget({ kind: 'ausencia_resuelta', workId: null, budgetId: null })).toEqual(
-      {
-        to: '/ausencias',
-      },
-    )
+    expect(
+      notificationTarget({
+        kind: 'ausencia_resuelta',
+        workId: null,
+        budgetId: null,
+      }),
+    ).toEqual({
+      to: '/ausencias',
+    })
     expect(notificationTarget({ kind: 'tarea_nueva', workId: null, budgetId: null })).toBeNull()
-    expect(notificationUrl({ kind: 'propuesta_vista', workId: null, budgetId: 'b1' })).toBe(
-      '/presupuestos/b1',
-    )
+    expect(
+      notificationUrl({
+        kind: 'propuesta_vista',
+        workId: null,
+        budgetId: 'b1',
+      }),
+    ).toBe('/presupuestos/b1')
     expect(notificationUrl({ kind: 'obra_asignada', workId: 'w1', budgetId: null })).toBe(
       '/obras/w1',
     )
@@ -559,9 +634,15 @@ describe('team absence calendar', () => {
     expect(weeks.every((week) => week.length === 7)).toBe(true)
     expect(weeks[0]?.[0]?.date).toBe('2027-02-01')
     const byDate = new Map(weeks.flat().map((day) => [day.date, day]))
-    expect(byDate.get('2027-02-01')).toMatchObject({ inMonth: true, load: 'varios' })
+    expect(byDate.get('2027-02-01')).toMatchObject({
+      inMonth: true,
+      load: 'varios',
+    })
     expect(byDate.get('2027-02-01')?.away).toHaveLength(2)
-    expect(byDate.get('2027-02-06')).toMatchObject({ weekend: true, load: 'libre' })
+    expect(byDate.get('2027-02-06')).toMatchObject({
+      weekend: true,
+      load: 'libre',
+    })
     expect(byDate.get('2027-02-08')?.away).toHaveLength(0)
     expect(weeks.flat().at(-1)?.date).toBe('2027-02-28')
 
@@ -585,11 +666,20 @@ describe('crews and workers', () => {
   if (!crew || !otherCrew) throw new Error('seed needs two crews')
   const worker = base.people.find((p) => p.crewId === crew.id && p.id !== crew.foremanId)
   if (!worker) throw new Error('seed needs a worker')
-  const input = { name: 'Nuevo Peón', phone: '+34 600 111 222', email: '', dailyCost: 15_000 }
+  const input = {
+    name: 'Nuevo Peón',
+    phone: '+34 600 111 222',
+    email: '',
+    dailyCost: 15_000,
+  }
 
   it('adds a worker into a crew and tells them; rejects bad data', () => {
     const { workspace, person } = addWorker(base, { ...input, crewId: crew.id }, context)
-    expect(person).toMatchObject({ role: 'peon', crewId: crew.id, initials: 'NP' })
+    expect(person).toMatchObject({
+      role: 'peon',
+      crewId: crew.id,
+      initials: 'NP',
+    })
     expect(workspace.notifications[0]).toMatchObject({
       kind: 'cuadrilla_cambiada',
       personId: person.id,
@@ -610,7 +700,10 @@ describe('crews and workers', () => {
   })
 
   it('edits contact data and cost', () => {
-    const next = updateWorker(base, worker.id, { ...input, name: 'Otro Nombre' })
+    const next = updateWorker(base, worker.id, {
+      ...input,
+      name: 'Otro Nombre',
+    })
     expect(next.people.find((p) => p.id === worker.id)).toMatchObject({
       name: 'Otro Nombre',
       initials: 'ON',
@@ -636,8 +729,12 @@ describe('crews and workers', () => {
   it('swaps the foreman and their roles', () => {
     const next = setForeman(base, crew.id, worker.id, context)
     expect(next.crews.find((c) => c.id === crew.id)?.foremanId).toBe(worker.id)
-    expect(next.people.find((p) => p.id === worker.id)).toMatchObject({ role: 'capataz' })
-    expect(next.people.find((p) => p.id === crew.foremanId)).toMatchObject({ role: 'peon' })
+    expect(next.people.find((p) => p.id === worker.id)).toMatchObject({
+      role: 'capataz',
+    })
+    expect(next.people.find((p) => p.id === crew.foremanId)).toMatchObject({
+      role: 'peon',
+    })
     const outsider = base.people.find((p) => p.crewId === otherCrew.id && p.role === 'peon')
     if (!outsider) throw new Error('missing outsider')
     expect(() => setForeman(base, crew.id, outsider.id, context)).toThrow(CommandError)
@@ -712,7 +809,12 @@ describe('crew profitability', () => {
 
 describe('CSV', () => {
   const workspace = buildSeed(TODAY)
-  const PARAMS = { crewSize: 5, dailyCost: 16_000, travelPerCrewDay: 9_000, targetMargin: 0.2 }
+  const PARAMS = {
+    crewSize: 5,
+    dailyCost: 16_000,
+    travelPerCrewDay: 9_000,
+    targetMargin: 0.2,
+  }
 
   it('reads quoted cells, either delimiter and blank rows', () => {
     expect(parseCsv('\uFEFFa;b\r\n"x;y";"say ""hi"""\n\n1,5;2')).toEqual([
@@ -756,5 +858,76 @@ describe('CSV', () => {
     expect(preview.issues.map((issue) => issue.line)).toEqual([1, 3])
     expect(preview.budgets.map((budget) => budget.title)).toEqual(['Parcela C'])
     expect(() => importBudgets(workspace, [], PARAMS, context)).toThrow(CommandError)
+  })
+})
+
+describe('accounting', () => {
+  const base = buildSeed(TODAY)
+  const invoice = (id: string, date: string, status: 'borrador' | 'enviada', price: number) => ({
+    id,
+    reference: id,
+    workId: 'w',
+    clientId: 'c',
+    kind: 'final' as const,
+    date,
+    progressTo: 1,
+    lines: [{ description: 'x', quantity: 1, unit: 'ud', unitPrice: price }],
+    vatRate: 0.21,
+    status,
+    sentOn: null,
+    paidOn: null,
+  })
+  const expense = (id: string, date: string, status: 'pendiente' | 'aprobado', amount: number) => ({
+    ...(base.expenses[0] as (typeof base.expenses)[number]),
+    id,
+    date,
+    status,
+    amount,
+  })
+  const workspace = {
+    ...base,
+    invoices: [
+      invoice('a', '2025-02-10', 'enviada', 100_000),
+      invoice('b', '2026-02-10', 'enviada', 150_000),
+      invoice('c', '2026-05-03', 'enviada', 40_000),
+      invoice('d', '2026-05-04', 'borrador', 999_000),
+    ],
+    expenses: [
+      expense('e1', '2026-02-20', 'aprobado', 30_000),
+      expense('e2', '2026-05-20', 'pendiente', 70_000),
+    ],
+  }
+
+  it('assigns dates to quarters', () => {
+    expect([quarterOf('2026-01-01'), quarterOf('2026-06-30'), quarterOf('2026-12-31')]).toEqual([
+      1, 2, 4,
+    ])
+  })
+
+  it('counts issued invoices without VAT and approved expenses only', () => {
+    expect(periodTotals(workspace, 2026, 1)).toEqual({
+      income: 150_000,
+      expenses: 30_000,
+      result: 120_000,
+    })
+    expect(periodTotals(workspace, 2026, 2)).toEqual({
+      income: 40_000,
+      expenses: 0,
+      result: 40_000,
+    })
+    expect(accountingYears(workspace)).toEqual([2025, 2026])
+  })
+
+  it('compares the same quarter across years', () => {
+    const points = quarterlyComparison(workspace, [2025, 2026], 'income')
+    expect(points[0]).toMatchObject({
+      quarter: 1,
+      '2025': 100_000,
+      '2026': 150_000,
+    })
+    expect(monthlyAccounts(workspace, 2026)[1]).toMatchObject({
+      income: 150_000,
+      expenses: 30_000,
+    })
   })
 })

@@ -10,6 +10,7 @@ export type Area =
   | 'gastos'
   | 'facturas'
   | 'informes'
+  | 'contabilidad'
   | 'actividad'
   | 'cuadrillas'
   | 'avisos'
@@ -24,6 +25,7 @@ const access: Record<Role, Area[]> = {
     'gastos',
     'avisos',
     'facturas',
+    'contabilidad',
     'cuadrillas',
     'actividad',
     'informes',

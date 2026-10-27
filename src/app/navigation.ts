@@ -5,6 +5,7 @@ import {
   ChartColumn,
   ClipboardCheck,
   History,
+  Landmark,
   House,
   Receipt,
   Sun,
@@ -28,6 +29,7 @@ export type Destination = {
     | '/gastos'
     | '/avisos'
     | '/facturas'
+    | '/contabilidad'
     | '/cuadrillas'
     | '/actividad'
     | '/informes'
@@ -38,7 +40,14 @@ export type Destination = {
 }
 
 export const destinations: Destination[] = [
-  { area: 'inicio', to: '/', label: 'Inicio', short: 'Inicio', icon: House, group: 'Operativa' },
+  {
+    area: 'inicio',
+    to: '/',
+    label: 'Inicio',
+    short: 'Inicio',
+    icon: House,
+    group: 'Operativa',
+  },
   {
     area: 'presupuestos',
     to: '/presupuestos',
@@ -104,6 +113,14 @@ export const destinations: Destination[] = [
     group: 'Administración',
   },
   {
+    area: 'contabilidad',
+    to: '/contabilidad',
+    label: 'Contabilidad',
+    short: 'Conta',
+    icon: Landmark,
+    group: 'Administración',
+  },
+  {
     area: 'cuadrillas',
     to: '/cuadrillas',
     label: 'Cuadrillas',
@@ -160,7 +177,12 @@ export function navigationCounts(
   const rejected = workspace.expenses.filter(
     (e) => e.createdBy === user.id && e.status === 'rechazado',
   ).length
-  return { obras: mine.length, ausencias: own.length, gastos: rejected, avisos }
+  return {
+    obras: mine.length,
+    ausencias: own.length,
+    gastos: rejected,
+    avisos,
+  }
 }
 
 export function isActive(to: string, pathname: string) {
