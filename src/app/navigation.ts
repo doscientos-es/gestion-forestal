@@ -2,21 +2,29 @@ import {
   Bell,
   Calculator,
   CalendarRange,
-  ChartColumn,
   ClipboardCheck,
   History,
   Landmark,
   House,
   Receipt,
+  Settings,
   Sprout,
   Sun,
   TreePine,
+  UserRound,
   UsersRound,
   WalletCards,
   type LucideIcon,
 } from 'lucide-react'
 
-import type { Area, Person, Workspace } from '@/features/workspace'
+import {
+  canAccess,
+  overdueInvoices,
+  type Area,
+  type Person,
+  type Workspace,
+} from '@/features/workspace'
+import { clock } from '@/shared/lib/clock'
 
 export type Destination = {
   area: Area
@@ -33,8 +41,8 @@ export type Destination = {
     | '/contabilidad'
     | '/catalogo'
     | '/cuadrillas'
+    | '/clientes'
     | '/actividad'
-    | '/informes'
   label: string
   short: string
   icon: LucideIcon
@@ -117,7 +125,7 @@ export const destinations: Destination[] = [
   {
     area: 'contabilidad',
     to: '/contabilidad',
-    label: 'Contabilidad',
+    label: 'Contabilidad e informes',
     short: 'Conta',
     icon: Landmark,
     group: 'Administración',
@@ -139,19 +147,19 @@ export const destinations: Destination[] = [
     group: 'Administración',
   },
   {
+    area: 'clientes',
+    to: '/clientes',
+    label: 'Clientes',
+    short: 'Clientes',
+    icon: UserRound,
+    group: 'Administración',
+  },
+  {
     area: 'actividad',
     to: '/actividad',
     label: 'Actividad',
     short: 'Actividad',
     icon: History,
-    group: 'Administración',
-  },
-  {
-    area: 'informes',
-    to: '/informes',
-    label: 'Informes',
-    short: 'Informes',
-    icon: ChartColumn,
     group: 'Administración',
   },
 ]
@@ -173,6 +181,10 @@ export function navigationCounts(
       ausencias: workspace.absences.filter((a) => a.status === 'solicitada').length,
       gastos: workspace.expenses.filter((e) => e.status === 'pendiente').length,
       facturas: workspace.invoices.filter((i) => i.status === 'borrador').length,
+      // Clients with a sent invoice still unpaid after 30 days.
+      clientes: new Set(
+        overdueInvoices(workspace, clock.today()).map((item) => item.invoice.clientId),
+      ).size,
       avisos,
     }
   }
@@ -197,6 +209,132 @@ export function navigationCounts(
 
 export function isActive(to: string, pathname: string) {
   return to === '/' ? pathname === '/' : pathname.startsWith(to)
+}
+
+type SectionId = 'equipo' | 'facturacion' | 'ajustes'
+
+/**
+ * Related pages share one sidebar entry and show their siblings as tabs at the top. This keeps
+ * the menu short (7 entries for the office) while every page keeps its own route.
+ */
+const sections: Record<
+  SectionId,
+  { label: string; short: string; icon: LucideIcon; tabs: { area: Area; label: string }[] }
+> = {
+  equipo: {
+    label: 'Equipo',
+    short: 'Equipo',
+    icon: UsersRound,
+    tabs: [
+      { area: 'cuadrillas', label: 'Cuadrillas' },
+      { area: 'ausencias', label: 'Ausencias' },
+    ],
+  },
+  facturacion: {
+    label: 'Facturación',
+    short: 'Factur.',
+    icon: Receipt,
+    tabs: [
+      { area: 'facturas', label: 'Facturas' },
+      { area: 'gastos', label: 'Gastos' },
+      { area: 'contabilidad', label: 'Contabilidad' },
+    ],
+  },
+  ajustes: {
+    label: 'Ajustes',
+    short: 'Ajustes',
+    icon: Settings,
+    tabs: [
+      { area: 'catalogo', label: 'Catálogo' },
+      { area: 'actividad', label: 'Actividad' },
+    ],
+  },
+}
+
+/** Order of the sidebar. Notices live in the bell, not here. */
+const layout: (Area | SectionId)[] = [
+  'inicio',
+  'presupuestos',
+  'obras',
+  'planificacion',
+  'parte',
+  'clientes',
+  'equipo',
+  'facturacion',
+  'ajustes',
+]
+
+export type NavItem = {
+  key: string
+  to: Destination['to']
+  label: string
+  short: string
+  icon: LucideIcon
+  group: Destination['group']
+  /** Every area the entry covers: its own, or those of its tabs. */
+  areas: Area[]
+}
+
+const destinationOf = (area: Area) => destinations.find((item) => item.area === area)
+
+const isSection = (slot: Area | SectionId): slot is SectionId => slot in sections
+
+/** Pages of a section the user can open, in tab order. */
+function accessibleTabs(user: Person, id: SectionId) {
+  return sections[id].tabs.flatMap((tab) => {
+    const destination = destinationOf(tab.area)
+    return destination && canAccess(user.role, tab.area) ? [{ ...tab, to: destination.to }] : []
+  })
+}
+
+/**
+ * Sidebar entries for a person. A section with several pages they can open becomes one entry;
+ * with a single page (a foreman's «Gastos») it is shown as that page.
+ */
+export function navItems(user: Person): NavItem[] {
+  return layout.flatMap((slot): NavItem[] => {
+    if (!isSection(slot)) {
+      const destination = destinationOf(slot)
+      return destination && canAccess(user.role, slot)
+        ? [{ ...destination, key: slot, areas: [slot] }]
+        : []
+    }
+    const tabs = accessibleTabs(user, slot)
+    const first = tabs[0]
+    if (!first) return []
+    if (tabs.length === 1) {
+      const destination = destinationOf(first.area)
+      return destination ? [{ ...destination, key: first.area, areas: [first.area] }] : []
+    }
+    const { label, short, icon } = sections[slot]
+    const areas = tabs.map((tab) => tab.area)
+    return [{ key: slot, to: first.to, label, short, icon, group: 'Administración', areas }]
+  })
+}
+
+export function itemCount(item: NavItem, counts: Partial<Record<Area, number>>) {
+  return item.areas.reduce((sum, area) => sum + (counts[area] ?? 0), 0)
+}
+
+export function isItemActive(item: NavItem, pathname: string) {
+  return item.areas.some((area) => {
+    const destination = destinationOf(area)
+    return destination ? isActive(destination.to, pathname) : false
+  })
+}
+
+/** Tabs to show above the page when it belongs to a section with several pages; else null. */
+export function sectionTabs(user: Person, pathname: string) {
+  for (const id of Object.keys(sections) as SectionId[]) {
+    const tabs = accessibleTabs(user, id)
+    if (tabs.length > 1 && tabs.some((tab) => isActive(tab.to, pathname)))
+      return {
+        label: sections[id].label,
+        tabs,
+        active: tabs.find((tab) => isActive(tab.to, pathname))?.to ?? tabs[0]?.to,
+      }
+  }
+  return null
 }
 
 /** On a detail page (e.g. /obras/123) the section it belongs to, so mobile can offer "back". */

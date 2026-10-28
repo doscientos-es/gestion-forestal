@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 import {
   accountingYears,
+  availableYears,
   monthlyAccounts,
   periodTotals,
   quarterlyComparison,
@@ -12,12 +13,46 @@ import {
   useWorkspace,
   type AccountingMetric,
 } from '@/features/workspace'
+import { CampaignReports } from '@/features/reports'
 import { formatMoney, formatSignedPercent } from '@/shared/lib/format'
+import { useUrlState } from '@/shared/lib/use-url-state'
 import { FilterTabs } from '@/shared/ui/filter-tabs'
 import { PageTop } from '@/shared/ui/page-top'
 import { Panel, PanelHeader } from '@/shared/ui/surface'
 
 import { MonthlyAccountsChart, QuarterlyChart } from './accounting-charts'
+
+type View = 'finanzas' | 'campanas'
+
+/** One place for the numbers: money in and out by quarter, and campaign against campaign. */
+export function AccountingPage() {
+  const workspace = useWorkspace()
+  const [view, setView] = useUrlState<View>('vista', 'finanzas', ['finanzas', 'campanas'])
+  return (
+    <>
+      <PageTop
+        title="Contabilidad e informes"
+        description={
+          view === 'finanzas'
+            ? 'Lo facturado y lo gastado, por trimestre y año. Ingresos: facturas emitidas sin IVA. Gastos: aprobados, con IVA.'
+            : 'Cada campaña frente a la anterior: facturación, margen, hectáreas y rendimiento.'
+        }
+      />
+      <div className="mb-5">
+        <FilterTabs
+          label="Vista"
+          value={view}
+          onChange={setView}
+          options={[
+            { value: 'finanzas', label: 'Finanzas', count: accountingYears(workspace).length },
+            { value: 'campanas', label: 'Campañas', count: availableYears(workspace).length },
+          ]}
+        />
+      </div>
+      {view === 'finanzas' ? <FinanceView /> : <CampaignReports />}
+    </>
+  )
+}
 
 const metricLabels: Record<AccountingMetric, string> = {
   income: 'Ingresos',
@@ -25,7 +60,7 @@ const metricLabels: Record<AccountingMetric, string> = {
   result: 'Resultado',
 }
 
-export function AccountingPage() {
+function FinanceView() {
   const workspace = useWorkspace()
   const years = accountingYears(workspace)
   const [metric, setMetric] = useState<AccountingMetric>('income')
@@ -49,10 +84,6 @@ export function AccountingPage() {
 
   return (
     <>
-      <PageTop
-        title="Contabilidad"
-        description="Lo facturado y lo gastado, por trimestre y año. Ingresos: facturas emitidas sin IVA. Gastos: aprobados, con IVA."
-      />
       <div className="mb-5">
         <FilterTabs
           label="Año"

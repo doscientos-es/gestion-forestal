@@ -25,6 +25,8 @@ import { Route as AppParteRouteImport } from './routes/_app.parte'
 import { Route as AppPlanificacionRouteImport } from './routes/_app.planificacion'
 import { Route as InformeWorkIdRouteImport } from './routes/informe.$workId'
 import { Route as PropuestaBudgetIdRouteImport } from './routes/propuesta.$budgetId'
+import { Route as AppClientesIndexRouteImport } from './routes/_app.clientes.index'
+import { Route as AppClientesClientIdRouteImport } from './routes/_app.clientes.$clientId'
 import { Route as AppObrasIndexRouteImport } from './routes/_app.obras.index'
 import { Route as AppObrasWorkIdRouteImport } from './routes/_app.obras.$workId'
 import { Route as AppPresupuestosIndexRouteImport } from './routes/_app.presupuestos.index'
@@ -111,6 +113,16 @@ const PropuestaBudgetIdRoute = PropuestaBudgetIdRouteImport.update({
   path: '/propuesta/$budgetId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppClientesIndexRoute = AppClientesIndexRouteImport.update({
+  id: '/clientes/',
+  path: '/clientes/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClientesClientIdRoute = AppClientesClientIdRouteImport.update({
+  id: '/clientes/$clientId',
+  path: '/clientes/$clientId',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppObrasIndexRoute = AppObrasIndexRouteImport.update({
   id: '/obras/',
   path: '/obras/',
@@ -160,8 +172,10 @@ export interface FileRoutesByFullPath {
   '/planificacion': typeof AppPlanificacionRoute
   '/informe/$workId': typeof InformeWorkIdRoute
   '/propuesta/$budgetId': typeof PropuestaBudgetIdRoute
+  '/clientes/$clientId': typeof AppClientesClientIdRoute
   '/obras/$workId': typeof AppObrasWorkIdRoute
   '/presupuestos/nuevo': typeof AppPresupuestosNuevoRoute
+  '/clientes/': typeof AppClientesIndexRoute
   '/obras/': typeof AppObrasIndexRoute
   '/presupuestos/': typeof AppPresupuestosIndexRoute
   '/presupuestos/$budgetId/editar': typeof AppPresupuestosBudgetIdEditarRoute
@@ -183,8 +197,10 @@ export interface FileRoutesByTo {
   '/informe/$workId': typeof InformeWorkIdRoute
   '/propuesta/$budgetId': typeof PropuestaBudgetIdRoute
   '/': typeof AppIndexRoute
+  '/clientes/$clientId': typeof AppClientesClientIdRoute
   '/obras/$workId': typeof AppObrasWorkIdRoute
   '/presupuestos/nuevo': typeof AppPresupuestosNuevoRoute
+  '/clientes': typeof AppClientesIndexRoute
   '/obras': typeof AppObrasIndexRoute
   '/presupuestos': typeof AppPresupuestosIndexRoute
   '/presupuestos/$budgetId/editar': typeof AppPresupuestosBudgetIdEditarRoute
@@ -208,8 +224,10 @@ export interface FileRoutesById {
   '/informe/$workId': typeof InformeWorkIdRoute
   '/propuesta/$budgetId': typeof PropuestaBudgetIdRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/clientes/$clientId': typeof AppClientesClientIdRoute
   '/_app/obras/$workId': typeof AppObrasWorkIdRoute
   '/_app/presupuestos/nuevo': typeof AppPresupuestosNuevoRoute
+  '/_app/clientes/': typeof AppClientesIndexRoute
   '/_app/obras/': typeof AppObrasIndexRoute
   '/_app/presupuestos/': typeof AppPresupuestosIndexRoute
   '/_app/presupuestos/$budgetId/editar': typeof AppPresupuestosBudgetIdEditarRoute
@@ -233,8 +251,10 @@ export interface FileRouteTypes {
     | '/planificacion'
     | '/informe/$workId'
     | '/propuesta/$budgetId'
+    | '/clientes/$clientId'
     | '/obras/$workId'
     | '/presupuestos/nuevo'
+    | '/clientes/'
     | '/obras/'
     | '/presupuestos/'
     | '/presupuestos/$budgetId/editar'
@@ -256,8 +276,10 @@ export interface FileRouteTypes {
     | '/informe/$workId'
     | '/propuesta/$budgetId'
     | '/'
+    | '/clientes/$clientId'
     | '/obras/$workId'
     | '/presupuestos/nuevo'
+    | '/clientes'
     | '/obras'
     | '/presupuestos'
     | '/presupuestos/$budgetId/editar'
@@ -280,8 +302,10 @@ export interface FileRouteTypes {
     | '/informe/$workId'
     | '/propuesta/$budgetId'
     | '/_app/'
+    | '/_app/clientes/$clientId'
     | '/_app/obras/$workId'
     | '/_app/presupuestos/nuevo'
+    | '/_app/clientes/'
     | '/_app/obras/'
     | '/_app/presupuestos/'
     | '/_app/presupuestos/$budgetId/editar'
@@ -409,6 +433,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PropuestaBudgetIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/clientes/': {
+      id: '/_app/clientes/'
+      path: '/clientes'
+      fullPath: '/clientes/'
+      preLoaderRoute: typeof AppClientesIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/clientes/$clientId': {
+      id: '/_app/clientes/$clientId'
+      path: '/clientes/$clientId'
+      fullPath: '/clientes/$clientId'
+      preLoaderRoute: typeof AppClientesClientIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/obras/': {
       id: '/_app/obras/'
       path: '/obras'
@@ -467,8 +505,10 @@ interface AppRouteChildren {
   AppParteRoute: typeof AppParteRoute
   AppPlanificacionRoute: typeof AppPlanificacionRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppClientesClientIdRoute: typeof AppClientesClientIdRoute
   AppObrasWorkIdRoute: typeof AppObrasWorkIdRoute
   AppPresupuestosNuevoRoute: typeof AppPresupuestosNuevoRoute
+  AppClientesIndexRoute: typeof AppClientesIndexRoute
   AppObrasIndexRoute: typeof AppObrasIndexRoute
   AppPresupuestosIndexRoute: typeof AppPresupuestosIndexRoute
   AppPresupuestosBudgetIdEditarRoute: typeof AppPresupuestosBudgetIdEditarRoute
@@ -488,8 +528,10 @@ const AppRouteChildren: AppRouteChildren = {
   AppParteRoute: AppParteRoute,
   AppPlanificacionRoute: AppPlanificacionRoute,
   AppIndexRoute: AppIndexRoute,
+  AppClientesClientIdRoute: AppClientesClientIdRoute,
   AppObrasWorkIdRoute: AppObrasWorkIdRoute,
   AppPresupuestosNuevoRoute: AppPresupuestosNuevoRoute,
+  AppClientesIndexRoute: AppClientesIndexRoute,
   AppObrasIndexRoute: AppObrasIndexRoute,
   AppPresupuestosIndexRoute: AppPresupuestosIndexRoute,
   AppPresupuestosBudgetIdEditarRoute: AppPresupuestosBudgetIdEditarRoute,

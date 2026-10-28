@@ -1,1 +1,1 @@
-export { ReportsPage } from './ui/reports-page'
+export { CampaignReports } from './ui/reports-page'

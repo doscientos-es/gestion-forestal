@@ -1,8 +1,9 @@
+import { spanishIban } from '../application/iban'
 import type { Client, Crew, Person, Species, Zone } from '../application/model'
 
-// Synthetic catalogue. Names, tax IDs and emails are fictitious.
+// Synthetic catalogue. Names, tax IDs, emails, phones and bank accounts are fictitious.
 
-export const seedClients: Client[] = [
+const clientBase: Omit<Client, 'phone' | 'iban'>[] = [
   {
     id: 'c-valdemonte',
     name: 'Ayuntamiento de Valdemonte',
@@ -84,6 +85,17 @@ export const seedClients: Client[] = [
     town: 'Puerto Alto',
   },
 ]
+
+export const seedClients: Client[] = clientBase.map((client, index) => {
+  const n = String(index + 1).padStart(3, '0')
+  return {
+    ...client,
+    // Fictitious numbers: 900 000 0NN and account 2100 0000 00 00000000NN, with valid check digits.
+    phone: `+34 900 000 ${n}`,
+    // The private finca has no bank account on file yet.
+    iban: client.kind === 'particular' ? '' : spanishIban(`21000000000000000${n}`),
+  }
+})
 
 export const seedZones: Zone[] = [
   { id: 'z-norte', name: 'Valle Norte' },

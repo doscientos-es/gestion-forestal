@@ -2,24 +2,11 @@ import { Button, CopyButton } from '@doscientos/ui'
 import { Copy, ExternalLink, FileText, Mail } from 'lucide-react'
 import { useState } from 'react'
 
-import {
-  activityFor,
-  clientWorkReport,
-  lookup,
-  workReportEmailDraft,
-  useWorkspace,
-  type Work,
-} from '@/features/workspace'
+import { activityFor, clientWorkReport, useWorkspace, type Work } from '@/features/workspace'
 import { formatDateTime, pluralize } from '@/shared/lib/format'
-import { useCommand } from '@/shared/lib/use-command'
-import { SendEmailDialog } from '@/shared/ui/send-email-dialog'
 import { Panel, PanelHeader } from '@/shared/ui/surface'
 
-import { worksApi } from '../api'
-
-export function workReportLink(workId: string) {
-  return `${window.location.origin}/informe/${workId}`
-}
+import { SendReportDialog, workReportLink } from './send-report-dialog'
 
 /** Share the progress report with the client: open it, copy the link or email it (simulated). */
 export function ClientReportPanel({ work }: { work: Work }) {
@@ -30,17 +17,6 @@ export function ClientReportPanel({ work }: { work: Work }) {
   const events = activityFor(workspace.activity, 'work', work.id)
   const views = events.filter((event) => event.kind === 'informe_visto')
   const sent = events.find((event) => event.kind === 'informe_enviado')
-  const send = useCommand(
-    (email: { to: string; subject: string; message: string }) =>
-      worksApi.sendReportEmail(work.id, email),
-    {
-      success: (_output, email) => ({
-        title: 'Informe enviado',
-        description: `Anotado en el historial · ${email.to}`,
-      }),
-      onSuccess: () => setSending(false),
-    },
-  )
 
   return (
     <Panel aria-labelledby="client-report-title">
@@ -75,23 +51,7 @@ export function ClientReportPanel({ work }: { work: Work }) {
           </CopyButton>
         </div>
       </div>
-      <SendEmailDialog
-        key={String(sending)}
-        open={sending}
-        onOpenChange={setSending}
-        title="Enviar informe de obra"
-        description={`${work.code} · ${work.title}`}
-        initial={workReportEmailDraft(
-          work.title,
-          lookup(workspace).client(work.clientId),
-          report.progress,
-          link,
-        )}
-        attachment={`Informe ${work.code}.pdf · enlace de consulta`}
-        pending={send.isPending}
-        confirmLabel="Enviar informe"
-        onSend={(email) => send.mutate(email)}
-      />
+      <SendReportDialog work={work} open={sending} onOpenChange={setSending} />
     </Panel>
   )
 }

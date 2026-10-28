@@ -16,8 +16,9 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useWorkspace, type Person } from '@/features/workspace'
 
 import { MobileNavigation } from './mobile-navigation'
-import { navigationCounts, pageTitle, parentDestination } from './navigation'
+import { navigationCounts, pageTitle, parentDestination, sectionTabs } from './navigation'
 import { SearchDialog } from './search-dialog'
+import { NotificationBell, SectionTabs } from './section-tabs'
 import { NavigationGroups, PrimaryShortcut, SeasonCard, UserHeader } from './sidebar-parts'
 import { useDeviceAlerts } from './use-device-alerts'
 
@@ -31,6 +32,9 @@ export function AppFrame({ user, children }: { user: Person; children: ReactNode
   const navigate = useNavigate()
   const [searchOpen, setSearchOpen] = useState(false)
   const parentSection = parentDestination(pathname)
+  const section = sectionTabs(user, pathname)
+  const sectionLabel = section?.label
+  const unread = counts.avisos ?? 0
   useDeviceAlerts(user)
 
   useEffect(() => {
@@ -51,14 +55,14 @@ export function AppFrame({ user, children }: { user: Person; children: ReactNode
   }, [])
 
   useEffect(() => {
-    document.title = `${currentPage} · Gestión forestal`
+    document.title = `${sectionLabel ? `${sectionLabel} · ` : ''}${currentPage} · Gestión forestal`
     // Search/filter updates must not steal focus from the control being edited.
     if (previousPath.current !== pathname) {
       contentRef.current?.scrollTo({ top: 0 })
       contentRef.current?.focus({ preventScroll: true })
       previousPath.current = pathname
     }
-  }, [pathname, currentPage])
+  }, [pathname, currentPage, sectionLabel])
 
   return (
     <div className="app-canvas">
@@ -67,7 +71,7 @@ export function AppFrame({ user, children }: { user: Person; children: ReactNode
           Saltar al contenido
         </a>
         <AppShellSidebar className="app-sidebar">
-          <UserHeader user={user} />
+          <UserHeader user={user} unread={unread} />
           <Button
             variant="outline"
             className="text-muted-foreground w-full justify-start font-normal"
@@ -109,6 +113,8 @@ export function AppFrame({ user, children }: { user: Person; children: ReactNode
             <IconButton label="Buscar" variant="ghost" onPress={() => setSearchOpen(true)}>
               <Search aria-hidden="true" className="size-5" />
             </IconButton>
+            {/* Foremen and workers already have Avisos in the tab bar. */}
+            {user.role === 'admin' ? <NotificationBell unread={unread} /> : null}
           </AppShellMobileHeader>
           <AppShellContent
             ref={contentRef}
@@ -117,7 +123,20 @@ export function AppFrame({ user, children }: { user: Person; children: ReactNode
             aria-label={currentPage}
             className="app-content"
           >
-            <div className="mx-auto w-full max-w-360">{children}</div>
+            <div className="mx-auto w-full max-w-360">
+              {section ? (
+                <SectionTabs
+                  label={section.label}
+                  active={section.active}
+                  tabs={section.tabs.map((tab) => ({
+                    to: tab.to,
+                    label: tab.label,
+                    count: counts[tab.area] ?? 0,
+                  }))}
+                />
+              ) : null}
+              {children}
+            </div>
           </AppShellContent>
           <MobileNavigation user={user} pathname={pathname} counts={counts} />
         </AppShellMain>

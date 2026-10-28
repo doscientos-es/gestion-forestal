@@ -19,17 +19,18 @@ import { destinations } from './navigation'
 
 type Target =
   | {
-      to:
-        | '/'
-        | '/presupuestos'
-        | '/obras'
-        | '/planificacion'
-        | '/parte'
-        | '/ausencias'
-        | '/avisos'
-        | '/facturas'
-        | '/informes'
-    }
+    to:
+    | '/'
+    | '/presupuestos'
+    | '/obras'
+    | '/planificacion'
+    | '/parte'
+    | '/ausencias'
+    | '/avisos'
+    | '/facturas'
+    | '/clientes'
+    | '/contabilidad'
+  }
   | { to: '/obras/$workId'; params: { workId: string } }
   | { to: '/presupuestos/$budgetId'; params: { budgetId: string } }
 
@@ -64,12 +65,12 @@ function buildResults(workspace: Workspace, user: Person): Result[] {
   const budgets =
     user.role === 'admin'
       ? workspace.budgets.map((budget) => ({
-          key: budget.id,
-          label: budget.title,
-          hint: `${budget.number} · ${find.client(budget.clientId)?.name ?? ''}`,
-          icon: Calculator,
-          target: { to: '/presupuestos/$budgetId', params: { budgetId: budget.id } } as Target,
-        }))
+        key: budget.id,
+        label: budget.title,
+        hint: `${budget.number} · ${find.client(budget.clientId)?.name ?? ''}`,
+        icon: Calculator,
+        target: { to: '/presupuestos/$budgetId', params: { budgetId: budget.id } } as Target,
+      }))
       : []
   return [...sections, ...works, ...budgets]
 }

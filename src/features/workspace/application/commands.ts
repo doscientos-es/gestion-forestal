@@ -3,6 +3,7 @@ import { DomainError as CommandError } from '@/shared/lib/errors'
 
 import { logActivity } from './activity'
 import { estimateBudget, toPlannedFigures, validateBudget } from './budget-calculation'
+import { isValidIban, normalizeIban } from './iban'
 import { DEFAULT_VAT_RATE, nextInvoiceReference, proposeDraft } from './invoice-draft'
 import type {
   AppNotification,
@@ -51,9 +52,19 @@ function nextWorkCode(workspace: Workspace, year: number) {
   return `${prefix}${String(count + 1).padStart(2, '0')}`
 }
 
-export type ClientInput = Pick<Client, 'name' | 'kind' | 'taxId' | 'town'> & { email?: string }
+export type ClientInput = Pick<Client, 'name' | 'kind' | 'taxId' | 'town'> &
+  Partial<Pick<Client, 'email' | 'phone' | 'iban'>>
 
 const sameName = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase()
+
+/** Checks the optional contact fields and returns them trimmed (IBAN without spaces). */
+export function cleanClientContact(input: ClientInput) {
+  const email = input.email?.trim() ?? ''
+  const iban = normalizeIban(input.iban ?? '')
+  if (email && !/^\S+@\S+\.\S+$/.test(email)) throw new CommandError('El correo no es válido.')
+  if (iban && !isValidIban(iban)) throw new CommandError('El IBAN no es válido.')
+  return { email, phone: input.phone?.trim() ?? '', iban }
+}
 
 /** Adds a client to the catalogue the budget form picks from. */
 export function createClient(
@@ -71,7 +82,7 @@ export function createClient(
     kind: input.kind,
     taxId: input.taxId.trim(),
     town: input.town.trim(),
-    email: input.email?.trim() ?? '',
+    ...cleanClientContact(input),
   }
   return { workspace: { ...workspace, clients: [client, ...workspace.clients] }, client }
 }

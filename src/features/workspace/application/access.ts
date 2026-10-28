@@ -9,12 +9,12 @@ export type Area =
   | 'ausencias'
   | 'gastos'
   | 'facturas'
-  | 'informes'
   | 'contabilidad'
   | 'catalogo'
   | 'actividad'
   | 'cuadrillas'
   | 'avisos'
+  | 'clientes'
 
 const access: Record<Role, Area[]> = {
   admin: [
@@ -29,8 +29,8 @@ const access: Record<Role, Area[]> = {
     'contabilidad',
     'catalogo',
     'cuadrillas',
+    'clientes',
     'actividad',
-    'informes',
   ],
   capataz: ['inicio', 'obras', 'parte', 'gastos', 'ausencias', 'avisos'],
   peon: ['inicio', 'obras', 'ausencias', 'avisos'],

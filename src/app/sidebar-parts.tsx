@@ -4,7 +4,6 @@ import { ArrowLeftRight, Plus, Sprout } from 'lucide-react'
 
 import {
   calculatePerformance,
-  canAccess,
   roleLabels,
   type Area,
   type Person,
@@ -13,16 +12,18 @@ import {
 import { formatNumber } from '@/shared/lib/format'
 import { ProgressBar } from '@/shared/ui/surface'
 
-import { destinations, isActive } from './navigation'
+import { isItemActive, itemCount, navItems } from './navigation'
+import { NotificationBell } from './section-tabs'
 
-export function UserHeader({ user }: { user: Person }) {
+export function UserHeader({ user, unread }: { user: Person; unread: number }) {
   const navigate = useNavigate()
   return (
-    <div className="bg-card border-border flex items-center gap-2 rounded-lg border py-2 pr-2 pl-3">
-      <div className="min-w-0 flex-1">
+    <div className="bg-card border-border flex items-center gap-0.5 rounded-lg border py-2 pr-2 pl-3">
+      <div className="mr-1 min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">{user.name}</p>
         <p className="text-muted-foreground truncate text-xs">{roleLabels[user.role]}</p>
       </div>
+      <NotificationBell unread={unread} />
       <IconButton
         label="Cambiar de usuario"
         variant="ghost"
@@ -44,7 +45,7 @@ export function NavigationGroups({
   pathname: string
   counts: Partial<Record<Area, number>>
 }) {
-  const visible = destinations.filter((item) => canAccess(user.role, item.area))
+  const visible = navItems(user)
   const groups = [...new Set(visible.map((item) => item.group))]
   return (
     <nav aria-label="Navegación principal" className="space-y-4">
@@ -57,10 +58,10 @@ export function NavigationGroups({
             {visible
               .filter((item) => item.group === group)
               .map((item) => {
-                const active = isActive(item.to, pathname)
-                const count = counts[item.area]
+                const active = isItemActive(item, pathname)
+                const count = itemCount(item, counts)
                 return (
-                  <li key={item.to}>
+                  <li key={item.key}>
                     <Link
                       to={item.to}
                       className="nav-link"

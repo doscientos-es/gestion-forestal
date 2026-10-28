@@ -12,14 +12,14 @@ import {
 } from '@/features/workspace'
 import { formatMoney, formatNumber, formatPercent, formatSignedPercent } from '@/shared/lib/format'
 import { FilterTabs } from '@/shared/ui/filter-tabs'
-import { PageTop } from '@/shared/ui/page-top'
 import { Panel, PanelHeader } from '@/shared/ui/surface'
 
 import { GroupMarginChart, MonthlyPlantsChart } from './report-charts'
 
 type Dimension = 'zona' | 'cliente'
 
-export function ReportsPage() {
+/** Campaign against campaign: billing, margin, hectares and yield. Lives inside Contabilidad. */
+export function CampaignReports() {
   const workspace = useWorkspace()
   const years = availableYears(workspace)
   const [dimension, setDimension] = useState<Dimension>('zona')
@@ -38,10 +38,10 @@ export function ReportsPage() {
 
   return (
     <>
-      <PageTop
-        title="Informes"
-        description={`Campaña ${current.year} frente a ${previous.year}. El margen de las obras abiertas se estima al ritmo real.`}
-      />
+      <p className="text-muted-foreground mb-4 text-sm">
+        Campaña {current.year} frente a {previous.year}. El margen de las obras abiertas se estima
+        al ritmo real.
+      </p>
       <MetricGrid className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           label="Facturación presupuestada"

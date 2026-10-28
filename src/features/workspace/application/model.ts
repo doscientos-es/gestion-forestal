@@ -13,6 +13,10 @@ export type Client = {
   town: string
   /** Where proposals and invoice copies are sent. Empty when unknown. */
   email: string
+  /** Contact number with country code. Empty when unknown. */
+  phone: string
+  /** Bank account for refunds and direct debits, stored without spaces. Empty when unknown. */
+  iban: string
 }
 
 export type Zone = { id: string; name: string }

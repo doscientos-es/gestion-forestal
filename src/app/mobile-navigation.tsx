@@ -6,7 +6,7 @@ import { useState } from 'react'
 import { canAccess, roleLabels, type Area, type Person } from '@/features/workspace'
 import { formatNumber } from '@/shared/lib/format'
 
-import { destinations, isActive } from './navigation'
+import { destinations, isActive, isItemActive, itemCount, navItems } from './navigation'
 import { primaryShortcut } from './sidebar-parts'
 
 const MAIN_TABS = 3
@@ -30,10 +30,12 @@ export function MobileNavigation({
     .map((area) => allowed.find((item) => item.area === area))
     .filter((item) => item !== undefined)
     .slice(0, MAIN_TABS)
-  const overflow = allowed.filter((item) => !tabs.includes(item))
-  const moreActive = overflow.some((item) => isActive(item.to, pathname))
+  // The sheet lists the same short menu as the sidebar; sections open their first page.
+  const items = navItems(user)
+  const overflow = items.filter((item) => !tabs.some((tab) => item.areas.includes(tab.area)))
+  const moreActive = overflow.some((item) => isItemActive(item, pathname))
   const shortcut = primaryShortcut(user)
-  const pending = overflow.reduce((sum, item) => sum + (counts[item.area] ?? 0), 0)
+  const pending = overflow.reduce((sum, item) => sum + itemCount(item, counts), 0)
 
   return (
     <div className="mobile-dock mobile-only">
@@ -76,14 +78,14 @@ export function MobileNavigation({
           <p className="text-muted-foreground text-xs">{roleLabels[user.role]}</p>
         </DrawerHeader>
         <ul className="divide-border divide-y px-2 pb-2">
-          {allowed.map((item) => {
-            const count = counts[item.area]
+          {items.map((item) => {
+            const count = itemCount(item, counts)
             return (
-              <li key={item.to}>
+              <li key={item.key}>
                 <Link
                   to={item.to}
                   onClick={() => setOpen(false)}
-                  aria-current={isActive(item.to, pathname) ? 'page' : undefined}
+                  aria-current={isItemActive(item, pathname) ? 'page' : undefined}
                   className="sheet-link"
                 >
                   <item.icon aria-hidden="true" className="size-5" strokeWidth={1.75} />

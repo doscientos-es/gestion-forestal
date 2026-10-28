@@ -41,6 +41,14 @@ import {
   updateWorker,
 } from './crew-management'
 import { crewProfitability } from './crew-profitability'
+import {
+  OVERDUE_DAYS,
+  clientActivity,
+  clientOverview,
+  overdueInvoices,
+  updateClient,
+} from './client-profile'
+import { formatIban, isValidIban, spanishIban } from './iban'
 import { invoiceTotals } from './invoice-draft'
 import type { Workspace } from './model'
 import { freshNotices, notificationTarget, notificationUrl } from './notification-target'
@@ -658,6 +666,116 @@ describe('team absence calendar', () => {
         .flat()
         .every((day) => day.away.length === 0),
     ).toBe(true)
+  })
+})
+
+describe('users (clients): bank account, contracted work and performance', () => {
+  const base = buildSeed(TODAY)
+  const [client, other] = base.clients
+  if (!client || !other) throw new Error('seed needs two clients')
+  const input = { name: client.name, kind: client.kind, taxId: client.taxId, town: client.town }
+
+  it('validates IBANs by checksum and stores them without spaces', () => {
+    expect(isValidIban('ES91 2100 0418 4502 0005 1332')).toBe(true)
+    expect(isValidIban('ES91 2100 0418 4502 0005 1333')).toBe(false)
+    expect(isValidIban('ES91 2100')).toBe(false)
+    expect(formatIban('es9121000418450200051332')).toBe('ES91 2100 0418 4502 0005 1332')
+    expect(isValidIban(spanishIban('21000000000000000001'))).toBe(true)
+    expect(base.clients.every((item) => !item.iban || isValidIban(item.iban))).toBe(true)
+  })
+
+  it('edits contact data and the IBAN; rejects a bad IBAN, email or repeated name', () => {
+    const next = updateClient(base, client.id, {
+      ...input,
+      phone: ' +34 600 000 000 ',
+      iban: 'ES91 2100 0418 4502 0005 1332',
+      email: 'nuevo@cliente.es',
+    })
+    expect(next.clients.find((item) => item.id === client.id)).toMatchObject({
+      phone: '+34 600 000 000',
+      iban: 'ES9121000418450200051332',
+      email: 'nuevo@cliente.es',
+    })
+    expect(() => updateClient(base, client.id, { ...input, iban: 'ES00 1234' })).toThrow(
+      CommandError,
+    )
+    expect(() => updateClient(base, client.id, { ...input, email: 'sin-arroba' })).toThrow(
+      CommandError,
+    )
+    expect(() => updateClient(base, client.id, { ...input, name: other.name })).toThrow(
+      CommandError,
+    )
+    expect(() => updateClient(base, 'nadie', input)).toThrow(CommandError)
+    expect(
+      updateClient(base, client.id, { ...input, iban: '' }).clients.find(
+        (item) => item.id === client.id,
+      )?.iban,
+    ).toBe('')
+  })
+
+  it('adds up what each client contracted and billed', () => {
+    for (const item of base.clients) {
+      const overview = clientOverview(base, item, TODAY)
+      const works = base.works.filter((work) => work.clientId === item.id)
+      expect(overview.works).toHaveLength(works.length)
+      expect(overview.contracted).toBe(works.reduce((sum, work) => sum + work.planned.price, 0))
+      expect(overview.collected).toBeLessThanOrEqual(overview.invoiced)
+      expect(overview.accepted.every((budget) => budget.clientId === item.id)).toBe(true)
+      if (works.length === 0) expect(overview.marginRate).toBeNull()
+    }
+    expect(base.works.length).toBeGreaterThan(0)
+  })
+
+  it('flags sent invoices unpaid after 30 days, oldest first, and ignores paid or recent ones', () => {
+    const sent = base.invoices.filter((invoice) => invoice.status === 'enviada')
+    const late = overdueInvoices(base, TODAY)
+    expect(late.length).toBeGreaterThan(0)
+    expect(late.every((item) => item.invoice.status === 'enviada' && item.days > OVERDUE_DAYS)).toBe(
+      true,
+    )
+    expect(late.map((item) => item.days)).toEqual([...late.map((item) => item.days)].sort((a, b) => b - a))
+    expect(late.length).toBeLessThanOrEqual(sent.length)
+    // Right after sending nothing is late; a paid invoice never is.
+    const first = sent[0]
+    if (!first?.sentOn) throw new Error('seed needs a sent invoice')
+    expect(overdueInvoices(base, first.sentOn)).toHaveLength(0)
+    const paid = {
+      ...base,
+      invoices: base.invoices.map((invoice) =>
+        invoice.status === 'enviada' ? { ...invoice, status: 'cobrada' as const } : invoice,
+      ),
+    }
+    expect(overdueInvoices(paid, TODAY)).toHaveLength(0)
+    const owner = base.clients.find((item) => item.id === first.clientId)
+    if (!owner) throw new Error('invoice client must exist')
+    const overview = clientOverview(base, owner, TODAY)
+    expect(overview.overdueTotal).toBe(overview.overdue.reduce((sum, item) => sum + item.total, 0))
+  })
+
+  it('breaks the client down by campaign and flags a margin below what was promised', () => {
+    for (const item of base.clients) {
+      const overview = clientOverview(base, item, TODAY)
+      expect(overview.years.reduce((sum, row) => sum + row.contracted, 0)).toBe(overview.contracted)
+      expect(overview.years.map((row) => row.year)).toEqual(
+        [...overview.years.map((row) => row.year)].sort((a, b) => a - b),
+      )
+      if (overview.belowTarget)
+        expect(overview.marginRate ?? 0).toBeLessThan((overview.plannedMarginRate ?? 0) - 0.02)
+    }
+    const empty = clientOverview({ ...base, works: [] }, client, TODAY)
+    expect(empty.belowTarget).toBe(false)
+    expect(empty.years).toEqual([])
+  })
+
+  it("collects only that client's proposals, invoices and reports, newest first", () => {
+    for (const item of base.clients) {
+      const events = clientActivity(base, item.id)
+      expect(events.map((event) => event.at)).toEqual(
+        [...events.map((event) => event.at)].sort((a, b) => b.localeCompare(a)),
+      )
+    }
+    const total = base.clients.reduce((sum, item) => sum + clientActivity(base, item.id).length, 0)
+    expect(total).toBe(base.activity.length)
   })
 })
 
