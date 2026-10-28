@@ -10,9 +10,14 @@ import { SendEmailDialog } from '@/shared/ui/send-email-dialog'
 
 import { budgetsApi } from '../api'
 
-/** Link the client would receive. Opening it counts as a view in the budget's history. */
+/** Link the client receives. Opening it counts as a view in the budget's history. */
 export function proposalLink(budgetId: string) {
   return `${window.location.origin}/propuesta/${budgetId}`
+}
+
+/** Same page for the office to check: it is not recorded as a visit and cannot answer. */
+export function proposalPreviewLink(budgetId: string) {
+  return `${proposalLink(budgetId)}?previa=1`
 }
 
 /** Compose the email that carries a proposal (simulated: it is recorded, never delivered). */
@@ -38,11 +43,11 @@ export function SendBudgetDialog({
   const client = budget ? lookup(workspace).client(budget.clientId) : undefined
   const initial = budget
     ? budgetEmailDraft(
-        budget,
-        client,
-        estimateStoredBudget(budget, workspace.species).price,
-        proposalLink(budget.id),
-      )
+      budget,
+      client,
+      estimateStoredBudget(budget, workspace.species).price,
+      proposalLink(budget.id),
+    )
     : { to: '', subject: '', message: '' }
 
   return (

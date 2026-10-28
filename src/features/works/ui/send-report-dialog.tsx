@@ -14,6 +14,11 @@ export function workReportLink(workId: string) {
   return `${window.location.origin}/informe/${workId}`
 }
 
+/** Same page for the office to check: it is not recorded as a visit. */
+export function workReportPreviewLink(workId: string) {
+  return `${workReportLink(workId)}?previa=1`
+}
+
 /** Email the client their progress report (simulated: it is logged, nothing leaves the app). */
 export function SendReportDialog({
   work,

@@ -95,6 +95,7 @@ export function BudgetEditorPage({
                 onChange={(title) => patch({ title })}
               />
               <ChoiceField
+                searchable
                 label="Cliente"
                 value={draft.clientId}
                 onChange={(clientId) => patch({ clientId })}
@@ -107,6 +108,7 @@ export function BudgetEditorPage({
                 }
               />
               <ChoiceField
+                searchable
                 label="Zona"
                 value={draft.zoneId}
                 onChange={(zoneId) => patch({ zoneId })}

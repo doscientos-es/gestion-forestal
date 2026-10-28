@@ -17,6 +17,7 @@ import { budgetCsvTemplate, importBudgets, parseBudgetCsv } from './budget-impor
 import {
   CommandError,
   acceptBudget,
+  addTasks,
   cancelAbsence,
   createClient,
   createInvoiceDraft,
@@ -63,6 +64,7 @@ import {
   sendWorkReportEmail,
 } from './sharing'
 import { saveSpecies } from './species-catalog'
+import { suggestTasks } from './task-suggestions'
 import { callLink, dialNumber, whatsappLink } from './whatsapp'
 import { marginAlerts } from './work-alerts'
 import { calculatePerformance } from './work-performance'
@@ -776,6 +778,44 @@ describe('users (clients): bank account, contracted work and performance', () =>
     }
     const total = base.clients.reduce((sum, item) => sum + clientActivity(base, item.id).length, 0)
     expect(total).toBe(base.activity.length)
+  })
+})
+
+describe('tasks suggested from the budget', () => {
+  const base = buildSeed(TODAY)
+  const work = base.works.find(
+    (item) =>
+      base.assignments.some((assignment) => assignment.workId === item.id) &&
+      base.budgets.find((budget) => budget.id === item.budgetId)?.lines.length,
+  )
+  if (!work) throw new Error('seed needs an assigned work with a budget')
+  const lines = base.budgets.find((budget) => budget.id === work.budgetId)?.lines ?? []
+  const empty = { ...base, tasks: base.tasks.filter((task) => task.workId !== work.id) }
+
+  it('suggests one task per budget line and skips the ones already written', () => {
+    const suggestions = suggestTasks(empty, work)
+    expect(suggestions).toHaveLength(lines.length)
+    expect(suggestions.every((text) => text.trim().length > 0)).toBe(true)
+    const withOne = addTasks(empty, work.id, [suggestions[0] ?? ''], context)
+    expect(suggestTasks(withOne, work)).toHaveLength(lines.length - 1)
+  })
+
+  it('adds several tasks with a single notice per crew member', () => {
+    const crewIds = new Set(
+      base.assignments.filter((item) => item.workId === work.id).map((item) => item.crewId),
+    )
+    const recipients = base.people.filter((person) => person.crewId && crewIds.has(person.crewId))
+    const next = addTasks(empty, work.id, ['Primera tarea', ' Segunda tarea ', 'primera tarea', ''], context)
+    expect(next.tasks.filter((task) => task.workId === work.id).map((task) => task.text)).toEqual([
+      'Primera tarea',
+      'Segunda tarea',
+    ])
+    const notices = next.notifications.filter(
+      (notice) => notice.kind === 'tarea_nueva' && notice.workId === work.id,
+    )
+    expect(notices.length - empty.notifications.filter((n) => n.kind === 'tarea_nueva' && n.workId === work.id).length).toBe(recipients.length)
+    expect(() => addTasks(next, work.id, ['Primera tarea', '  '], context)).toThrow(CommandError)
+    expect(() => addTasks(next, 'nadie', ['x'], context)).toThrow(CommandError)
   })
 })
 

@@ -143,14 +143,20 @@ function HistoryHint({
   const optimistic = current > real * 1.03
   const differs = Math.abs(current - real) > real * 0.03
   const Icon = optimistic ? TrendingDown : TrendingUp
+  const suggested = Math.max(5, Math.round(real / 5) * 5)
   return (
-    <Badge variant={optimistic ? 'warning' : 'success'} className="gap-1.5">
+    <Badge
+      variant={optimistic ? 'warning' : 'success'}
+      className="gap-1.5"
+      title="Plantas por peón y día que salen de los partes de las obras ya terminadas con solo esta especie y sin tratamientos."
+    >
       <Icon aria-hidden="true" className="size-3.5" />
-      Real en {works} {works === 1 ? 'obra' : 'obras'}: {formatNumber(real)} pl/peón
-      {optimistic ? ' · tu cifra es optimista' : ''}
+      {optimistic
+        ? `Pones ${formatNumber(current)} pl/peón y día; en ${works === 1 ? 'tu última obra' : `tus ${works} obras`} terminadas rindieron ${formatNumber(real)}. Puede salirte corto.`
+        : `En ${works === 1 ? 'tu obra terminada' : `tus ${works} obras terminadas`} de esta especie se plantaron ${formatNumber(real)} pl/peón y día.`}
       {differs ? (
         <Button variant="link" size="xs" onPress={onApply}>
-          Usar
+          Usar {formatNumber(suggested)}
         </Button>
       ) : null}
     </Badge>

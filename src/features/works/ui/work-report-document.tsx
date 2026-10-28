@@ -7,6 +7,7 @@ import {
   type Work,
   type Workspace,
 } from '@/features/workspace'
+import { company } from '@/shared/lib/company'
 import {
   formatDate,
   formatNumber,
@@ -38,8 +39,8 @@ export function WorkReportDocument({ work, workspace }: { work: Work; workspace:
             <TreePine aria-hidden="true" className="size-5" />
           </span>
           <div>
-            <p className="text-base font-semibold tracking-tight">Rodal</p>
-            <p className="text-xs text-zinc-500">Servicios forestales</p>
+            <p className="text-base font-semibold tracking-tight">{company.name}</p>
+            <p className="text-xs text-zinc-500">{company.tagline}</p>
           </div>
         </div>
         <div className="text-right">

@@ -1,6 +1,5 @@
 import { MetricCard, MetricGrid } from '@doscientos/ui'
 import { ChartColumn, Layers } from 'lucide-react'
-import { useState } from 'react'
 
 import {
   availableYears,
@@ -11,6 +10,7 @@ import {
   useWorkspace,
 } from '@/features/workspace'
 import { formatMoney, formatNumber, formatPercent, formatSignedPercent } from '@/shared/lib/format'
+import { useUrlState } from '@/shared/lib/use-url-state'
 import { FilterTabs } from '@/shared/ui/filter-tabs'
 import { Panel, PanelHeader } from '@/shared/ui/surface'
 
@@ -22,7 +22,7 @@ type Dimension = 'zona' | 'cliente'
 export function CampaignReports() {
   const workspace = useWorkspace()
   const years = availableYears(workspace)
-  const [dimension, setDimension] = useState<Dimension>('zona')
+  const [dimension, setDimension] = useUrlState<Dimension>('agrupar', 'zona', ['zona', 'cliente'])
   const current = summarizeYear(workspace, years.at(-1) ?? 0)
   const previous = summarizeYear(workspace, years.at(-2) ?? 0)
   const groups = groupBy(workspace, years, dimension)

@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { useWorkspace, type Assignment } from '@/features/workspace'
 import { downloadTextFile } from '@/shared/lib/download'
 import { formatNumber, formatShortDate } from '@/shared/lib/format'
+import { useUrlState, useUrlText } from '@/shared/lib/use-url-state'
 import { DataTable, RowMenu } from '@/shared/ui/data-table'
 import { EmptyPanel } from '@/shared/ui/empty-panel'
 import { FilterTabs, FilterToolbar, SearchField, type FilterOption } from '@/shared/ui/filter-tabs'
@@ -37,9 +38,14 @@ export function AssignmentsList({
 }) {
   const workspace = useWorkspace()
   const navigate = useNavigate()
-  const [status, setStatus] = useState<StatusFilter>('todas')
+  const [status, setStatus] = useUrlState<StatusFilter>('estado', 'todas', [
+    'todas',
+    'planificada',
+    'en_curso',
+    'terminada',
+  ])
   const [crewId, setCrewId] = useState('todas')
-  const [query, setQuery] = useState('')
+  const [query, setQuery] = useUrlText('q')
   const text = query.trim().toLowerCase()
   const matches = (record: AssignmentRecord, wanted: StatusFilter) =>
     (wanted === 'todas' || record.status === wanted) &&

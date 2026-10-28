@@ -22,6 +22,7 @@ import { clock } from '@/shared/lib/clock'
 import { addDays, nextWorkingDay, type IsoDate } from '@/shared/lib/dates'
 import { formatMoney, formatNumber, formatShortDate } from '@/shared/lib/format'
 import { useCommand } from '@/shared/lib/use-command'
+import { useUrlState } from '@/shared/lib/use-url-state'
 import { FilterTabs, type FilterOption } from '@/shared/ui/filter-tabs'
 import { ChoiceField } from '@/shared/ui/form-controls'
 import { PageTop } from '@/shared/ui/page-top'
@@ -45,7 +46,7 @@ type View = 'calendario' | 'lista'
 export function PlanningPage() {
   const workspace = useWorkspace()
   const today = clock.today()
-  const [view, setView] = useState<View>('calendario')
+  const [view, setView] = useUrlState<View>('vista', 'calendario', ['calendario', 'lista'])
   // Phones start with one week (5 columns fit); the calendar stays the default everywhere.
   const [mode, setMode] = useState<RangeMode>(() =>
     typeof window !== 'undefined' && window.innerWidth < 768 ? 'semana' : 'quincena',
@@ -118,7 +119,7 @@ export function PlanningPage() {
                     onPress={() =>
                       setMoving(
                         workspace.assignments.find((item) => item.id === issue.assignmentId) ??
-                          null,
+                        null,
                       )
                     }
                   >

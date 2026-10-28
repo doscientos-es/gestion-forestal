@@ -89,8 +89,8 @@ export function WorkDetailPage({ work }: { work: Work }) {
                 <FileText aria-hidden="true" className="size-4" />
               </IconButton>
               {work.status === 'pendiente' ||
-              work.status === 'planificada' ||
-              work.status === 'en_curso' ? (
+                work.status === 'planificada' ||
+                work.status === 'en_curso' ? (
                 <Button variant="outline" onPress={() => setAssignOpen(true)}>
                   <CalendarPlus aria-hidden="true" className="size-4" /> Asignar cuadrilla
                 </Button>
@@ -131,7 +131,14 @@ export function WorkDetailPage({ work }: { work: Work }) {
       )}
       <div className="mt-5 grid grid-cols-[minmax(0,1fr)] items-start gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <div className="space-y-5">
-          {user ? <TaskChecklist work={work} user={user} canEdit={Boolean(isAdmin)} /> : null}
+          {user ? (
+            <TaskChecklist
+              work={work}
+              user={user}
+              canEdit={Boolean(isAdmin)}
+              onAssign={() => setAssignOpen(true)}
+            />
+          ) : null}
           <Panel aria-labelledby="progress-title">
             <PanelHeader
               id="progress-title"

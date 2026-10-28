@@ -1,8 +1,14 @@
 import {
+  Combobox,
+  ComboboxContent,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
   Field,
   FieldDescription,
   FieldLabel,
   IconButton,
+  HighlightMatch,
   Input,
   InputGroup,
   InputGroupAddon,
@@ -16,8 +22,8 @@ import {
   SelectValue,
   cn,
 } from '@doscientos/ui'
-import { Minus, Plus } from 'lucide-react'
-import { useId, useState, type ReactNode } from 'react'
+import { ChevronDown, Minus, Plus } from 'lucide-react'
+import { useId, useRef, useState, type ReactNode } from 'react'
 
 function parseDecimal(raw: string) {
   const value = Number(raw.replace(/\s/g, '').replace(',', '.'))
@@ -196,16 +202,7 @@ export function TextField({
   )
 }
 
-export function ChoiceField({
-  label,
-  value,
-  onChange,
-  options,
-  placeholder = 'Selecciona…',
-  className,
-  hideLabel = false,
-  footer,
-}: {
+type ChoiceFieldProps = {
   label: string
   value: string
   onChange: (value: string) => void
@@ -215,7 +212,110 @@ export function ChoiceField({
   hideLabel?: boolean
   /** Shown under the select, e.g. a "create new" shortcut. */
   footer?: ReactNode
-}) {
+  /** Type to filter the options. By default only when the list is long enough to need it. */
+  searchable?: boolean
+}
+
+/** Above this many options a select is hard to scan, so it becomes a search box. */
+const SEARCH_THRESHOLD = 8
+
+/** A select you can type into: focus it, write part of the name and pick from what remains. */
+function SearchableChoice({
+  label,
+  value,
+  onChange,
+  options,
+  placeholder = 'Busca o selecciona…',
+  className,
+  hideLabel = false,
+  footer,
+}: ChoiceFieldProps) {
+  const selected = options.find((option) => option.value === value)
+  // `null` while the person has not typed: the box shows the chosen option and the list is whole.
+  const [typed, setTyped] = useState<string | null>(null)
+  // Picking an option also reports its name as "typed text"; that must not filter the next opening.
+  const justPicked = useRef(false)
+  const needle = (typed ?? '').trim().toLocaleLowerCase('es')
+  const items = needle
+    ? options.filter((option) => option.label.toLocaleLowerCase('es').includes(needle))
+    : options
+
+  return (
+    <div className={cn('flex min-w-0 flex-col gap-1.5', className)}>
+      <Combobox
+        aria-label={label}
+        items={items}
+        menuTrigger="focus"
+        selectedKey={value || null}
+        inputValue={typed ?? selected?.label ?? ''}
+        onInputChange={(text) => {
+          if (justPicked.current) {
+            justPicked.current = false
+            setTyped(null)
+          } else setTyped(text === selected?.label ? null : text)
+        }}
+        onSelectionChange={(key) => {
+          if (key === null) return
+          onChange(String(key))
+          setTyped(null)
+          justPicked.current = true
+          window.setTimeout(() => {
+            justPicked.current = false
+          }, 0)
+        }}
+        onBlur={() => setTyped(null)}
+      >
+        {hideLabel ? null : (
+          <span className="text-muted-foreground text-xs font-medium" aria-hidden="true">
+            {label}
+          </span>
+        )}
+        <div className="relative">
+          <ComboboxInput
+            aria-label={label}
+            placeholder={placeholder}
+            onFocus={(event) => event.currentTarget.select()}
+            className="h-10 pr-9"
+          />
+          <ChevronDown
+            aria-hidden="true"
+            className="text-muted-foreground pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
+          />
+        </div>
+        <ComboboxContent>
+          <ComboboxList<{ value: string; label: string }>
+            emptyState={
+              <p className="text-muted-foreground px-3 py-6 text-center text-sm">
+                Nada coincide con «{typed}».
+              </p>
+            }
+          >
+            {(option) => (
+              <ComboboxItem id={option.value} textValue={option.label}>
+                <HighlightMatch text={option.label} query={typed ?? ''} />
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+      {footer}
+    </div>
+  )
+}
+
+export function ChoiceField(props: ChoiceFieldProps) {
+  const {
+    label,
+    value,
+    onChange,
+    options,
+    placeholder = 'Selecciona…',
+    className,
+    hideLabel = false,
+    footer,
+    searchable = options.length > SEARCH_THRESHOLD,
+  } = props
+  if (searchable) return <SearchableChoice {...props} />
   return (
     <div className={cn('flex min-w-0 flex-col gap-1.5', className)}>
       <Select

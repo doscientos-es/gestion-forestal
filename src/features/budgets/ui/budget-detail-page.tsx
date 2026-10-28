@@ -14,6 +14,7 @@ import {
 } from '@/features/workspace'
 import { formatDate, formatMoney, formatNumber } from '@/shared/lib/format'
 import { useCommand } from '@/shared/lib/use-command'
+import { useUrlState } from '@/shared/lib/use-url-state'
 import { RowMenu } from '@/shared/ui/data-table'
 import { EmptyPanel } from '@/shared/ui/empty-panel'
 import { FilterTabs } from '@/shared/ui/filter-tabs'
@@ -33,7 +34,8 @@ export function BudgetDetailPage({ budget }: { budget: Budget }) {
   const navigate = useNavigate()
   const [confirmAccept, setConfirmAccept] = useState(false)
   const [sending, setSending] = useState(false)
-  const [tab, setTab] = useState<Tab>('partidas')
+  // The tab lives in the URL: refresh, back and shared links keep it.
+  const [tab, setTab] = useUrlState<Tab>('pestana', 'partidas', ['partidas', 'propuesta', 'historial'])
   const history = activityFor(workspace.activity, 'budget', budget.id)
   const find = lookup(workspace)
   const estimate = estimateStoredBudget(budget, workspace.species)
@@ -113,11 +115,11 @@ export function BudgetDetailPage({ budget }: { budget: Budget }) {
                 onAction={() => {
                   void navigator.clipboard?.writeText(proposalLink(budget.id))
                   toast.success('Enlace copiado', {
-                    description: 'Al abrirlo, la visita queda anotada en el historial.',
+                    description: 'Cuando el cliente lo abra, quedará anotado en el historial.',
                   })
                 }}
               >
-                Copiar enlace del cliente
+                Copiar enlace para el cliente
               </DropdownMenuItem>
               {budget.status === 'enviado' ? (
                 <DropdownMenuItem onAction={() => reject.mutate(undefined)}>
@@ -136,14 +138,18 @@ export function BudgetDetailPage({ budget }: { budget: Budget }) {
           onChange={setTab}
           options={[
             { value: 'partidas', label: 'Partidas', count: budget.lines.length },
-            { value: 'propuesta', label: 'Propuesta del cliente', count: 1 },
+            { value: 'propuesta', label: 'Propuesta y enlace', count: 1 },
             { value: 'historial', label: 'Historial', count: history.length },
           ]}
         />
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
         {tab === 'propuesta' ? (
-          <BudgetProposalTab budget={budget} workspace={workspace} />
+          <BudgetProposalTab
+            budget={budget}
+            workspace={workspace}
+            onSend={() => setSending(true)}
+          />
         ) : tab === 'historial' ? (
           <Panel aria-labelledby="detail-history">
             <PanelHeader id="detail-history" title="Historial" meta={history.length} />

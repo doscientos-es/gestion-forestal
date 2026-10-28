@@ -1,5 +1,6 @@
 import {
   addTask,
+  addTasks,
   apiDeps,
   commandContext,
   markNotificationsRead,
@@ -12,6 +13,8 @@ import {
 export type TasksApi = {
   /** Office adds a task to a work and the assigned crew is notified. */
   add(workId: string, text: string): Promise<void>
+  /** Several tasks with a single notice to the crew. */
+  addMany(workId: string, texts: string[]): Promise<void>
   remove(taskId: string): Promise<void>
   /** A crew member ticks or unticks a task. */
   setDone(taskId: string, personId: string, done: boolean): Promise<void>
@@ -23,6 +26,11 @@ export function createTasksApi(deps: ApiDeps): TasksApi {
     add: (workId, text) =>
       mutate(deps, (workspace) => ({
         workspace: addTask(workspace, workId, text, commandContext(deps)),
+        result: undefined,
+      })),
+    addMany: (workId, texts) =>
+      mutate(deps, (workspace) => ({
+        workspace: addTasks(workspace, workId, texts, commandContext(deps)),
         result: undefined,
       })),
     remove: (taskId) =>

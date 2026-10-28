@@ -1,6 +1,5 @@
 import { MetricCard, MetricGrid } from '@doscientos/ui'
 import { ChartColumn, Landmark } from 'lucide-react'
-import { useState } from 'react'
 
 import {
   accountingYears,
@@ -63,9 +62,14 @@ const metricLabels: Record<AccountingMetric, string> = {
 function FinanceView() {
   const workspace = useWorkspace()
   const years = accountingYears(workspace)
-  const [metric, setMetric] = useState<AccountingMetric>('income')
-  const [picked, setPicked] = useState<number | null>(null)
-  const year = picked ?? years.at(-1) ?? new Date().getFullYear()
+  const [metric, setMetric] = useUrlState<AccountingMetric>('concepto', 'income', [
+    'income',
+    'expenses',
+    'result',
+  ])
+  const latest = String(years.at(-1) ?? new Date().getFullYear())
+  const [pickedYear, setPickedYear] = useUrlState('anio', latest, [...years.map(String), latest])
+  const year = Number(pickedYear)
   const previousYear = year - 1
   // The selected year against the two before it (only those that have data).
   const compared = [year - 2, year - 1, year].filter(
@@ -88,7 +92,7 @@ function FinanceView() {
         <FilterTabs
           label="Año"
           value={String(year)}
-          onChange={(value) => setPicked(Number(value))}
+          onChange={setPickedYear}
           options={[...years].reverse().map((item) => ({
             value: String(item),
             label: String(item),

@@ -18,6 +18,7 @@ import {
 import { clock } from '@/shared/lib/clock'
 import { downloadTextFile } from '@/shared/lib/download'
 import { formatMoney, formatNumber, formatShortDate } from '@/shared/lib/format'
+import { useUrlState, useUrlText } from '@/shared/lib/use-url-state'
 import { DataTable, RowMenu } from '@/shared/ui/data-table'
 import { EmptyPanel } from '@/shared/ui/empty-panel'
 import { FilterTabs, FilterToolbar, SearchField, type FilterOption } from '@/shared/ui/filter-tabs'
@@ -33,10 +34,18 @@ export function ExpensesPage() {
   const workspace = useWorkspace()
   const user = useCurrentUser()
   const find = lookup(workspace)
-  const [status, setStatus] = useState<ExpenseFilter>('todos')
-  const [category, setCategory] = useState<ExpenseCategory | 'todas'>('todas')
+  const [status, setStatus] = useUrlState<ExpenseFilter>('estado', 'todos', [
+    'todos',
+    'pendiente',
+    'aprobado',
+    'rechazado',
+  ])
+  const [category, setCategory] = useUrlState<ExpenseCategory | 'todas'>('categoria', 'todas', [
+    'todas',
+    ...(Object.keys(expenseCategory) as ExpenseCategory[]),
+  ])
   const [workId, setWorkId] = useState('todas')
-  const [text, setText] = useState('')
+  const [text, setText] = useUrlText('q')
   const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState<Expense | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
@@ -166,12 +175,12 @@ export function ExpensesPage() {
             }
             {...(mine.length === 0
               ? {
-                  action: (
-                    <Button onPress={() => setCreating(true)}>
-                      <Plus aria-hidden="true" className="size-4" /> Nuevo gasto
-                    </Button>
-                  ),
-                }
+                action: (
+                  <Button onPress={() => setCreating(true)}>
+                    <Plus aria-hidden="true" className="size-4" /> Nuevo gasto
+                  </Button>
+                ),
+              }
               : {})}
           />
         ) : (

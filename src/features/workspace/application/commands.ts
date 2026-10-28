@@ -329,6 +329,55 @@ export function addTask(
   )
 }
 
+/**
+ * Adds several tasks at once and tells the crew once, not once per task. Blank texts and tasks the
+ * work already has are skipped.
+ */
+export function addTasks(
+  workspace: Workspace,
+  workId: string,
+  texts: string[],
+  context: Context,
+): Workspace {
+  const work = workspace.works.find((item) => item.id === workId)
+  if (!work) throw new CommandError('Obra no encontrada.')
+  const known = new Set(
+    workspace.tasks.filter((task) => task.workId === workId).map((task) => task.text.toLowerCase()),
+  )
+  const clean = [...new Set(texts.map((text) => text.trim()).filter(Boolean))].filter(
+    (text) => !known.has(text.toLowerCase()),
+  )
+  if (clean.length === 0) throw new CommandError('No hay tareas nuevas que añadir.')
+  const tasks: WorkTask[] = clean.map((text) => ({
+    id: context.id(),
+    workId,
+    text,
+    createdOn: context.today,
+    doneBy: null,
+    doneOn: null,
+  }))
+  const crews = [
+    ...new Set(
+      workspace.assignments.filter((item) => item.workId === workId).map((item) => item.crewId),
+    ),
+  ]
+  const recipients = crews.flatMap((crewId) => crewPeople(workspace, crewId))
+  return notify(
+    { ...workspace, tasks: [...workspace.tasks, ...tasks] },
+    recipients,
+    {
+      kind: 'tarea_nueva',
+      title:
+        tasks.length === 1
+          ? `Tarea nueva en ${work.title}`
+          : `${tasks.length} tareas nuevas en ${work.title}`,
+      body: clean.join(' · '),
+      workId,
+    },
+    context,
+  )
+}
+
 export function removeTask(workspace: Workspace, taskId: string): Workspace {
   return { ...workspace, tasks: workspace.tasks.filter((task) => task.id !== taskId) }
 }
