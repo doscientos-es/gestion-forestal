@@ -34,6 +34,15 @@ export function WorkerDetailPanel({
       />
       <div className="grid grid-cols-2 gap-5 p-5 lg:grid-cols-4">
         <Stat
+          label="Nota media del capataz"
+          value={
+            row.averageRating === null
+              ? 'Sin valorar'
+              : `${formatNumber(row.averageRating, 1)} / 10`
+          }
+          hint={`${row.ratedReports} de ${row.reportCount} partes valorados · los demás no cuentan`}
+        />
+        <Stat
           label="Días trabajados registrados"
           value={formatNumber(row.workedDays)}
           hint={`${row.reportCount} peonadas de parte · ${row.works.length} obras`}
@@ -60,6 +69,31 @@ export function WorkerDetailPanel({
           hint={row.lastReportOn ? `Último parte: ${formatDate(row.lastReportOn)}` : 'Sin partes'}
         />
       </div>
+      {row.ratingHistory.length > 0 ? (
+        <details className="border-border border-t px-5 py-4">
+          <summary className="cursor-pointer text-sm font-semibold">
+            Valoraciones diarias ({row.ratedReports})
+          </summary>
+          <ul
+            className="divide-border mt-3 max-h-72 divide-y overflow-y-auto"
+            aria-label="Histórico de valoraciones diarias"
+          >
+            {row.ratingHistory.map(({ report, score }) => (
+              <li key={report.id} className="flex items-center justify-between gap-3 py-3 text-sm">
+                <span>
+                  <span className="block">{formatDate(report.date)}</span>
+                  <span className="text-muted-foreground text-xs">
+                    {row.works.find((item) => item.work.id === report.workId)?.work.title}
+                  </span>
+                </span>
+                <span className="bg-brand-soft text-brand rounded-lg px-3 py-2 font-semibold tabular-nums">
+                  {score} / 10
+                </span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
       {row.overlappingDays > 0 ? (
         <p className="border-border border-t px-5 py-3 text-sm">
           <Tag tone="amber">Revisar {row.overlappingDays} días con varios partes</Tag> Cada parte
@@ -81,6 +115,7 @@ export function WorkerDetailPanel({
                 {[
                   'Obra',
                   'Peonadas',
+                  'Nota media',
                   'Coste imputado',
                   'Ritmo del equipo',
                   'Previsto',
@@ -109,6 +144,14 @@ export function WorkerDetailPanel({
                     </span>
                   </th>
                   <td className="px-5 py-3">{formatNumber(item.reportCount)}</td>
+                  <td className="px-5 py-3">
+                    {item.averageRating === null
+                      ? 'Sin valorar'
+                      : `${formatNumber(item.averageRating, 1)} / 10`}
+                    <span className="text-muted-foreground block text-xs">
+                      {item.ratedReports} partes valorados
+                    </span>
+                  </td>
                   <td className="px-5 py-3">{formatMoney(item.laborCost)}</td>
                   <td className="px-5 py-3">
                     {item.teamYield === null

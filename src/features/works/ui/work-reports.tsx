@@ -4,6 +4,7 @@ import {
   incidentLabels,
   lookup,
   reportsForWork,
+  workerRating,
   type Work,
   type Workspace,
 } from '@/features/workspace'
@@ -11,7 +12,15 @@ import { formatNumber, formatShortDate, formatWeekday } from '@/shared/lib/forma
 import { EmptyPanel } from '@/shared/ui/empty-panel'
 import { Panel, PanelHeader, Tag } from '@/shared/ui/surface'
 
-export function WorkReports({ work, workspace }: { work: Work; workspace: Workspace }) {
+export function WorkReports({
+  work,
+  workspace,
+  showRatings = false,
+}: {
+  work: Work
+  workspace: Workspace
+  showRatings?: boolean
+}) {
   const find = lookup(workspace)
   const reports = [...reportsForWork(work.id, workspace.reports)].sort((a, b) =>
     b.date.localeCompare(a.date),
@@ -76,6 +85,28 @@ export function WorkReports({ work, workspace }: { work: Work; workspace: Worksp
                     </Tag>
                   ) : null}
                 </span>
+                {showRatings ? (
+                  <details className="border-border col-span-3 border-t pt-2 text-xs">
+                    <summary className="text-muted-foreground cursor-pointer">
+                      Asistencia y notas del día
+                    </summary>
+                    <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+                      {report.workerIds.map((id) => (
+                        <li
+                          key={id}
+                          className="bg-muted/50 flex items-center justify-between gap-2 rounded-lg px-3 py-2"
+                        >
+                          <span>{find.person(id)?.name ?? 'Trabajador no disponible'}</span>
+                          <span className="shrink-0 font-semibold tabular-nums">
+                            {workerRating(report, id) === null
+                              ? 'Sin valorar'
+                              : `${workerRating(report, id)} / 10`}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                ) : null}
               </li>
             )
           })}

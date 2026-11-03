@@ -1,7 +1,7 @@
 import {
   assignmentOn,
   availableMembers,
-  crewMembers,
+  isWorkerRating,
   type Attachment,
   type DailyReport,
   type Incident,
@@ -13,6 +13,7 @@ import type { IsoDate } from '@/shared/lib/dates'
 
 export type ReportForm = {
   workerIds: string[]
+  workerRatings: Record<string, number>
   plants: number
   hectares: number
   incident: Incident
@@ -53,7 +54,9 @@ export function reportContext(
     work,
     crewId: foreman.crewId,
     date,
-    members: crewMembers(foreman.crewId, workspace.people),
+    members: workspace.people.filter(
+      (person) => person.crewId === foreman.crewId || existing?.workerIds.includes(person.id),
+    ),
     existing,
     target: Math.round(perWorker * available.length),
   }
@@ -61,8 +64,16 @@ export function reportContext(
 
 export function initialForm(context: ReportContext, workspace: Workspace): ReportForm {
   if (context.existing) {
-    const { workerIds, plants, hectares, incident, notes, photos } = context.existing
-    return { workerIds, plants, hectares, incident, notes, photos }
+    const { workerIds, workerRatings, plants, hectares, incident, notes, photos } = context.existing
+    return {
+      workerIds,
+      workerRatings: { ...workerRatings },
+      plants,
+      hectares,
+      incident,
+      notes,
+      photos,
+    }
   }
   const available = availableMembers(
     context.crewId,
@@ -76,12 +87,30 @@ export function initialForm(context: ReportContext, workspace: Workspace): Repor
       : 0
   return {
     workerIds: available.map((person) => person.id),
+    workerRatings: {},
     plants: context.target,
     hectares: plantsPerHa > 0 ? Math.round((context.target / plantsPerHa) * 100) / 100 : 0,
     incident: 'ninguna',
     notes: '',
     photos: [],
   }
+}
+
+export function toggleReportWorker(form: ReportForm, personId: string): ReportForm {
+  const selected = form.workerIds.includes(personId)
+  return {
+    ...form,
+    workerIds: selected
+      ? form.workerIds.filter((id) => id !== personId)
+      : [...form.workerIds, personId],
+    workerRatings: Object.fromEntries(
+      Object.entries(form.workerRatings).filter(([id]) => id !== personId),
+    ),
+  }
+}
+
+export function pendingWorkerRatings(form: ReportForm): number {
+  return form.workerIds.filter((id) => !isWorkerRating(form.workerRatings[id])).length
 }
 
 /** Hectares follow plants at the budgeted density unless the foreman edits them. */

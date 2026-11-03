@@ -1,6 +1,7 @@
 import type { DailyReport, Person, Work, Workspace } from './model'
+import { workerRating, workerRatingSummary, type WorkerRatingSummary } from './worker-rating'
 
-export type WorkerWorkPerformance = {
+export type WorkerWorkPerformance = WorkerRatingSummary & {
   work: Work
   reportCount: number
   workedDays: number
@@ -14,8 +15,9 @@ export type WorkerWorkPerformance = {
   teamYieldDeviation: number | null
 }
 
-export type WorkerPerformance = {
+export type WorkerPerformance = WorkerRatingSummary & {
   person: Person
+  ratingHistory: { report: DailyReport; score: number }[]
   works: WorkerWorkPerformance[]
   reportCount: number
   workedDays: number
@@ -40,6 +42,7 @@ function workSummary(work: Work, reports: DailyReport[], person: Person): Worker
       : 0
   const teamYield = teamDays > 0 ? units / teamDays : null
   return {
+    ...workerRatingSummary(reports, person.id),
     work,
     reportCount: reports.length,
     workedDays: new Set(reports.map((report) => report.date)).size,
@@ -84,7 +87,14 @@ export function workerPerformance(workspace: Workspace, year: number | null): Wo
       const byDate = new Map<string, number>()
       for (const report of own) byDate.set(report.date, (byDate.get(report.date) ?? 0) + 1)
       return {
+        ...workerRatingSummary(own, person.id),
         person,
+        ratingHistory: own
+          .flatMap((report) => {
+            const score = workerRating(report, person.id)
+            return score === null ? [] : [{ report, score }]
+          })
+          .sort((a, b) => b.report.date.localeCompare(a.report.date)),
         works: summaries,
         reportCount: own.length,
         workedDays: byDate.size,

@@ -167,7 +167,7 @@ export function WorkDetailPage({ work }: { work: Work }) {
           ) : null}
           <WorkExpensesPanel work={work} />
         </div>
-        <WorkReports work={work} workspace={workspace} />
+        <WorkReports work={work} workspace={workspace} showRatings={Boolean(isAdmin)} />
       </div>
       {isAdmin ? <ClientWorkComparison key={work.id} work={work} workspace={workspace} /> : null}
       {isAdmin ? (

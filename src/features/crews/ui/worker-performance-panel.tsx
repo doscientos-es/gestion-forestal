@@ -73,11 +73,11 @@ export function WorkerPerformancePanel() {
           id="worker-performance-title"
           icon={<Users className="size-5" strokeWidth={1.75} />}
           title="Actividad por trabajador"
-          description="Participación real según los partes, aunque haya cambiado de cuadrilla. Abre una persona para ver sus obras y la evolución del ritmo de sus equipos."
+          description="Asistencia y notas del capataz, aunque haya cambiado de cuadrilla. Abre una persona para ver sus valoraciones diarias y sus obras."
         />
         <p className="text-muted-foreground border-border border-b px-5 py-3 text-xs">
-          No hay producción individual registrada. El ritmo mostrado es el del equipo, no una
-          clasificación de trabajadores.
+          La nota es una valoración individual del capataz, no producción medida. Los partes
+          antiguos sin nota no cuentan en la media. El ritmo sigue siendo el del equipo.
         </p>
         {visible.length === 0 ? (
           <EmptyPanel
@@ -124,6 +124,23 @@ export function WorkerPerformancePanel() {
                   ),
               },
               { id: 'works', header: 'Obras', secondary: true, cell: (row) => row.works.length },
+              {
+                id: 'rating',
+                header: 'Nota media',
+                cell: (row) =>
+                  row.averageRating === null ? (
+                    'Sin valorar'
+                  ) : (
+                    <>
+                      <span className="block font-semibold tabular-nums">
+                        {formatNumber(row.averageRating, 1)} / 10
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {row.ratedReports} de {row.reportCount} partes valorados
+                      </span>
+                    </>
+                  ),
+              },
               {
                 id: 'cost',
                 header: 'Coste imputado',

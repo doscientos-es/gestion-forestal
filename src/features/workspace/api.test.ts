@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { createBudgetsApi } from '@/features/budgets/api'
+import { createDailyReportApi } from '@/features/daily-report/api'
 import { createInvoicesApi } from '@/features/invoices/api'
 import { createPlanningApi } from '@/features/planning/api'
 import { createWorksApi } from '@/features/works/api'
@@ -13,8 +14,7 @@ import { createLocalBackend } from './infrastructure/local-backend'
 
 const TODAY = '2026-11-04'
 
-function setup() {
-  const storage = createMemoryStorage()
+function setup(storage = createMemoryStorage()) {
   const backend = createLocalBackend(
     () => TODAY,
     () => storage,
@@ -28,6 +28,8 @@ function setup() {
     currentUserId: () => backend.session.currentUserId(),
   }
   return {
+    storage,
+    reports: createDailyReportApi(deps),
     workspace: createWorkspaceApi(deps, backend),
     budgets: createBudgetsApi(deps),
     planning: createPlanningApi(deps),
@@ -79,6 +81,45 @@ describe('api layer over the local backend', () => {
     expect(after.assignments).toHaveLength(before.assignments.length + 1)
     expect(after.works.find((work) => work.id === pending.id)?.status).toBe('planificada')
     expect(after.reports).toEqual(before.reports)
+  })
+
+  it('persists individual scores across reloads and edits without duplicating the report', async () => {
+    const before = await api.workspace.getWorkspace()
+    const work = before.works.find((item) => item.status === 'en_curso')
+    if (!work) throw new Error('Missing fixture work')
+    const input = {
+      workId: work.id,
+      crewId: 'cr-sur',
+      date: TODAY,
+      workerIds: ['p-javier', 'p-mikel'],
+      workerRatings: { 'p-javier': 8, 'p-mikel': 6 },
+      plants: 300,
+      hectares: 1,
+      incident: 'ninguna' as const,
+      notes: '',
+      photos: [],
+      authorId: 'p-javier',
+    }
+    await api.reports.submit(input)
+    const reloaded = setup(api.storage)
+    await reloaded.workspace.ensureReady()
+    const stored = (await reloaded.workspace.getWorkspace()).reports.find(
+      (item) => item.workId === work.id && item.crewId === input.crewId && item.date === TODAY,
+    )
+    expect(stored?.workerRatings).toEqual(input.workerRatings)
+    await expect(reloaded.reports.submit({ ...input, workerRatings: {} })).rejects.toBeInstanceOf(
+      DomainError,
+    )
+    await reloaded.reports.submit({
+      ...input,
+      workerIds: ['p-javier'],
+      workerRatings: { 'p-javier': 9 },
+    })
+    const after = (await api.workspace.getWorkspace()).reports.filter(
+      (item) => item.workId === work.id && item.crewId === input.crewId && item.date === TODAY,
+    )
+    expect(after).toHaveLength(1)
+    expect(after[0]).toMatchObject({ id: stored?.id, workerRatings: { 'p-javier': 9 } })
   })
 
   it('exports drafts for the accounting office and marks them as sent', async () => {

@@ -151,6 +151,8 @@ export type DailyReport = {
   crewId: string
   date: IsoDate
   workerIds: string[]
+  /** Individual daily scores, 1–10. Absent on reports created before ratings existed. */
+  workerRatings?: Record<string, number>
   plants: number
   hectares: number
   incident: Incident

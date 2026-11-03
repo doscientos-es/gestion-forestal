@@ -21,6 +21,7 @@ import type {
 } from './model'
 import { findConflicts } from './planning'
 import { calculatePerformance } from './work-performance'
+import { isWorkerRating } from './worker-rating'
 
 export { CommandError }
 
@@ -495,7 +496,9 @@ export function removeAssignment(
     : next
 }
 
-export type ReportInput = Omit<DailyReport, 'id'>
+export type ReportInput = Omit<DailyReport, 'id' | 'workerRatings'> & {
+  workerRatings: Record<string, number>
+}
 
 export function submitReport(
   workspace: Workspace,
@@ -503,6 +506,17 @@ export function submitReport(
   context: Context,
 ): Workspace {
   if (input.workerIds.length === 0) throw new CommandError('Marca al menos un trabajador.')
+  if (new Set(input.workerIds).size !== input.workerIds.length)
+    throw new CommandError('Hay trabajadores repetidos en el parte.')
+  if (
+    input.workerIds.some(
+      (id) =>
+        !Object.hasOwn(input.workerRatings ?? {}, id) || !isWorkerRating(input.workerRatings?.[id]),
+    )
+  )
+    throw new CommandError('Pon una nota entera de 1 a 10 a cada trabajador presente.')
+  if (Object.keys(input.workerRatings).some((id) => !input.workerIds.includes(id)))
+    throw new CommandError('Solo se puede valorar a los trabajadores presentes.')
   if (input.plants < 0 || input.hectares < 0) throw new CommandError('Valores no válidos.')
   const work = workspace.works.find((item) => item.id === input.workId)
   if (!work) throw new CommandError('Obra no encontrada.')

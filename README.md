@@ -23,6 +23,12 @@ El cálculo del presupuesto es: `plantas = hectáreas × densidad`, `peonadas = 
 - **Cuadrillas → Por trabajador:** participación histórica, días, peonadas, coste imputado, incidencias de equipo y detalle por obra; filtros de campaña, cuadrilla actual y nombre. El ritmo es el del equipo cuando participó la persona, no producción individual. Los días con varios partes completos se marcan para revisión.
 - **Límites del cálculo:** personal a la tarifa diaria actual, material y transporte a precios del presupuesto. Los justificantes con IVA se muestran aparte para no duplicar material/transporte ya valorado. No es beneficio contable ni incluye gastos generales. Sin partes o sin avance suficiente no se inventa una previsión.
 
+### Valoración diaria por trabajador
+
+- Cada asistente recibe una nota entera de **1 a 10** elegida explícitamente por el capataz. El parte no se envía hasta completar todas las notas; desmarcar a una persona elimina su valoración.
+- Administración puede consultar las notas en los partes de la obra y la media, cobertura e histórico diario en **Cuadrillas → Por trabajador**, filtrados por campaña.
+- Los partes antiguos conservan su asistencia sin inventar notas y no entran en la media. Las valoraciones son subjetivas: no equivalen a producción individual ni se incluyen en el informe del cliente.
+
 ## Arranque
 
 Requiere Node.js 22.18+ y pnpm.

@@ -259,6 +259,7 @@ describe('budget → work → report → invoice', () => {
       crewId: 'cr-sur',
       date: start,
       workerIds: ['p-javier', 'p-mikel', 'p-laura', 'p-sergio', 'p-asier'],
+      workerRatings: { 'p-javier': 8, 'p-mikel': 7, 'p-laura': 9, 'p-sergio': 8, 'p-asier': 7 },
       plants: 1000,
       hectares: 1,
       incident: 'ninguna' as const,

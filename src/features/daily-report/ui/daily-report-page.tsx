@@ -25,7 +25,9 @@ import {
   MAX_REPORT_PHOTOS,
   hectaresFor,
   initialForm,
+  pendingWorkerRatings,
   reportContext,
+  toggleReportWorker,
   type ReportForm,
 } from '../application/report-form'
 import { CrewChecklist } from './crew-checklist'
@@ -77,9 +79,10 @@ export function DailyReportPage() {
     setForm((current) => (current ? { ...current, ...patch } : current))
   }
   const ratio = context.target > 0 ? form.plants / context.target : 0
+  const pendingRatings = pendingWorkerRatings(form)
 
   function send() {
-    if (!form || !context || !user) return
+    if (!form || !context || !user || pendingWorkerRatings(form) > 0) return
     submit.mutate({
       ...form,
       workId: context.work.id,
@@ -112,15 +115,11 @@ export function DailyReportPage() {
         <CrewChecklist
           members={context.members}
           selected={form.workerIds}
+          ratings={form.workerRatings}
           date={context.date}
           absences={workspace.absences}
-          onToggle={(id) =>
-            update({
-              workerIds: form.workerIds.includes(id)
-                ? form.workerIds.filter((item) => item !== id)
-                : [...form.workerIds, id],
-            })
-          }
+          onToggle={(id) => update(toggleReportWorker(form, id))}
+          onRate={(id, score) => update({ workerRatings: { ...form.workerRatings, [id]: score } })}
         />
         <div>
           <p className="mb-2 text-sm font-semibold">Plantas puestas</p>
@@ -204,10 +203,17 @@ export function DailyReportPage() {
       </Panel>
       {/* Stays above the phone dock so the foreman never has to scroll back to send the report. */}
       <div className="sticky-action mt-4">
+        <p role="status" className="bg-background mb-2 rounded-lg px-3 py-2 text-center text-xs">
+          {form.workerIds.length === 0
+            ? 'Marca al menos un trabajador para enviar el parte.'
+            : pendingRatings > 0
+              ? `${form.workerIds.length - pendingRatings} de ${form.workerIds.length} valorados · Faltan ${pendingRatings} notas`
+              : `${form.workerIds.length} de ${form.workerIds.length} valorados · Listo para enviar`}
+        </p>
         <Button
           onPress={send}
           className="h-14 w-full text-base shadow-lg lg:shadow-none"
-          isDisabled={submit.isPending || form.workerIds.length === 0}
+          isDisabled={submit.isPending || form.workerIds.length === 0 || pendingRatings > 0}
         >
           {saved ? <CheckCircle2 aria-hidden="true" className="size-5" /> : null}
           {saved ? 'Parte guardado · actualizar' : 'Enviar parte'}
