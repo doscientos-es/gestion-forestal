@@ -342,11 +342,18 @@ export function addTasks(
   const work = workspace.works.find((item) => item.id === workId)
   if (!work) throw new CommandError('Obra no encontrada.')
   const known = new Set(
-    workspace.tasks.filter((task) => task.workId === workId).map((task) => task.text.toLowerCase()),
+    workspace.tasks
+      .filter((task) => task.workId === workId)
+      .map((task) => task.text.trim().toLowerCase()),
   )
-  const clean = [...new Set(texts.map((text) => text.trim()).filter(Boolean))].filter(
-    (text) => !known.has(text.toLowerCase()),
-  )
+  const clean = texts
+    .map((text) => text.trim())
+    .filter((text) => {
+      const key = text.toLowerCase()
+      if (!text || known.has(key)) return false
+      known.add(key)
+      return true
+    })
   if (clean.length === 0) throw new CommandError('No hay tareas nuevas que añadir.')
   const tasks: WorkTask[] = clean.map((text) => ({
     id: context.id(),

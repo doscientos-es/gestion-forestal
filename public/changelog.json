@@ -1,3 +1,151 @@
 {
-  "releases": []
+  "releases": [
+    {
+      "version": null,
+      "date": "2026-11-03",
+      "title": "Sin publicar",
+      "sections": [
+        {
+          "title": "Nuevas funciones",
+          "items": [
+            "Add work profitability analysis and client comparison features",
+            "Add ShareLinkCard component for document sharing",
+            "Add user management features including profile editing",
+            "Add createSpecies method to budgets API and UI",
+            "Add species catalog page and API for managing species",
+            "Add accounting page with income and expenses charts",
+            "Enhance absence and budget features with new registration options and responsive design improvements",
+            "Add support for device alerts and service worker functionality",
+            "Add crews management page and profitability panel",
+            "Update action matrix to include client work report and photo support",
+            "Add support for photos in budget report submissions",
+            "Add client work report feature with public access and email functionality",
+            "Add photo attachment feature to daily report and update activity types",
+            "Add margin alerts and crew contact features",
+            "Add import budgets dialog for CSV uploads and budget previews"
+          ]
+        },
+        {
+          "title": "Correcciones",
+          "items": [
+            "Correct toast function parameters for better notification handling"
+          ]
+        }
+      ],
+      "changes": [
+        {
+          "sha": "287dfd036f135ea026a248b29c6bc530083f47fc",
+          "type": "feat",
+          "scope": "works",
+          "breaking": false,
+          "description": "Add work profitability analysis and client comparison features"
+        },
+        {
+          "sha": "350932a5134695bf411062ecf3f6e81a723a462b",
+          "type": "feat",
+          "scope": "share-link",
+          "breaking": false,
+          "description": "Add ShareLinkCard component for document sharing"
+        },
+        {
+          "sha": "adb93f8a1adad5fbf7a8ada10e557bcca202cc02",
+          "type": "feat",
+          "scope": "users",
+          "breaking": false,
+          "description": "Add user management features including profile editing"
+        },
+        {
+          "sha": "acd1ee45a55fd730e2358b6969f1aedba3d2c7a6",
+          "type": "feat",
+          "scope": "budgets",
+          "breaking": false,
+          "description": "Add createSpecies method to budgets API and UI"
+        },
+        {
+          "sha": "d64257cc63897dcbd3572ab932069590d855428d",
+          "type": "feat",
+          "scope": "catalog",
+          "breaking": false,
+          "description": "Add species catalog page and API for managing species"
+        },
+        {
+          "sha": "c864f0f63379657e6eef5c9f3f00f57e558b4bfa",
+          "type": "feat",
+          "scope": "accounting",
+          "breaking": false,
+          "description": "Add accounting page with income and expenses charts"
+        },
+        {
+          "sha": "6445b8b8affa77c3e30981fa702047ec7745e2ee",
+          "type": "fix",
+          "scope": null,
+          "breaking": false,
+          "description": "Correct toast function parameters for better notification handling"
+        },
+        {
+          "sha": "09ac03859585bb9fd3fb96a0ce138320e434f0f8",
+          "type": "feat",
+          "scope": null,
+          "breaking": false,
+          "description": "Enhance absence and budget features with new registration options and responsive design improvements"
+        },
+        {
+          "sha": "5d4b69648fa814f568c76433b66dabb5250dab8b",
+          "type": "feat",
+          "scope": "pwa",
+          "breaking": false,
+          "description": "Add support for device alerts and service worker functionality"
+        },
+        {
+          "sha": "fc1a57fa7bc707ebfb82bdbd55752ad54e6b4092",
+          "type": "feat",
+          "scope": "crews",
+          "breaking": false,
+          "description": "Add crews management page and profitability panel"
+        },
+        {
+          "sha": "a23803f555043b149c2dabc0f5814b2ede837286",
+          "type": "feat",
+          "scope": null,
+          "breaking": false,
+          "description": "Update action matrix to include client work report and photo support"
+        },
+        {
+          "sha": "33bb7bfacd4d8bffda9aedca093a48df71c27057",
+          "type": "feat",
+          "scope": null,
+          "breaking": false,
+          "description": "Add support for photos in budget report submissions"
+        },
+        {
+          "sha": "aaeb9fae1b67e76863af297697f881f776da8065",
+          "type": "feat",
+          "scope": null,
+          "breaking": false,
+          "description": "Add client work report feature with public access and email functionality"
+        },
+        {
+          "sha": "eeff4eb9fceb477838ff742511d0a36385dd069e",
+          "type": "feat",
+          "scope": null,
+          "breaking": false,
+          "description": "Add photo attachment feature to daily report and update activity types"
+        },
+        {
+          "sha": "7efe4998109515d3cd5537a8e0beef7574aad357",
+          "type": "feat",
+          "scope": null,
+          "breaking": false,
+          "description": "Add margin alerts and crew contact features"
+        },
+        {
+          "sha": "05fe7ccaf980ba62bfa6a10cadaef9ad9257ebf6",
+          "type": "feat",
+          "scope": null,
+          "breaking": false,
+          "description": "Add import budgets dialog for CSV uploads and budget previews"
+        }
+      ]
+    }
+  ]
 }

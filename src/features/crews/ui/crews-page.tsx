@@ -32,7 +32,11 @@ type Dialog =
 export function CrewsPage() {
   const workspace = useWorkspace()
   const user = useCurrentUser()
-  const [view, setView] = useUrlState<View>('vista', 'equipos', ['equipos', 'rentabilidad', 'trabajadores'])
+  const [view, setView] = useUrlState<View>('vista', 'equipos', [
+    'equipos',
+    'rentabilidad',
+    'trabajadores',
+  ])
   const [dialog, setDialog] = useState<Dialog | null>(null)
   const close = () => setDialog(null)
   const dissolve = useCommand((crewId: string) => crewsApi.dissolveCrew(crewId), {

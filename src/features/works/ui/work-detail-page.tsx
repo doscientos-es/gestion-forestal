@@ -29,8 +29,8 @@ import { ClientWorkComparison } from './client-work-comparison'
 import { CrewWorkSummary } from './crew-work-summary'
 import { MarginAlerts } from './margin-alerts'
 import { ProgressChart } from './progress-chart'
-import { WorkFigures } from './work-figures'
 import { WorkEconomicsPanel } from './work-economics-panel'
+import { WorkFigures } from './work-figures'
 import { WorkReports } from './work-reports'
 
 export function WorkDetailPage({ work }: { work: Work }) {
@@ -91,8 +91,8 @@ export function WorkDetailPage({ work }: { work: Work }) {
                 <FileText aria-hidden="true" className="size-4" />
               </IconButton>
               {work.status === 'pendiente' ||
-                work.status === 'planificada' ||
-                work.status === 'en_curso' ? (
+              work.status === 'planificada' ||
+              work.status === 'en_curso' ? (
                 <Button variant="outline" onPress={() => setAssignOpen(true)}>
                   <CalendarPlus aria-hidden="true" className="size-4" /> Asignar cuadrilla
                 </Button>

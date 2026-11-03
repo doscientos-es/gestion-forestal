@@ -16,6 +16,13 @@ Al entrar se elige un usuario de ejemplo; cada rol ve algo distinto.
 
 El cálculo del presupuesto es: `plantas = hectáreas × densidad`, `peonadas = plantas ÷ rendimiento`, jornadas de cuadrilla completas, precio = coste ÷ (1 − margen). Cada obra aceptada conserva esas cifras para compararlas con los partes reales.
 
+### Rentabilidad y actividad
+
+- **Obras:** coste acumulado, desglose de personal/material/transporte, desviación al mismo avance, peonadas consumidas y estimadas al cierre, coste por hectárea, facturado y cobrado sin IVA (sin contar borradores).
+- **Histórico del cliente:** obras cerradas anteriores del mismo tipo de trabajo, con filtro de zona; costes y peonadas por hectárea ponderados por superficie y margen ponderado por importe contratado.
+- **Cuadrillas → Por trabajador:** participación histórica, días, peonadas, coste imputado, incidencias de equipo y detalle por obra; filtros de campaña, cuadrilla actual y nombre. El ritmo es el del equipo cuando participó la persona, no producción individual. Los días con varios partes completos se marcan para revisión.
+- **Límites del cálculo:** personal a la tarifa diaria actual, material y transporte a precios del presupuesto. Los justificantes con IVA se muestran aparte para no duplicar material/transporte ya valorado. No es beneficio contable ni incluye gastos generales. Sin partes o sin avance suficiente no se inventa una previsión.
+
 ## Arranque
 
 Requiere Node.js 22.18+ y pnpm.

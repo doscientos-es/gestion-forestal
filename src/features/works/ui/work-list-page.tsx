@@ -118,78 +118,93 @@ export function WorkListPage() {
                 </span>
               ) : undefined
             }
-            columns={([
-              {
-                id: 'title',
-                header: 'Obra',
-                cell: ({ work, crewIds }) => (
-                  <>
-                    <span className="block truncate text-sm font-semibold">{work.title}</span>
-                    <span className="text-muted-foreground block truncate text-xs">
-                      {work.code} · {find.client(work.clientId)?.name} ·{' '}
-                      {crewIds.map((id) => find.crew(id)?.name).join(', ') || 'Sin cuadrilla'}
-                    </span>
-                  </>
-                ),
-              },
-              {
-                id: 'zone',
-                header: 'Zona',
-                secondary: true,
-                cell: ({ work }) => {
-                  const zone = find.zone(work.zoneId)
-                  return zone ? <Tag tone={zoneTone(zone.id, workspace)}>{zone.name}</Tag> : null
+            columns={(
+              [
+                {
+                  id: 'title',
+                  header: 'Obra',
+                  cell: ({ work, crewIds }) => (
+                    <>
+                      <span className="block truncate text-sm font-semibold">{work.title}</span>
+                      <span className="text-muted-foreground block truncate text-xs">
+                        {work.code} · {find.client(work.clientId)?.name} ·{' '}
+                        {crewIds.map((id) => find.crew(id)?.name).join(', ') || 'Sin cuadrilla'}
+                      </span>
+                    </>
+                  ),
                 },
-              },
-              {
-                id: 'progress',
-                header: 'Avance',
-                className: 'min-w-36',
-                cell: ({ work, performance }) => (
-                  <span className="flex items-center gap-2">
-                    <ProgressBar value={performance.progress} label={`Avance de ${work.title}`} />
-                    <span className="text-muted-foreground w-9 shrink-0 text-right text-xs tabular-nums">
-                      {formatPercent(Math.min(performance.progress, 1))}
-                    </span>
-                  </span>
-                ),
-              },
-              {
-                id: 'yield',
-                header: 'Rendimiento',
-                secondary: true,
-                cell: ({ performance }) => (
-                  <YieldDeviation
-                    value={performance.yieldDeviation}
-                    hasData={performance.workerDays > 0}
-                  />
-                ),
-              },
-              {
-                id: 'cost',
-                header: 'Coste acumulado',
-                secondary: true,
-                cell: ({ performance }) => performance.reportCount > 0 ? formatMoney(performance.totalCost) : '—',
-              },
-              {
-                id: 'margin',
-                header: 'Margen operativo',
-                cell: ({ work, performance }) => hasWorkProjection(work, performance)
-                  ? <><span className="block font-medium tabular-nums">{formatMoney(performance.projectedMargin)}</span><span className="text-muted-foreground text-xs">{formatPercent(performance.projectedMarginRate, 1)} · {isFinishedWork(work) ? 'al cierre' : 'previsto'}</span></> : 'Sin partes o avance',
-              },
-              {
-                id: 'status',
-                header: 'Estado',
-                cell: ({ work }) => {
-                  const status = workStatus[work.status]
-                  return (
-                    <Tag tone={status.tone} dot>
-                      {status.label}
-                    </Tag>
-                  )
+                {
+                  id: 'zone',
+                  header: 'Zona',
+                  secondary: true,
+                  cell: ({ work }) => {
+                    const zone = find.zone(work.zoneId)
+                    return zone ? <Tag tone={zoneTone(zone.id, workspace)}>{zone.name}</Tag> : null
+                  },
                 },
-              },
-            ] satisfies Column<WorkRow>[]).filter((column) => isAdmin || (column.id !== 'cost' && column.id !== 'margin'))}
+                {
+                  id: 'progress',
+                  header: 'Avance',
+                  className: 'min-w-36',
+                  cell: ({ work, performance }) => (
+                    <span className="flex items-center gap-2">
+                      <ProgressBar value={performance.progress} label={`Avance de ${work.title}`} />
+                      <span className="text-muted-foreground w-9 shrink-0 text-right text-xs tabular-nums">
+                        {formatPercent(Math.min(performance.progress, 1))}
+                      </span>
+                    </span>
+                  ),
+                },
+                {
+                  id: 'yield',
+                  header: 'Rendimiento',
+                  secondary: true,
+                  cell: ({ performance }) => (
+                    <YieldDeviation
+                      value={performance.yieldDeviation}
+                      hasData={performance.workerDays > 0}
+                    />
+                  ),
+                },
+                {
+                  id: 'cost',
+                  header: 'Coste acumulado',
+                  secondary: true,
+                  cell: ({ performance }) =>
+                    performance.reportCount > 0 ? formatMoney(performance.totalCost) : '—',
+                },
+                {
+                  id: 'margin',
+                  header: 'Margen operativo',
+                  cell: ({ work, performance }) =>
+                    hasWorkProjection(work, performance) ? (
+                      <>
+                        <span className="block font-medium tabular-nums">
+                          {formatMoney(performance.projectedMargin)}
+                        </span>
+                        <span className="text-muted-foreground text-xs">
+                          {formatPercent(performance.projectedMarginRate, 1)} ·{' '}
+                          {isFinishedWork(work) ? 'al cierre' : 'previsto'}
+                        </span>
+                      </>
+                    ) : (
+                      'Sin partes o avance'
+                    ),
+                },
+                {
+                  id: 'status',
+                  header: 'Estado',
+                  cell: ({ work }) => {
+                    const status = workStatus[work.status]
+                    return (
+                      <Tag tone={status.tone} dot>
+                        {status.label}
+                      </Tag>
+                    )
+                  },
+                },
+              ] satisfies Column<WorkRow>[]
+            ).filter((column) => isAdmin || (column.id !== 'cost' && column.id !== 'margin'))}
             actions={({ work }) => (
               <RowMenu label={`Acciones de ${work.code}`}>
                 <DropdownMenuItem onAction={() => open(work.id)}>Abrir</DropdownMenuItem>

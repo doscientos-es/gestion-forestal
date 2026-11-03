@@ -131,12 +131,19 @@ export function ClientDetailPage({ client }: { client: Client }) {
                   </Link>
                   <span className="text-muted-foreground text-xs tabular-nums">
                     {formatNumber(performance.workerDays)} peonadas
-                    <span className="block">{performance.reportCount > 0 ? `${formatMoney(performance.totalCost)} de coste acumulado` : 'Sin costes registrados'}</span>
+                    <span className="block">
+                      {performance.reportCount > 0
+                        ? `${formatMoney(performance.totalCost)} de coste acumulado`
+                        : 'Sin costes registrados'}
+                    </span>
                   </span>
                   <span className="text-sm font-medium tabular-nums">
                     {hasWorkProjection(work, performance)
-                      ? `${formatMoney(performance.projectedMargin)} · ${formatPercent(performance.projectedMarginRate, 1)}` : '—'}
-                    <span className="text-muted-foreground block text-xs font-normal">Margen operativo {isFinishedWork(work) ? 'al cierre' : 'previsto'}</span>
+                      ? `${formatMoney(performance.projectedMargin)} · ${formatPercent(performance.projectedMarginRate, 1)}`
+                      : '—'}
+                    <span className="text-muted-foreground block text-xs font-normal">
+                      Margen operativo {isFinishedWork(work) ? 'al cierre' : 'previsto'}
+                    </span>
                   </span>
                   <span className="flex w-36 items-center gap-2">
                     <ProgressBar value={performance.progress} label={`Avance de ${work.title}`} />
@@ -180,7 +187,9 @@ export function ClientDetailPage({ client }: { client: Client }) {
                     {budget.number} · {formatDate(budget.date)}
                   </span>
                 </Link>
-                <Tag tone={budgetStatus[budget.status].tone}>{budgetStatus[budget.status].label}</Tag>
+                <Tag tone={budgetStatus[budget.status].tone}>
+                  {budgetStatus[budget.status].label}
+                </Tag>
               </li>
             ))}
           </ul>

@@ -26,7 +26,7 @@ export function SectionTabs({
       <Tabs
         {...(active === undefined ? {} : { selectedKey: active })}
         onSelectionChange={(key) => void navigate({ to: String(key) as Destination['to'] })}
-        className="min-w-0 max-w-full"
+        className="max-w-full min-w-0"
       >
         <TabsList aria-label={label} className="max-w-full overflow-x-auto">
           {tabs.map((tab) => (

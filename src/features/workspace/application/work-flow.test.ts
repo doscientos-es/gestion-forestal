@@ -15,6 +15,13 @@ import { budgetTracking } from './activity'
 import { estimateStoredBudget } from './budget-calculation'
 import { budgetCsvTemplate, importBudgets, parseBudgetCsv } from './budget-import'
 import {
+  OVERDUE_DAYS,
+  clientActivity,
+  clientOverview,
+  overdueInvoices,
+  updateClient,
+} from './client-profile'
+import {
   CommandError,
   acceptBudget,
   addTasks,
@@ -42,13 +49,6 @@ import {
   updateWorker,
 } from './crew-management'
 import { crewProfitability } from './crew-profitability'
-import {
-  OVERDUE_DAYS,
-  clientActivity,
-  clientOverview,
-  overdueInvoices,
-  updateClient,
-} from './client-profile'
 import { formatIban, isValidIban, spanishIban } from './iban'
 import { invoiceTotals } from './invoice-draft'
 import type { Workspace } from './model'
@@ -732,15 +732,17 @@ describe('users (clients): bank account, contracted work and performance', () =>
     const sent = base.invoices.filter((invoice) => invoice.status === 'enviada')
     const late = overdueInvoices(base, TODAY)
     expect(late.length).toBeGreaterThan(0)
-    expect(late.every((item) => item.invoice.status === 'enviada' && item.days > OVERDUE_DAYS)).toBe(
-      true,
+    expect(
+      late.every((item) => item.invoice.status === 'enviada' && item.days > OVERDUE_DAYS),
+    ).toBe(true)
+    expect(late.map((item) => item.days)).toEqual(
+      [...late.map((item) => item.days)].sort((a, b) => b - a),
     )
-    expect(late.map((item) => item.days)).toEqual([...late.map((item) => item.days)].sort((a, b) => b - a))
     expect(late.length).toBeLessThanOrEqual(sent.length)
-    // Right after sending nothing is late; a paid invoice never is.
+    // This invoice is not late right after sending; other, older invoices may already be late.
     const first = sent[0]
     if (!first?.sentOn) throw new Error('seed needs a sent invoice')
-    expect(overdueInvoices(base, first.sentOn)).toHaveLength(0)
+    expect(overdueInvoices({ ...base, invoices: [first] }, first.sentOn)).toHaveLength(0)
     const paid = {
       ...base,
       invoices: base.invoices.map((invoice) =>
@@ -805,7 +807,12 @@ describe('tasks suggested from the budget', () => {
       base.assignments.filter((item) => item.workId === work.id).map((item) => item.crewId),
     )
     const recipients = base.people.filter((person) => person.crewId && crewIds.has(person.crewId))
-    const next = addTasks(empty, work.id, ['Primera tarea', ' Segunda tarea ', 'primera tarea', ''], context)
+    const next = addTasks(
+      empty,
+      work.id,
+      ['Primera tarea', ' Segunda tarea ', 'primera tarea', ''],
+      context,
+    )
     expect(next.tasks.filter((task) => task.workId === work.id).map((task) => task.text)).toEqual([
       'Primera tarea',
       'Segunda tarea',
@@ -813,7 +820,10 @@ describe('tasks suggested from the budget', () => {
     const notices = next.notifications.filter(
       (notice) => notice.kind === 'tarea_nueva' && notice.workId === work.id,
     )
-    expect(notices.length - empty.notifications.filter((n) => n.kind === 'tarea_nueva' && n.workId === work.id).length).toBe(recipients.length)
+    expect(
+      notices.length -
+        empty.notifications.filter((n) => n.kind === 'tarea_nueva' && n.workId === work.id).length,
+    ).toBe(recipients.length)
     expect(() => addTasks(next, work.id, ['Primera tarea', '  '], context)).toThrow(CommandError)
     expect(() => addTasks(next, 'nadie', ['x'], context)).toThrow(CommandError)
   })
