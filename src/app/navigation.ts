@@ -3,6 +3,7 @@ import {
   Calculator,
   CalendarRange,
   ClipboardCheck,
+  ClipboardList,
   History,
   Landmark,
   House,
@@ -43,6 +44,7 @@ export type Destination = {
     | '/cuadrillas'
     | '/clientes'
     | '/actividad'
+    | '/incidencias'
   label: string
   short: string
   icon: LucideIcon
@@ -50,6 +52,7 @@ export type Destination = {
 }
 
 export const destinations: Destination[] = [
+  { area: 'incidencias', to: '/incidencias', label: 'Incidencias', short: 'Incidencias', icon: ClipboardList, group: 'Operativa' },
   {
     area: 'inicio',
     to: '/',
@@ -172,6 +175,8 @@ export function navigationCounts(
   const avisos = workspace.notifications.filter(
     (item) => item.personId === user.id && !item.read,
   ).length
+  const incidencias = workspace.incidents.filter((item) => item.status !== 'cerrada' &&
+    (user.role === 'admin' || item.createdBy === user.id || item.assignedTo === user.id)).length
   if (user.role === 'admin') {
     return {
       presupuestos: workspace.budgets.filter(
@@ -186,6 +191,7 @@ export function navigationCounts(
         overdueInvoices(workspace, clock.today()).map((item) => item.invoice.clientId),
       ).size,
       avisos,
+      incidencias,
     }
   }
   const own = workspace.absences.filter((a) => a.personId === user.id && a.status === 'solicitada')
@@ -204,6 +210,7 @@ export function navigationCounts(
     ausencias: own.length,
     gastos: rejected,
     avisos,
+    incidencias,
   }
 }
 
@@ -254,6 +261,7 @@ const sections: Record<
 /** Order of the sidebar. Notices live in the bell, not here. */
 const layout: (Area | SectionId)[] = [
   'inicio',
+  'incidencias',
   'presupuestos',
   'obras',
   'planificacion',
