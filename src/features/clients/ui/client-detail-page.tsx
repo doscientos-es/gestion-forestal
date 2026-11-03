@@ -11,6 +11,8 @@ import {
   clientKind,
   clientOverview,
   formatIban,
+  hasWorkProjection,
+  isFinishedWork,
   useWorkspace,
   workStatus,
   type Client,
@@ -65,7 +67,7 @@ export function ClientDetailPage({ client }: { client: Client }) {
           tone={overview.invoiced > overview.collected ? 'warning' : 'default'}
         />
         <MetricCard
-          label="Margen real"
+          label="Margen operativo previsto"
           value={overview.marginRate === null ? '—' : formatPercent(overview.marginRate)}
           description={
             overview.plannedMarginRate === null
@@ -102,7 +104,7 @@ export function ClientDetailPage({ client }: { client: Client }) {
           id="client-works-title"
           icon={<TreePine className="size-5" strokeWidth={1.75} />}
           title="Obras contratadas"
-          description="Avance y rendimiento frente a lo presupuestado."
+          description="Avance, esfuerzo y margen operativo frente a lo presupuestado. Las obras abiertas son estimaciones."
           meta={formatNumber(overview.works.length)}
         />
         {overview.works.length === 0 ? (
@@ -127,6 +129,15 @@ export function ClientDetailPage({ client }: { client: Client }) {
                       {work.code} · Campaña {work.year} · {formatMoney(work.planned.price)}
                     </span>
                   </Link>
+                  <span className="text-muted-foreground text-xs tabular-nums">
+                    {formatNumber(performance.workerDays)} peonadas
+                    <span className="block">{performance.reportCount > 0 ? `${formatMoney(performance.totalCost)} de coste acumulado` : 'Sin costes registrados'}</span>
+                  </span>
+                  <span className="text-sm font-medium tabular-nums">
+                    {hasWorkProjection(work, performance)
+                      ? `${formatMoney(performance.projectedMargin)} · ${formatPercent(performance.projectedMarginRate, 1)}` : '—'}
+                    <span className="text-muted-foreground block text-xs font-normal">Margen operativo {isFinishedWork(work) ? 'al cierre' : 'previsto'}</span>
+                  </span>
                   <span className="flex w-36 items-center gap-2">
                     <ProgressBar value={performance.progress} label={`Avance de ${work.title}`} />
                     <span className="text-muted-foreground w-9 shrink-0 text-right text-xs tabular-nums">

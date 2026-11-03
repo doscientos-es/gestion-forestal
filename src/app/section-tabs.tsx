@@ -24,7 +24,7 @@ export function SectionTabs({
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-1 pb-3 lg:pt-5 lg:pb-0">
       <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">{label}</p>
       <Tabs
-        selectedKey={active ?? null}
+        {...(active === undefined ? {} : { selectedKey: active })}
         onSelectionChange={(key) => void navigate({ to: String(key) as Destination['to'] })}
         className="min-w-0 max-w-full"
       >

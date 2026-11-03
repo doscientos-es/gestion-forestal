@@ -14,8 +14,9 @@ import { CreateCrewDialog, ForemanDialog, MoveWorkerDialog, RenameCrewDialog } f
 import { CrewPanel, type CrewActions } from './crew-panel'
 import { ProfitabilityPanel } from './profitability-panel'
 import { WorkerDialog } from './worker-dialog'
+import { WorkerPerformancePanel } from './worker-performance-panel'
 
-type View = 'equipos' | 'rentabilidad'
+type View = 'equipos' | 'rentabilidad' | 'trabajadores'
 
 type Dialog =
   | { kind: 'add'; crewId: string | null }
@@ -31,7 +32,7 @@ type Dialog =
 export function CrewsPage() {
   const workspace = useWorkspace()
   const user = useCurrentUser()
-  const [view, setView] = useUrlState<View>('vista', 'equipos', ['equipos', 'rentabilidad'])
+  const [view, setView] = useUrlState<View>('vista', 'equipos', ['equipos', 'rentabilidad', 'trabajadores'])
   const [dialog, setDialog] = useState<Dialog | null>(null)
   const close = () => setDialog(null)
   const dissolve = useCommand((crewId: string) => crewsApi.dissolveCrew(crewId), {
@@ -65,7 +66,7 @@ export function CrewsPage() {
     <>
       <PageTop
         title="Cuadrillas"
-        description="Quién está en cada cuadrilla, cambios de equipo, bajas y vacaciones, y cuál rinde más."
+        description="Equipos, rentabilidad y actividad de cada trabajador: jornadas, costes y rendimiento de sus cuadrillas."
         actions={
           <>
             <Button variant="outline" onPress={() => setDialog({ kind: 'newCrew' })}>
@@ -85,11 +86,14 @@ export function CrewsPage() {
           options={[
             { value: 'equipos', label: 'Equipos', count: people.length },
             { value: 'rentabilidad', label: 'Rentabilidad', count: workspace.crews.length },
+            { value: 'trabajadores', label: 'Por trabajador', count: people.length },
           ]}
         />
       </div>
       {view === 'rentabilidad' ? (
         <ProfitabilityPanel />
+      ) : view === 'trabajadores' ? (
+        <WorkerPerformancePanel />
       ) : (
         <div className="space-y-5">
           {workspace.crews.map((crew) => (

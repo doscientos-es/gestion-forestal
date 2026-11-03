@@ -7,7 +7,6 @@ import { WorkExpensesPanel } from '@/features/expenses'
 import { AssignDialog, CrewContactPanel } from '@/features/planning'
 import { TaskChecklist } from '@/features/tasks'
 import {
-  calculatePerformance,
   cumulativeProgress,
   lookup,
   marginAlerts,
@@ -15,20 +14,23 @@ import {
   useCurrentUser,
   useWorkspace,
   workStatus,
+  workProfitability,
   type Work,
 } from '@/features/workspace'
-import { formatMoney, formatPercent, formatShortDate } from '@/shared/lib/format'
+import { formatPercent, formatShortDate } from '@/shared/lib/format'
 import { useCommand } from '@/shared/lib/use-command'
 import { EmptyPanel } from '@/shared/ui/empty-panel'
 import { PageTop } from '@/shared/ui/page-top'
-import { Panel, PanelHeader, Stat, Tag } from '@/shared/ui/surface'
+import { Panel, PanelHeader, Tag } from '@/shared/ui/surface'
 
 import { worksApi } from '../api'
 import { ClientReportPanel } from './client-report-panel'
+import { ClientWorkComparison } from './client-work-comparison'
 import { CrewWorkSummary } from './crew-work-summary'
 import { MarginAlerts } from './margin-alerts'
 import { ProgressChart } from './progress-chart'
 import { WorkFigures } from './work-figures'
+import { WorkEconomicsPanel } from './work-economics-panel'
 import { WorkReports } from './work-reports'
 
 export function WorkDetailPage({ work }: { work: Work }) {
@@ -38,11 +40,11 @@ export function WorkDetailPage({ work }: { work: Work }) {
   const [assignOpen, setAssignOpen] = useState(false)
   const [confirmFinish, setConfirmFinish] = useState(false)
   const find = lookup(workspace)
-  const performance = calculatePerformance(work, workspace.reports, workspace.people)
+  const analysis = workProfitability(workspace, work)
+  const { performance } = analysis
   const points = cumulativeProgress(work, workspace.reports)
   const proposal = proposeDraft(work, performance, workspace.invoices)
   const assignments = workspace.assignments.filter((item) => item.workId === work.id)
-  const invoices = workspace.invoices.filter((item) => item.workId === work.id)
   const status = workStatus[work.status]
   const isAdmin = user?.role === 'admin'
   const canContact = isAdmin || user?.role === 'capataz'
@@ -158,44 +160,7 @@ export function WorkDetailPage({ work }: { work: Work }) {
               />
             )}
           </Panel>
-          {isAdmin ? (
-            <Panel aria-labelledby="economics-title">
-              <PanelHeader
-                id="economics-title"
-                title="Economía de la obra"
-                description="Coste real con los partes registrados."
-              />
-              <div className="grid grid-cols-2 gap-5 p-5 md:grid-cols-4">
-                <Stat
-                  label="Precio"
-                  value={formatMoney(work.planned.price)}
-                  hint="Presupuesto aceptado"
-                />
-                <Stat
-                  label="Coste hasta hoy"
-                  value={formatMoney(performance.totalCost)}
-                  hint={`de ${formatMoney(work.planned.totalCost)} previstos`}
-                />
-                <Stat
-                  label="Coste estimado al final"
-                  value={formatMoney(performance.projectedCost)}
-                  hint="Al ritmo actual"
-                />
-                <Stat
-                  label="Facturado"
-                  value={formatMoney(
-                    invoices.reduce(
-                      (sum, item) =>
-                        sum +
-                        item.lines.reduce((acc, line) => acc + line.quantity * line.unitPrice, 0),
-                      0,
-                    ),
-                  )}
-                  hint={`${invoices.length} borradores`}
-                />
-              </div>
-            </Panel>
-          ) : null}
+          {isAdmin ? <WorkEconomicsPanel analysis={analysis} /> : null}
           {isAdmin ? <ClientReportPanel work={work} /> : null}
           {canContact ? (
             <CrewContactPanel work={work} assignments={assignments} sender={user} />
@@ -204,6 +169,7 @@ export function WorkDetailPage({ work }: { work: Work }) {
         </div>
         <WorkReports work={work} workspace={workspace} />
       </div>
+      {isAdmin ? <ClientWorkComparison key={work.id} work={work} workspace={workspace} /> : null}
       {isAdmin ? (
         <AssignDialog
           key={String(assignOpen)}

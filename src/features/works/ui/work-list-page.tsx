@@ -4,6 +4,8 @@ import { TreePine } from 'lucide-react'
 
 import {
   availableYears,
+  hasWorkProjection,
+  isFinishedWork,
   lookup,
   useCurrentUser,
   useWorkspace,
@@ -12,14 +14,14 @@ import {
 } from '@/features/workspace'
 import { formatMoney, formatNumber, formatPercent } from '@/shared/lib/format'
 import { useUrlState, useUrlText } from '@/shared/lib/use-url-state'
-import { DataTable, RowMenu } from '@/shared/ui/data-table'
+import { DataTable, RowMenu, type Column } from '@/shared/ui/data-table'
 import { EmptyPanel } from '@/shared/ui/empty-panel'
 import { FilterTabs, FilterToolbar, SearchField, type FilterOption } from '@/shared/ui/filter-tabs'
 import { ChoiceField } from '@/shared/ui/form-controls'
 import { PageTop } from '@/shared/ui/page-top'
 import { Panel, PanelHeader, ProgressBar, Tag } from '@/shared/ui/surface'
 
-import { filterRows, workRows, type WorkFilter } from '../application/work-list'
+import { filterRows, workRows, type WorkFilter, type WorkRow } from '../application/work-list'
 import { YieldDeviation } from './deviation'
 
 export function WorkListPage() {
@@ -116,7 +118,7 @@ export function WorkListPage() {
                 </span>
               ) : undefined
             }
-            columns={[
+            columns={([
               {
                 id: 'title',
                 header: 'Obra',
@@ -164,6 +166,18 @@ export function WorkListPage() {
                 ),
               },
               {
+                id: 'cost',
+                header: 'Coste acumulado',
+                secondary: true,
+                cell: ({ performance }) => performance.reportCount > 0 ? formatMoney(performance.totalCost) : '—',
+              },
+              {
+                id: 'margin',
+                header: 'Margen operativo',
+                cell: ({ work, performance }) => hasWorkProjection(work, performance)
+                  ? <><span className="block font-medium tabular-nums">{formatMoney(performance.projectedMargin)}</span><span className="text-muted-foreground text-xs">{formatPercent(performance.projectedMarginRate, 1)} · {isFinishedWork(work) ? 'al cierre' : 'previsto'}</span></> : 'Sin partes o avance',
+              },
+              {
                 id: 'status',
                 header: 'Estado',
                 cell: ({ work }) => {
@@ -175,7 +189,7 @@ export function WorkListPage() {
                   )
                 },
               },
-            ]}
+            ] satisfies Column<WorkRow>[]).filter((column) => isAdmin || (column.id !== 'cost' && column.id !== 'margin'))}
             actions={({ work }) => (
               <RowMenu label={`Acciones de ${work.code}`}>
                 <DropdownMenuItem onAction={() => open(work.id)}>Abrir</DropdownMenuItem>
