@@ -1,5 +1,5 @@
 import { Alert, AlertDescription, AlertTitle, Button } from '@doscientos/ui'
-import { useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { Plus, Sprout, Tractor } from 'lucide-react'
 import { useState } from 'react'
 
@@ -30,9 +30,11 @@ import { NewClientShortcut, NewZoneShortcut } from './quick-create-dialogs'
 export function BudgetEditorPage({
   initial,
   budgetId,
+  incidentId,
 }: {
   initial: BudgetInput
   budgetId?: string
+  incidentId?: string
 }) {
   const workspace = useWorkspace()
   const navigate = useNavigate()
@@ -45,7 +47,7 @@ export function BudgetEditorPage({
   const setParam = (value: Partial<BudgetParams>) =>
     setDraft((current) => ({ ...current, params: { ...current.params, ...value } }))
 
-  const save = useCommand((input: BudgetInput) => budgetsApi.save(input, budgetId), {
+  const save = useCommand((input: BudgetInput) => incidentId ? budgetsApi.saveFromIncident(incidentId, input) : budgetsApi.save(input, budgetId), {
     success: (budget) => ({
       title: budgetId ? 'Presupuesto actualizado' : 'Presupuesto guardado',
       description: `${budget.title} · ${formatMoney(estimate.price, true)} + IVA`,
@@ -76,6 +78,10 @@ export function BudgetEditorPage({
           </>
         }
       />
+      {incidentId ? <p className="border-border bg-muted/30 mb-5 rounded-lg border p-4 text-sm">
+        Presupuesto originado en una incidencia. Revisa las partidas y sus precios antes de guardar.{' '}
+        <Link to="/incidencias/$incidentId" params={{ incidentId }} className="font-medium underline">Ver aviso original</Link>
+      </p> : null}
       {showErrors && issues.length > 0 ? (
         <Alert variant="destructive" className="mb-4">
           <AlertTitle>Revisa el presupuesto</AlertTitle>
@@ -99,7 +105,7 @@ export function BudgetEditorPage({
                 invalid={invalid('title')}
                 onChange={(title) => patch({ title })}
               />
-              <ChoiceField
+              {incidentId ? <div className="text-sm"><p className="text-muted-foreground mb-2 text-xs">Cliente de la incidencia</p><p>{workspace.clients.find((client) => client.id === draft.clientId)?.name}</p></div> : <ChoiceField
                 searchable
                 label="Cliente"
                 value={draft.clientId}
@@ -111,7 +117,7 @@ export function BudgetEditorPage({
                 footer={
                   <NewClientShortcut onCreated={(client) => patch({ clientId: client.id })} />
                 }
-              />
+              />}
               <ChoiceField
                 searchable
                 label="Zona"

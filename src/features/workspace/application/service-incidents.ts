@@ -66,8 +66,9 @@ function replaceIncident(workspace: Workspace, incident: ServiceIncident): Works
 }
 
 function entry(context: Context, kind: IncidentEntry['kind'], text: string): IncidentEntry {
+  if (!context.actorId) throw new DomainError('Inicia sesión para gestionar incidencias.')
   return { id: context.id(), kind, date: context.today, at: context.now,
-    authorId: context.actorId!, text, minutes: 0, material: '' }
+    authorId: context.actorId, text, minutes: 0, material: '' }
 }
 
 export function addIncidentVisit(workspace: Workspace, incidentId: string, input: IncidentVisitInput, context: Context) {

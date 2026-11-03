@@ -95,6 +95,11 @@ export function saveBudget(
   const existing = workspace.budgets.find((budget) => budget.id === budgetId)
   if (existing && existing.status === 'aceptado')
     throw new CommandError('Un presupuesto aceptado no se puede modificar.')
+  if (existing?.incidentId) {
+    const incident = workspace.incidents.find((item) => item.id === existing.incidentId)
+    if (!incident || incident.clientId !== input.clientId)
+      throw new CommandError('No puedes cambiar el cliente de un presupuesto vinculado a una incidencia.')
+  }
   const budget: Budget = existing
     ? { ...existing, ...input }
     : {
