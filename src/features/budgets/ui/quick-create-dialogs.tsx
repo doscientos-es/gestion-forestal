@@ -10,11 +10,10 @@ import {
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 
+import { ClientDialog } from '@/features/clients'
 import {
-  clientKind,
   speciesKind,
   type Client,
-  type ClientKind,
   type Species,
   type SpeciesKind,
   type Zone,
@@ -35,70 +34,11 @@ function CreateShortcut({ label, onPress }: { label: string; onPress: () => void
 
 export function NewClientShortcut({ onCreated }: { onCreated: (client: Client) => void }) {
   const [open, setOpen] = useState(false)
-  const [name, setName] = useState('')
-  const [kind, setKind] = useState<ClientKind>('ayuntamiento')
-  const [taxId, setTaxId] = useState('')
-  const [town, setTown] = useState('')
-  const [email, setEmail] = useState('')
-  const save = useCommand(() => budgetsApi.createClient({ name, kind, taxId, town, email }), {
-    success: (client) => ({ title: 'Cliente creado', description: client.name }),
-    onSuccess: (client) => {
-      onCreated(client)
-      setOpen(false)
-      setName('')
-      setTaxId('')
-      setTown('')
-      setEmail('')
-    },
-  })
 
   return (
     <>
       <CreateShortcut label="Nuevo cliente" onPress={() => setOpen(true)} />
-      <DialogRoot open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[min(28rem,calc(100vw-2rem))] rounded-xl">
-          <DialogHeader>
-            <DialogTitle>Nuevo cliente</DialogTitle>
-            <DialogDescription>
-              Queda guardado y disponible para todos los presupuestos.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <TextField
-              className="sm:col-span-2"
-              label="Nombre"
-              placeholder="Ej. Ayuntamiento de Valle Alto"
-              value={name}
-              onChange={setName}
-            />
-            <ChoiceField
-              label="Tipo"
-              value={kind}
-              onChange={(value) => setKind(value as ClientKind)}
-              options={Object.entries(clientKind).map(([value, label]) => ({ value, label }))}
-            />
-            <TextField label="CIF / NIF" value={taxId} onChange={setTaxId} />
-            <TextField label="Localidad" value={town} onChange={setTown} />
-            <TextField
-              label="Correo para propuestas"
-              placeholder="obras@cliente.es"
-              value={email}
-              onChange={setEmail}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="ghost" onPress={() => setOpen(false)}>
-              Cancelar
-            </Button>
-            <Button
-              onPress={() => save.mutate(undefined)}
-              isDisabled={save.isPending || !name.trim()}
-            >
-              Crear cliente
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </DialogRoot>
+      {open ? <ClientDialog onClose={() => setOpen(false)} onSaved={onCreated} /> : null}
     </>
   )
 }

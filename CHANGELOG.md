@@ -6,6 +6,8 @@
 
 ### Nuevas funciones
 
+- Add support for free-form budget lines with pricing
+- Update changelog with new features and tests
 - Add crew checklist component tests for attendance and ratings
 - Add daily worker ratings and improve report form
 - Add work profitability analysis and client comparison features

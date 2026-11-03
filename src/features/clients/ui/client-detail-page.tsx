@@ -7,12 +7,14 @@ import { ActivityTimeline } from '@/features/activity'
 import { YieldDeviation } from '@/features/works'
 import {
   budgetStatus,
+  billingAddressLines,
   clientActivity,
   clientKind,
   clientOverview,
   formatIban,
   hasWorkProjection,
   isFinishedWork,
+  missingClientBillingFields,
   useWorkspace,
   workStatus,
   type Client,
@@ -37,6 +39,7 @@ export function ClientDetailPage({ client }: { client: Client }) {
   const overview = clientOverview(workspace, client, clock.today())
   const budgets = [...overview.budgets].sort((a, b) => b.date.localeCompare(a.date))
   const history = clientActivity(workspace, client.id)
+  const missingBilling = missingClientBillingFields(client)
 
   return (
     <>
@@ -86,10 +89,23 @@ export function ClientDetailPage({ client }: { client: Client }) {
         <PanelHeader
           id="client-data-title"
           icon={<Landmark className="size-5" strokeWidth={1.75} />}
-          title="Datos y cuenta bancaria"
+          title="Facturación, contacto y cuenta bancaria"
         />
         <dl className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Stat label="Razón social / nombre fiscal" value={client.legalName} />
           <Stat label="CIF / NIF" value={client.taxId || 'Sin CIF'} />
+          <Stat
+            label="Dirección de facturación"
+            value={
+              client.billingAddress.street
+                ? billingAddressLines(client.billingAddress).join(', ')
+                : 'Pendiente de completar'
+            }
+          />
+          <Stat
+            label="Persona de contacto"
+            value={client.contactName || 'Sin persona de contacto'}
+          />
           <Stat label="Correo" value={client.email || 'Sin correo'} />
           <Stat label="Teléfono" value={client.phone || 'Sin teléfono'} />
           <Stat
@@ -97,6 +113,17 @@ export function ClientDetailPage({ client }: { client: Client }) {
             value={client.iban ? formatIban(client.iban) : <Tag tone="amber">Sin IBAN</Tag>}
           />
         </dl>
+        {missingBilling.length > 0 ? (
+          <div className="border-border flex flex-wrap items-center justify-between gap-3 border-t px-5 py-3">
+            <p className="text-muted-foreground text-xs">
+              <Tag tone="amber">Ficha fiscal incompleta</Tag> Faltan {missingBilling.join(', ')}.
+              Complétalos antes de enviar facturas a la gestoría.
+            </p>
+            <Button variant="outline" size="sm" onPress={() => setEditing(true)}>
+              Completar datos
+            </Button>
+          </div>
+        ) : null}
       </Panel>
       <ClientCampaignsPanel years={overview.years} />
       <Panel aria-labelledby="client-works-title" className="mb-5">

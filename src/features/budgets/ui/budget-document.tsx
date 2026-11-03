@@ -1,5 +1,6 @@
 import { TreePine } from 'lucide-react'
 
+import { ClientBillingDetails } from '@/features/clients'
 import {
   DEFAULT_VAT_RATE,
   estimateStoredBudget,
@@ -47,10 +48,7 @@ export function BudgetDocument({ budget, workspace }: { budget: Budget; workspac
       <section className="grid gap-6 py-6 sm:grid-cols-2">
         <div>
           <p className="text-xs text-zinc-500">Para</p>
-          <p className="font-semibold">{client?.name}</p>
-          <p className="text-zinc-600">
-            {client?.taxId} · {client?.town}
-          </p>
+          <ClientBillingDetails client={client} />
         </div>
         <div>
           <p className="text-xs text-zinc-500">Trabajo</p>

@@ -1,16 +1,9 @@
 import type { IsoDate } from '@/shared/lib/dates'
 
-import { CommandError, cleanClientContact, type ClientInput } from './commands'
+import { cleanClientInput, type ClientInput } from './client-details'
+import { CommandError } from './commands'
 import { invoiceTotals } from './invoice-draft'
-import type {
-  ActivityEvent,
-  Budget,
-  Cents,
-  Client,
-  InvoiceDraft,
-  Work,
-  Workspace,
-} from './model'
+import type { ActivityEvent, Budget, Cents, Client, InvoiceDraft, Work, Workspace } from './model'
 import { calculatePerformance, type WorkPerformance } from './work-performance'
 
 /** An invoice sent to the accounting office and not collected after this many days is chased. */
@@ -76,31 +69,18 @@ export type ClientYear = {
 }
 
 /** Edits every detail of a client. The name must stay unique. */
-export function updateClient(workspace: Workspace, clientId: string, input: ClientInput): Workspace {
-  if (!workspace.clients.some((client) => client.id === clientId))
-    throw new CommandError('Cliente no encontrado.')
-  const name = input.name.trim()
-  if (!name) throw new CommandError('Escribe el nombre del cliente.')
-  if (
-    workspace.clients.some(
-      (client) => client.id !== clientId && client.name.trim().toLowerCase() === name.toLowerCase(),
-    )
-  )
-    throw new CommandError('Ya existe un cliente con ese nombre.')
-  const contact = cleanClientContact(input)
+export function updateClient(
+  workspace: Workspace,
+  clientId: string,
+  input: ClientInput,
+): Workspace {
+  const existing = workspace.clients.find((client) => client.id === clientId)
+  if (!existing) throw new CommandError('Cliente no encontrado.')
+  const details = cleanClientInput(input, workspace.clients, existing)
   return {
     ...workspace,
     clients: workspace.clients.map((client) =>
-      client.id === clientId
-        ? {
-            ...client,
-            name,
-            kind: input.kind,
-            taxId: input.taxId.trim(),
-            town: input.town.trim(),
-            ...contact,
-          }
-        : client,
+      client.id === clientId ? { ...client, ...details } : client,
     ),
   }
 }

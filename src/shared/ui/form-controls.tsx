@@ -168,6 +168,9 @@ export function TextField({
   type = 'text',
   min,
   max,
+  required = false,
+  autoComplete,
+  hint,
 }: {
   label: string
   value: string
@@ -175,11 +178,14 @@ export function TextField({
   placeholder?: string
   className?: string
   invalid?: boolean
-  type?: 'text' | 'date'
+  type?: 'text' | 'date' | 'email' | 'tel'
   /** Earliest accepted date (ISO) when `type` is `date`. */
   min?: string | undefined
   /** Latest accepted date (ISO) when `type` is `date`. */
   max?: string | undefined
+  required?: boolean
+  autoComplete?: string
+  hint?: ReactNode
 }) {
   const id = useId()
   return (
@@ -190,6 +196,9 @@ export function TextField({
       <Input
         id={id}
         type={type}
+        required={required}
+        autoComplete={autoComplete}
+        aria-describedby={hint ? `${id}-hint` : undefined}
         value={value}
         {...(placeholder ? { placeholder } : {})}
         {...(min ? { min } : {})}
@@ -198,6 +207,11 @@ export function TextField({
         onChange={(event) => onChange(event.target.value)}
         className="h-10"
       />
+      {hint ? (
+        <FieldDescription id={`${id}-hint`} className="text-xs">
+          {hint}
+        </FieldDescription>
+      ) : null}
     </Field>
   )
 }

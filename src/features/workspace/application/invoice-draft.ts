@@ -1,4 +1,6 @@
-import type { Cents, InvoiceDraft, InvoiceLine, Work } from './model'
+import { csvText } from '@/shared/lib/csv'
+
+import type { Cents, Client, InvoiceDraft, InvoiceLine, Work } from './model'
 import type { WorkPerformance } from './work-performance'
 
 export const DEFAULT_VAT_RATE = 0.21
@@ -76,12 +78,20 @@ export function nextInvoiceReference(year: number, invoices: InvoiceDraft[]) {
 export function invoicesToCsv(
   invoices: InvoiceDraft[],
   resolve: {
-    client: (id: string) => { name: string; taxId: string }
+    client: (
+      id: string,
+    ) => Pick<
+      Client,
+      'name' | 'legalName' | 'taxId' | 'billingAddress' | 'contactName' | 'email' | 'phone'
+    >
     work: (id: string) => string
   },
 ) {
   const decimal = (cents: Cents) => (cents / 100).toFixed(2).replace('.', ',')
-  const quote = (value: string) => `"${value.replaceAll('"', '""')}"`
+  const quote = (value: string) => {
+    const literal = /^[\s]*[=+@-]/.test(value) ? `'${value}` : value
+    return csvText(literal)
+  }
   const header = [
     'Referencia',
     'Fecha',
@@ -93,6 +103,15 @@ export function invoicesToCsv(
     'IVA',
     'Total',
     'Estado',
+    'Nombre comercial',
+    'Dirección de facturación',
+    'Código postal',
+    'Localidad de facturación',
+    'Provincia',
+    'País',
+    'Persona de contacto',
+    'Correo',
+    'Teléfono',
   ]
   const rows = invoices.map((invoice) => {
     const totals = invoiceTotals(invoice)
@@ -100,14 +119,23 @@ export function invoicesToCsv(
     return [
       invoice.reference,
       invoice.date,
-      quote(client.name),
-      client.taxId,
+      quote(client.legalName),
+      quote(client.taxId),
       quote(resolve.work(invoice.workId)),
       quote(invoice.lines.map((line) => line.description).join(' | ')),
       decimal(totals.base),
       decimal(totals.vat),
       decimal(totals.total),
       invoice.status,
+      quote(client.name),
+      quote(client.billingAddress.street),
+      quote(client.billingAddress.postalCode),
+      quote(client.billingAddress.city),
+      quote(client.billingAddress.province),
+      quote(client.billingAddress.country),
+      quote(client.contactName),
+      quote(client.email),
+      quote(client.phone),
     ].join(';')
   })
   return [header.join(';'), ...rows].join('\n')

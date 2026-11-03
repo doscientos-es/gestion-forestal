@@ -103,12 +103,26 @@ export function zoneTone(zoneId: string, workspace: Workspace): Tone {
   return zoneTones[index % zoneTones.length] ?? 'gray'
 }
 
-/** Resolvers the accounting CSV needs (client name and tax ID, work title). */
+/** Fiscal recipient and work title for the accounting office. */
 export function accountingLookup(workspace: Workspace) {
   return {
     client: (id: string) => {
       const client = workspace.clients.find((item) => item.id === id)
-      return { name: client?.name ?? id, taxId: client?.taxId ?? '' }
+      return {
+        name: client?.name ?? id,
+        legalName: client?.legalName ?? id,
+        taxId: client?.taxId ?? '',
+        billingAddress: client?.billingAddress ?? {
+          street: '',
+          postalCode: '',
+          city: '',
+          province: '',
+          country: '',
+        },
+        contactName: client?.contactName ?? '',
+        email: client?.email ?? '',
+        phone: client?.phone ?? '',
+      }
     },
     work: (id: string) => workspace.works.find((item) => item.id === id)?.title ?? id,
   }

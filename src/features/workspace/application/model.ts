@@ -5,12 +5,25 @@ export type Cents = number
 
 export type ClientKind = 'ayuntamiento' | 'diputacion' | 'particular' | 'empresa' | 'comunidad'
 
+export type BillingAddress = {
+  street: string
+  postalCode: string
+  city: string
+  province: string
+  country: string
+}
+
 export type Client = {
   id: string
+  /** Display name used in lists and work planning. */
   name: string
+  /** Full legal name printed on proposals and invoice drafts. */
+  legalName: string
   kind: ClientKind
   taxId: string
   town: string
+  billingAddress: BillingAddress
+  contactName: string
   /** Where proposals and invoice copies are sent. Empty when unknown. */
   email: string
   /** Contact number with country code. Empty when unknown. */

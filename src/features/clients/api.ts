@@ -10,7 +10,7 @@ import {
 
 export type ClientsApi = {
   create(input: ClientInput): Promise<Client>
-  update(clientId: string, input: ClientInput): Promise<void>
+  update(clientId: string, input: ClientInput): Promise<Client>
 }
 
 export function createClientsApi(deps: ApiDeps): ClientsApi {
@@ -21,10 +21,12 @@ export function createClientsApi(deps: ApiDeps): ClientsApi {
         return { workspace: next, result: client }
       }),
     update: (clientId, input) =>
-      mutate(deps, (workspace) => ({
-        workspace: updateClient(workspace, clientId, input),
-        result: undefined,
-      })),
+      mutate(deps, (workspace) => {
+        const next = updateClient(workspace, clientId, input)
+        const client = next.clients.find((item) => item.id === clientId)
+        if (!client) throw new Error('Updated client not found')
+        return { workspace: next, result: client }
+      }),
   }
 }
 

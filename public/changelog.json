@@ -8,6 +8,8 @@
         {
           "title": "Nuevas funciones",
           "items": [
+            "Add support for free-form budget lines with pricing",
+            "Update changelog with new features and tests",
             "Add crew checklist component tests for attendance and ratings",
             "Add daily worker ratings and improve report form",
             "Add work profitability analysis and client comparison features",
@@ -35,6 +37,20 @@
         }
       ],
       "changes": [
+        {
+          "sha": "f28217a718b82da075c61d7ec7e412221cea3cfb",
+          "type": "feat",
+          "scope": "budgets",
+          "breaking": false,
+          "description": "Add support for free-form budget lines with pricing"
+        },
+        {
+          "sha": "30b1c4066c572aa89ad0b459c2c01e65d4e11b3d",
+          "type": "feat",
+          "scope": "changelog",
+          "breaking": false,
+          "description": "Update changelog with new features and tests"
+        },
         {
           "sha": "c0823fe16eed591cc127a43cc62de040a49cd240",
           "type": "feat",

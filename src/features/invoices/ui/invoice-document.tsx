@@ -1,5 +1,6 @@
 import { TreePine } from 'lucide-react'
 
+import { ClientBillingDetails } from '@/features/clients'
 import {
   invoiceTotals,
   lineAmount,
@@ -47,10 +48,7 @@ export function InvoiceDocument({
 
       <section className="py-5">
         <p className="text-xs text-zinc-500">Cliente</p>
-        <p className="font-semibold">{client?.name}</p>
-        <p className="text-zinc-600">
-          {client?.taxId} · {client?.town}
-        </p>
+        <ClientBillingDetails client={client} />
         <p className="mt-3 text-xs text-zinc-500">Obra</p>
         <p className="font-medium">{find.work(invoice.workId)?.title}</p>
       </section>

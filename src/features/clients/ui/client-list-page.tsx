@@ -31,9 +31,15 @@ const matches = (client: Client, query: string) => {
   const needle = query.trim().toLowerCase()
   return (
     !needle ||
-    [client.name, client.taxId, client.town, client.email].some((text) =>
-      text.toLowerCase().includes(needle),
-    )
+    [
+      client.name,
+      client.legalName,
+      client.taxId,
+      client.town,
+      client.email,
+      client.contactName,
+      client.billingAddress.city,
+    ].some((text) => text.toLowerCase().includes(needle))
   )
 }
 
@@ -86,7 +92,9 @@ export function ClientsPage() {
             label="Con quién más compensa"
             value={best?.client.name ?? '—'}
             description={
-              best ? `${formatMoney(best.margin)} de margen · ${formatPercent(best.marginRate ?? 0)}` : ''
+              best
+                ? `${formatMoney(best.margin)} de margen · ${formatPercent(best.marginRate ?? 0)}`
+                : ''
             }
             tone="success"
           />
@@ -114,7 +122,12 @@ export function ClientsPage() {
       ) : null}
       <FilterToolbar
         tabs={
-          <FilterTabs label="Filtrar por tipo" options={options} value={filter} onChange={setFilter} />
+          <FilterTabs
+            label="Filtrar por tipo"
+            options={options}
+            value={filter}
+            onChange={setFilter}
+          />
         }
       >
         <SearchField

@@ -10,16 +10,15 @@ import {
 import { useState } from 'react'
 
 import {
-  clientKind,
+  cleanClientInput,
+  clientBillingDetails,
   formatIban,
-  isValidIban,
   type Client,
-  type ClientKind,
 } from '@/features/workspace'
 import { useCommand } from '@/shared/lib/use-command'
-import { ChoiceField, TextField } from '@/shared/ui/form-controls'
 
 import { clientsApi } from '../api'
+import { ClientFormFields, type ClientFormValues } from './client-form-fields'
 
 /** Creates a client, or edits all the details of an existing one. */
 export function ClientDialog({
@@ -31,20 +30,26 @@ export function ClientDialog({
   onClose: () => void
   onSaved?: (client: Client) => void
 }) {
-  const [name, setName] = useState(client?.name ?? '')
-  const [kind, setKind] = useState<ClientKind>(client?.kind ?? 'ayuntamiento')
-  const [taxId, setTaxId] = useState(client?.taxId ?? '')
-  const [town, setTown] = useState(client?.town ?? '')
-  const [email, setEmail] = useState(client?.email ?? '')
-  const [phone, setPhone] = useState(client?.phone ?? '')
-  const [iban, setIban] = useState(formatIban(client?.iban ?? ''))
-  const ibanInvalid = iban.trim() !== '' && !isValidIban(iban)
-  const input = { name, kind, taxId, town, email, phone, iban }
+  const [input, setInput] = useState<ClientFormValues>(() => ({
+    name: client?.name ?? '',
+    kind: client?.kind ?? 'ayuntamiento',
+    taxId: client?.taxId ?? '',
+    town: client?.town ?? '',
+    email: client?.email ?? '',
+    phone: client?.phone ?? '',
+    iban: formatIban(client?.iban ?? ''),
+    ...clientBillingDetails(client ?? { name: '' }),
+  }))
+  let validationError = ''
+  try {
+    cleanClientInput(input, [])
+  } catch (error) {
+    validationError = error instanceof Error ? error.message : 'Revisa los datos del cliente.'
+  }
   const save = useCommand(
     async () => {
       if (client) {
-        await clientsApi.update(client.id, input)
-        return client
+        return clientsApi.update(client.id, input)
       }
       return clientsApi.create(input)
     },
@@ -61,62 +66,45 @@ export function ClientDialog({
   )
 
   return (
-    <DialogRoot open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[min(32rem,calc(100vw-2rem))] rounded-xl">
-        <DialogHeader>
-          <DialogTitle>{client ? `Editar a ${client.name}` : 'Nuevo cliente'}</DialogTitle>
-          <DialogDescription>
-            El correo recibe propuestas y facturas; el IBAN sirve para devoluciones y domiciliaciones.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <TextField className="sm:col-span-2" label="Nombre" value={name} onChange={setName} />
-          <ChoiceField
-            label="Tipo"
-            value={kind}
-            onChange={(value) => setKind(value as ClientKind)}
-            options={Object.entries(clientKind).map(([value, label]) => ({ value, label }))}
-          />
-          <TextField label="CIF / NIF" value={taxId} onChange={setTaxId} />
-          <TextField label="Localidad" value={town} onChange={setTown} />
-          <TextField
-            label="Teléfono"
-            placeholder="+34 900 000 000"
-            value={phone}
-            onChange={setPhone}
-          />
-          <TextField
-            className="sm:col-span-2"
-            label="Correo"
-            placeholder="obras@cliente.es"
-            value={email}
-            onChange={setEmail}
-          />
-          <TextField
-            className="sm:col-span-2"
-            label="IBAN"
-            placeholder="ES00 0000 0000 0000 0000 0000"
-            value={iban}
-            onChange={setIban}
-            invalid={ibanInvalid}
-          />
-          {ibanInvalid ? (
-            <p role="alert" className="text-destructive text-xs sm:col-span-2">
-              El IBAN no es válido. Revisa que no falte ningún dígito.
+    <DialogRoot open onOpenChange={(open) => !open && !save.isPending && onClose()}>
+      <DialogContent
+        className="max-h-[90dvh] w-[min(42rem,calc(100vw-2rem))] overflow-y-auto rounded-xl"
+        showCloseButton={!save.isPending}
+      >
+        <form
+          className="grid gap-5"
+          aria-busy={save.isPending}
+          onSubmit={(event) => {
+            event.preventDefault()
+            // A dialog opened from a budget must not submit the parent budget form through its portal.
+            event.stopPropagation()
+            if (!validationError && !save.isPending) save.mutate(undefined)
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>{client ? `Editar a ${client.name}` : 'Nuevo cliente'}</DialogTitle>
+            <DialogDescription>
+              Datos de contacto y facturación disponibles en toda la aplicación. * Campo
+              obligatorio.
+            </DialogDescription>
+          </DialogHeader>
+          <fieldset disabled={save.isPending} className="min-w-0">
+            <ClientFormFields value={input} onChange={setInput} />
+          </fieldset>
+          {validationError && input.name.trim() ? (
+            <p role="alert" className="text-destructive text-xs">
+              {validationError}
             </p>
           ) : null}
-        </div>
-        <DialogFooter>
-          <Button variant="ghost" onPress={onClose}>
-            Cancelar
-          </Button>
-          <Button
-            isDisabled={save.isPending || ibanInvalid || !name.trim()}
-            onPress={() => save.mutate(undefined)}
-          >
-            {client ? 'Guardar cambios' : 'Crear cliente'}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button type="button" variant="ghost" isDisabled={save.isPending} onPress={onClose}>
+              Cancelar
+            </Button>
+            <Button type="submit" isDisabled={save.isPending || Boolean(validationError)}>
+              {save.isPending ? 'Guardando…' : client ? 'Guardar cambios' : 'Crear cliente'}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </DialogRoot>
   )

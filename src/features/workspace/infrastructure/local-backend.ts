@@ -15,7 +15,8 @@ import {
   type KeyValueStorage,
 } from '@/shared/lib/local-storage'
 
-import type { Workspace } from '../application/model'
+import { clientBillingDetails } from '../application/client-details'
+import type { Client, Workspace } from '../application/model'
 import type { Backend, DemoDatabase, SessionRepository } from '../application/ports'
 import { buildSeed } from './build-seed'
 
@@ -62,7 +63,25 @@ function createDatabase(storage: () => KeyValueStorage, today: () => IsoDate): D
   }
   return {
     async ensureSeeded() {
-      if (!isDatabaseCurrent(storage())) seed()
+      if (!isDatabaseCurrent(storage())) {
+        seed()
+        return
+      }
+      const clients = readJson<Client[]>(storage(), 'db:clients') ?? []
+      const needsUpgrade = clients.some(
+        (client) =>
+          client.legalName === undefined ||
+          client.contactName === undefined ||
+          (['street', 'postalCode', 'city', 'province', 'country'] as const).some(
+            (field) => client.billingAddress?.[field] === undefined,
+          ),
+      )
+      if (needsUpgrade)
+        writeCollection(
+          'clients',
+          clients.map((client) => ({ ...client, ...clientBillingDetails(client) })),
+          storage(),
+        )
     },
     async reset() {
       clearDatabase(storage())

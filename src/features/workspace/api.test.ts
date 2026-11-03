@@ -6,10 +6,13 @@ import {
   newFreeLine,
   updateLine,
 } from '@/features/budgets/application/budget-draft'
+import { createClientsApi } from '@/features/clients/api'
 import { createDailyReportApi } from '@/features/daily-report/api'
 import { createInvoicesApi } from '@/features/invoices/api'
 import { createPlanningApi } from '@/features/planning/api'
 import { createWorksApi } from '@/features/works/api'
+import { writeCollection } from '@/shared/data/database'
+import { parseCsv } from '@/shared/lib/csv'
 import { DomainError } from '@/shared/lib/errors'
 import { createMemoryStorage } from '@/shared/lib/local-storage'
 
@@ -36,6 +39,7 @@ function setup(storage = createMemoryStorage()) {
   return {
     storage,
     reports: createDailyReportApi(deps),
+    clients: createClientsApi(deps),
     workspace: createWorkspaceApi(deps, backend),
     budgets: createBudgetsApi(deps),
     planning: createPlanningApi(deps),
@@ -57,6 +61,83 @@ describe('api layer over the local backend', () => {
     expect(workspace.people.some((person) => person.role === 'admin')).toBe(true)
     await api.workspace.ensureReady()
     expect((await api.workspace.getWorkspace()).works).toHaveLength(workspace.works.length)
+  })
+
+  it('persists the same complete client from both entry points, edits and reloads it', async () => {
+    const client = await api.budgets.createClient({
+      name: 'Finca de prueba',
+      kind: 'particular',
+      taxId: '12345678Z',
+      town: 'Monte Alto',
+      legalName: 'Elena del Bosque García',
+      contactName: 'Elena',
+      email: 'elena@example.org',
+      billingAddress: {
+        street: 'Calle Mayor, 5',
+        postalCode: '01001',
+        city: 'Vitoria-Gasteiz',
+        province: 'Álava',
+        country: 'España',
+      },
+    })
+    const reloaded = setup(api.storage)
+    await reloaded.workspace.ensureReady()
+    expect(
+      (await reloaded.workspace.getWorkspace()).clients.find((item) => item.id === client.id),
+    ).toEqual(client)
+    const saved = await reloaded.clients.update(client.id, {
+      ...client,
+      legalName: 'Elena del Bosque López',
+      billingAddress: { street: 'Calle Nueva, 8' },
+    })
+    expect(saved).toEqual({
+      ...client,
+      legalName: 'Elena del Bosque López',
+      billingAddress: { ...client.billingAddress, street: 'Calle Nueva, 8' },
+    })
+    expect(
+      (await api.workspace.getWorkspace()).clients.find((item) => item.id === client.id),
+    ).toEqual(saved)
+  })
+
+  it('upgrades existing clients without resetting related work or replacing known fiscal data', async () => {
+    const before = await api.workspace.getWorkspace()
+    const source = before.clients[0]
+    if (!source) throw new Error('Missing seed client')
+    const { legalName: _legal, contactName: _contact, billingAddress: _address, ...legacy } = source
+    writeCollection(
+      'clients',
+      [{ ...legacy, name: 'Nombre editado antes de actualizar' }, ...before.clients.slice(1)],
+      api.storage,
+    )
+    const reloaded = setup(api.storage)
+    await reloaded.workspace.ensureReady()
+    await reloaded.workspace.ensureReady()
+    const after = await reloaded.workspace.getWorkspace()
+    expect(after.clients[0]).toMatchObject({
+      id: source.id,
+      name: 'Nombre editado antes de actualizar',
+      legalName: 'Nombre editado antes de actualizar',
+      billingAddress: { street: '', postalCode: '', city: '', province: '', country: 'España' },
+    })
+    expect(after.clients.slice(1)).toEqual(before.clients.slice(1))
+    expect(after.works).toEqual(before.works)
+    expect(after.budgets).toEqual(before.budgets)
+    expect(after.invoices).toEqual(before.invoices)
+  })
+
+  it('rejects an incomplete accounting batch without marking any drafts as sent', async () => {
+    const before = await api.workspace.getWorkspace()
+    const invoice = before.invoices[0]
+    const client = before.clients.find((item) => item.id === invoice?.clientId)
+    if (!invoice || !client) throw new Error('Missing seed invoice/client')
+    await api.clients.update(client.id, { ...client, billingAddress: { street: '' } })
+    await expect(
+      api.invoices.sendToAccounting(before.invoices.map((item) => item.id)),
+    ).rejects.toThrow('dirección')
+    const after = await api.workspace.getWorkspace()
+    expect(after.invoices).toEqual(before.invoices)
+    expect(after.activity).toEqual(before.activity)
   })
 
   it('persists an accepted budget as a new work and links both ways', async () => {
@@ -176,6 +257,13 @@ describe('api layer over the local backend', () => {
     const file = await api.invoices.sendToAccounting([draft.id])
     expect(file.filename).toBe(`facturas-gestoria-${TODAY}.csv`)
     expect(file.csv.split('\n')).toHaveLength(2)
+    const [header, row] = parseCsv(file.csv)
+    const recipient = workspace.clients.find((item) => item.id === draft.clientId)
+    expect(row?.[header?.indexOf('Cliente') ?? -1]).toBe(recipient?.legalName)
+    expect(row?.[header?.indexOf('Dirección de facturación') ?? -1]).toBe(
+      recipient?.billingAddress.street,
+    )
+    expect(row?.[header?.indexOf('Código postal') ?? -1]).toBe(recipient?.billingAddress.postalCode)
     const stored = (await api.workspace.getWorkspace()).invoices.find(
       (item) => item.id === draft.id,
     )

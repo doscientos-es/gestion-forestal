@@ -2,12 +2,14 @@ import {
   apiDeps,
   invoicesToCsv,
   accountingLookup,
+  missingClientBillingFields,
   mutate,
   sendInvoiceEmail,
   setInvoiceStatus,
   type ApiDeps,
   type EmailInput,
 } from '@/features/workspace'
+import { DomainError } from '@/shared/lib/errors'
 
 export type AccountingExport = { filename: string; csv: string }
 
@@ -25,6 +27,15 @@ export function createInvoicesApi(deps: ApiDeps): InvoicesApi {
       return mutate(deps, (workspace, context) => {
         const lookup = accountingLookup(workspace)
         const selected = workspace.invoices.filter((invoice) => invoiceIds.includes(invoice.id))
+        for (const invoice of selected) {
+          const client = workspace.clients.find((item) => item.id === invoice.clientId)
+          if (!client) throw new DomainError('No se encuentra el cliente de la factura.')
+          const missing = missingClientBillingFields(client)
+          if (missing.length > 0)
+            throw new DomainError(
+              `Completa los datos de facturación de ${client.name}: ${missing.join(', ')}.`,
+            )
+        }
         return {
           workspace: setInvoiceStatus(
             workspace,
