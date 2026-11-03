@@ -16,8 +16,8 @@ export function WorkerDetailPanel({
 }) {
   const delta =
     row.teamYieldDeviation !== null &&
-    previous?.teamYieldDeviation !== null &&
-    previous?.teamYieldDeviation !== undefined
+      previous?.teamYieldDeviation !== null &&
+      previous?.teamYieldDeviation !== undefined
       ? row.teamYieldDeviation - previous.teamYieldDeviation
       : null
   return (
@@ -32,7 +32,7 @@ export function WorkerDetailPanel({
           </Button>
         }
       />
-      <div className="grid grid-cols-2 gap-5 p-5 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-5 p-5 lg:grid-cols-5">
         <Stat
           label="Nota media del capataz"
           value={

@@ -1,13 +1,20 @@
 import { describe, expect, it } from 'vitest'
 
+import type { DailyReport } from '@/features/workspace'
 import { buildSeed } from '@/features/workspace/infrastructure/build-seed'
 
 import { initialForm, pendingWorkerRatings, reportContext, toggleReportWorker } from './report-form'
 
 const today = '2026-11-04'
-const workspace = buildSeed(today)
-const foreman = workspace.people.find((person) => person.id === 'p-javier')
-if (!foreman) throw new Error('Missing fixture foreman')
+const seed = buildSeed(today)
+const foreman = seed.people.find((person) => person.id === 'p-javier')
+const work = seed.works[0]
+if (!foreman?.crewId || !work) throw new Error('Missing fixture foreman or work')
+const workspace = {
+  ...seed,
+  reports: [],
+  assignments: [{ id: 'assignment', workId: work.id, crewId: foreman.crewId, start: today, end: today }],
+}
 const context = reportContext(workspace, foreman, today)
 if (!context) throw new Error('Missing fixture assignment')
 
@@ -33,10 +40,9 @@ describe('daily report rating form', () => {
     }
     expect(pendingWorkerRatings(initialForm({ ...context, existing }, workspace))).toBe(0)
     expect(initialForm({ ...context, existing }, workspace).workerRatings).toEqual(workerRatings)
-    const legacy = initialForm(
-      { ...context, existing: { ...existing, workerRatings: undefined } },
-      workspace,
-    )
+    const historical: DailyReport = { ...existing }
+    delete historical.workerRatings
+    const legacy = initialForm({ ...context, existing: historical }, workspace)
     expect(pendingWorkerRatings(legacy)).toBe(form.workerIds.length)
   })
 

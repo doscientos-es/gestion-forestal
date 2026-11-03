@@ -34,6 +34,12 @@ function report(patch: Partial<DailyReport> = {}): DailyReport {
   return { ...input, id: 'report', ...patch }
 }
 
+function legacyReport(patch: Partial<DailyReport> = {}): DailyReport {
+  const legacy = report(patch)
+  delete legacy.workerRatings
+  return legacy
+}
+
 describe('daily individual ratings', () => {
   it('saves explicit scores including both scale endpoints, without mutating the input workspace', () => {
     const next = submitReport(state, input, context)
@@ -100,7 +106,7 @@ describe('daily individual ratings', () => {
   })
 
   it('requires scores when editing a historical report, but still reads it as unrated', () => {
-    const legacy = report({ workerRatings: undefined })
+    const legacy = legacyReport()
     expect(workerRating(legacy, 'p-javier')).toBeNull()
     expect(workerRatingSummary([legacy], 'p-javier')).toEqual({
       ratedReports: 0,
@@ -118,7 +124,7 @@ describe('daily individual ratings', () => {
         [
           report({ workerRatings: { 'p-javier': 6 } }),
           report({ workerRatings: { 'p-javier': 10 } }),
-          report({ workerRatings: undefined }),
+          legacyReport(),
         ],
         'p-javier',
       ),
@@ -133,7 +139,7 @@ describe('daily individual ratings', () => {
       people: state.people.map((person) => ({ ...person, crewId: 'different-crew' })),
       reports: [
         report({ id: 'first', date: '2026-10-01', workerRatings: { 'p-javier': 6 } }),
-        report({ id: 'legacy', date: '2026-10-02', workerRatings: undefined }),
+        legacyReport({ id: 'legacy', date: '2026-10-02' }),
         report({ id: 'latest', date: '2026-10-03', workerRatings: { 'p-javier': 10 } }),
         report({ id: 'old', workId: old.id, date: '2025-10-01', workerRatings: { 'p-javier': 2 } }),
       ],
