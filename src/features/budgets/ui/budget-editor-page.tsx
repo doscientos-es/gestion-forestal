@@ -47,14 +47,20 @@ export function BudgetEditorPage({
   const setParam = (value: Partial<BudgetParams>) =>
     setDraft((current) => ({ ...current, params: { ...current.params, ...value } }))
 
-  const save = useCommand((input: BudgetInput) => incidentId ? budgetsApi.saveFromIncident(incidentId, input) : budgetsApi.save(input, budgetId), {
-    success: (budget) => ({
-      title: budgetId ? 'Presupuesto actualizado' : 'Presupuesto guardado',
-      description: `${budget.title} · ${formatMoney(estimate.price, true)} + IVA`,
-    }),
-    onSuccess: (budget) =>
-      void navigate({ to: '/presupuestos/$budgetId', params: { budgetId: budget.id } }),
-  })
+  const save = useCommand(
+    (input: BudgetInput) =>
+      incidentId
+        ? budgetsApi.saveFromIncident(incidentId, input)
+        : budgetsApi.save(input, budgetId),
+    {
+      success: (budget) => ({
+        title: budgetId ? 'Presupuesto actualizado' : 'Presupuesto guardado',
+        description: `${budget.title} · ${formatMoney(estimate.price, true)} + IVA`,
+      }),
+      onSuccess: (budget) =>
+        void navigate({ to: '/presupuestos/$budgetId', params: { budgetId: budget.id } }),
+    },
+  )
 
   function submit() {
     if (issues.length > 0) return setShowErrors(true)
@@ -78,10 +84,19 @@ export function BudgetEditorPage({
           </>
         }
       />
-      {incidentId ? <p className="border-border bg-muted/30 mb-5 rounded-lg border p-4 text-sm">
-        Presupuesto originado en una incidencia. Revisa las partidas y sus precios antes de guardar.{' '}
-        <Link to="/incidencias/$incidentId" params={{ incidentId }} className="font-medium underline">Ver aviso original</Link>
-      </p> : null}
+      {incidentId ? (
+        <p className="border-border bg-muted/30 mb-5 rounded-lg border p-4 text-sm">
+          Presupuesto originado en una incidencia. Revisa las partidas y sus precios antes de
+          guardar.{' '}
+          <Link
+            to="/incidencias/$incidentId"
+            params={{ incidentId }}
+            className="font-medium underline"
+          >
+            Ver aviso original
+          </Link>
+        </p>
+      ) : null}
       {showErrors && issues.length > 0 ? (
         <Alert variant="destructive" className="mb-4">
           <AlertTitle>Revisa el presupuesto</AlertTitle>
@@ -105,19 +120,26 @@ export function BudgetEditorPage({
                 invalid={invalid('title')}
                 onChange={(title) => patch({ title })}
               />
-              {incidentId ? <div className="text-sm"><p className="text-muted-foreground mb-2 text-xs">Cliente de la incidencia</p><p>{workspace.clients.find((client) => client.id === draft.clientId)?.name}</p></div> : <ChoiceField
-                searchable
-                label="Cliente"
-                value={draft.clientId}
-                onChange={(clientId) => patch({ clientId })}
-                options={workspace.clients.map((client) => ({
-                  value: client.id,
-                  label: client.name,
-                }))}
-                footer={
-                  <NewClientShortcut onCreated={(client) => patch({ clientId: client.id })} />
-                }
-              />}
+              {incidentId ? (
+                <div className="text-sm">
+                  <p className="text-muted-foreground mb-2 text-xs">Cliente de la incidencia</p>
+                  <p>{workspace.clients.find((client) => client.id === draft.clientId)?.name}</p>
+                </div>
+              ) : (
+                <ChoiceField
+                  searchable
+                  label="Cliente"
+                  value={draft.clientId}
+                  onChange={(clientId) => patch({ clientId })}
+                  options={workspace.clients.map((client) => ({
+                    value: client.id,
+                    label: client.name,
+                  }))}
+                  footer={
+                    <NewClientShortcut onCreated={(client) => patch({ clientId: client.id })} />
+                  }
+                />
+              )}
               <ChoiceField
                 searchable
                 label="Zona"

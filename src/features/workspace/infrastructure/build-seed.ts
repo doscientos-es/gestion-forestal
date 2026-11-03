@@ -25,6 +25,7 @@ import type {
 import { availableMembers } from '../application/planning'
 import { seedActivity } from './seed-activity'
 import { seedClients, seedCrews, seedPeople, seedSpecies, seedZones } from './seed-catalog'
+import { seedIncidents } from './seed-incidents'
 import {
   defaultParams,
   planting,
@@ -144,6 +145,7 @@ export function buildSeed(today: IsoDate): Workspace {
   workspace.budgets.sort((a, b) => b.date.localeCompare(a.date))
   addReportPhotos(workspace)
   workspace.activity = seedActivity(workspace, today)
+  workspace.incidents = seedIncidents(workspace, today)
   return workspace
 }
 

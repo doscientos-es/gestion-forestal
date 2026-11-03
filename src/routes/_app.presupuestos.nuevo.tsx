@@ -1,12 +1,19 @@
 import { createFileRoute, notFound } from '@tanstack/react-router'
 
 import { requireArea } from '@/app/route-guards'
-import { BudgetEditorPage, duplicateDraft, emptyDraft, incidentBudgetDraft } from '@/features/budgets'
+import {
+  BudgetEditorPage,
+  duplicateDraft,
+  emptyDraft,
+  incidentBudgetDraft,
+} from '@/features/budgets'
 import { useWorkspace } from '@/features/workspace'
 import { clock } from '@/shared/lib/clock'
 
 export const Route = createFileRoute('/_app/presupuestos/nuevo')({
-  validateSearch: (search: Record<string, unknown>): { desde?: string; cliente?: string; incidencia?: string } => ({
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { desde?: string; cliente?: string; incidencia?: string } => ({
     ...(typeof search.desde === 'string' ? { desde: search.desde } : {}),
     ...(typeof search.cliente === 'string' ? { cliente: search.cliente } : {}),
     ...(typeof search.incidencia === 'string' ? { incidencia: search.incidencia } : {}),
@@ -23,8 +30,16 @@ function NewBudgetRoute() {
   const source = workspace.budgets.find((budget) => budget.id === desde)
   // `cliente` comes from a client's page: the budget starts with that client already chosen.
   const client = workspace.clients.find((item) => item.id === cliente)
-  const initial = incident ? incidentBudgetDraft(incident, clock.today()) : source
-    ? duplicateDraft(source, clock.today())
-    : { ...emptyDraft(clock.today(), workspace), clientId: client?.id ?? '' }
-  return <BudgetEditorPage key={`${incidencia ?? desde ?? 'new'}:${client?.id ?? ''}`} initial={initial} {...(incident ? { incidentId: incident.id } : {})} />
+  const initial = incident
+    ? incidentBudgetDraft(incident, clock.today())
+    : source
+      ? duplicateDraft(source, clock.today())
+      : { ...emptyDraft(clock.today(), workspace), clientId: client?.id ?? '' }
+  return (
+    <BudgetEditorPage
+      key={`${incidencia ?? desde ?? 'new'}:${client?.id ?? ''}`}
+      initial={initial}
+      {...(incident ? { incidentId: incident.id } : {})}
+    />
+  )
 }

@@ -18,7 +18,12 @@ export function ClientQuickActions({ client, works }: { client: Client; works: W
 
   return (
     <>
-      <Button variant="outline" onPress={() => void navigate({ to: '/incidencias', search: { cliente: client.id } })}>Incidencias del cliente</Button>
+      <Button
+        variant="outline"
+        onPress={() => void navigate({ to: '/incidencias', search: { cliente: client.id } })}
+      >
+        Incidencias del cliente
+      </Button>
       <Button
         onPress={() => void navigate({ to: '/presupuestos/nuevo', search: { cliente: client.id } })}
       >

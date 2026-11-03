@@ -17,5 +17,7 @@ function IncidentRoute() {
   const { incidentId } = Route.useParams()
   const incident = useWorkspace().incidents.find((item) => item.id === incidentId)
   const user = useCurrentUser()
-  return incident && user && canManageIncident(incident, user) ? <IncidentDetailPage key={incident.id} incident={incident} /> : null
+  return incident && user && canManageIncident(incident, user) ? (
+    <IncidentDetailPage key={incident.id} incident={incident} />
+  ) : null
 }

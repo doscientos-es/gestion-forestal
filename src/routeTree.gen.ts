@@ -27,6 +27,8 @@ import { Route as InformeWorkIdRouteImport } from './routes/informe.$workId'
 import { Route as PropuestaBudgetIdRouteImport } from './routes/propuesta.$budgetId'
 import { Route as AppClientesIndexRouteImport } from './routes/_app.clientes.index'
 import { Route as AppClientesClientIdRouteImport } from './routes/_app.clientes.$clientId'
+import { Route as AppIncidenciasIndexRouteImport } from './routes/_app.incidencias.index'
+import { Route as AppIncidenciasIncidentIdRouteImport } from './routes/_app.incidencias.$incidentId'
 import { Route as AppObrasIndexRouteImport } from './routes/_app.obras.index'
 import { Route as AppObrasWorkIdRouteImport } from './routes/_app.obras.$workId'
 import { Route as AppPresupuestosIndexRouteImport } from './routes/_app.presupuestos.index'
@@ -123,6 +125,17 @@ const AppClientesClientIdRoute = AppClientesClientIdRouteImport.update({
   path: '/clientes/$clientId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppIncidenciasIndexRoute = AppIncidenciasIndexRouteImport.update({
+  id: '/incidencias/',
+  path: '/incidencias/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppIncidenciasIncidentIdRoute =
+  AppIncidenciasIncidentIdRouteImport.update({
+    id: '/incidencias/$incidentId',
+    path: '/incidencias/$incidentId',
+    getParentRoute: () => AppRoute,
+  } as any)
 const AppObrasIndexRoute = AppObrasIndexRouteImport.update({
   id: '/obras/',
   path: '/obras/',
@@ -173,9 +186,11 @@ export interface FileRoutesByFullPath {
   '/informe/$workId': typeof InformeWorkIdRoute
   '/propuesta/$budgetId': typeof PropuestaBudgetIdRoute
   '/clientes/$clientId': typeof AppClientesClientIdRoute
+  '/incidencias/$incidentId': typeof AppIncidenciasIncidentIdRoute
   '/obras/$workId': typeof AppObrasWorkIdRoute
   '/presupuestos/nuevo': typeof AppPresupuestosNuevoRoute
   '/clientes/': typeof AppClientesIndexRoute
+  '/incidencias/': typeof AppIncidenciasIndexRoute
   '/obras/': typeof AppObrasIndexRoute
   '/presupuestos/': typeof AppPresupuestosIndexRoute
   '/presupuestos/$budgetId/editar': typeof AppPresupuestosBudgetIdEditarRoute
@@ -198,9 +213,11 @@ export interface FileRoutesByTo {
   '/propuesta/$budgetId': typeof PropuestaBudgetIdRoute
   '/': typeof AppIndexRoute
   '/clientes/$clientId': typeof AppClientesClientIdRoute
+  '/incidencias/$incidentId': typeof AppIncidenciasIncidentIdRoute
   '/obras/$workId': typeof AppObrasWorkIdRoute
   '/presupuestos/nuevo': typeof AppPresupuestosNuevoRoute
   '/clientes': typeof AppClientesIndexRoute
+  '/incidencias': typeof AppIncidenciasIndexRoute
   '/obras': typeof AppObrasIndexRoute
   '/presupuestos': typeof AppPresupuestosIndexRoute
   '/presupuestos/$budgetId/editar': typeof AppPresupuestosBudgetIdEditarRoute
@@ -225,9 +242,11 @@ export interface FileRoutesById {
   '/propuesta/$budgetId': typeof PropuestaBudgetIdRoute
   '/_app/': typeof AppIndexRoute
   '/_app/clientes/$clientId': typeof AppClientesClientIdRoute
+  '/_app/incidencias/$incidentId': typeof AppIncidenciasIncidentIdRoute
   '/_app/obras/$workId': typeof AppObrasWorkIdRoute
   '/_app/presupuestos/nuevo': typeof AppPresupuestosNuevoRoute
   '/_app/clientes/': typeof AppClientesIndexRoute
+  '/_app/incidencias/': typeof AppIncidenciasIndexRoute
   '/_app/obras/': typeof AppObrasIndexRoute
   '/_app/presupuestos/': typeof AppPresupuestosIndexRoute
   '/_app/presupuestos/$budgetId/editar': typeof AppPresupuestosBudgetIdEditarRoute
@@ -252,9 +271,11 @@ export interface FileRouteTypes {
     | '/informe/$workId'
     | '/propuesta/$budgetId'
     | '/clientes/$clientId'
+    | '/incidencias/$incidentId'
     | '/obras/$workId'
     | '/presupuestos/nuevo'
     | '/clientes/'
+    | '/incidencias/'
     | '/obras/'
     | '/presupuestos/'
     | '/presupuestos/$budgetId/editar'
@@ -277,9 +298,11 @@ export interface FileRouteTypes {
     | '/propuesta/$budgetId'
     | '/'
     | '/clientes/$clientId'
+    | '/incidencias/$incidentId'
     | '/obras/$workId'
     | '/presupuestos/nuevo'
     | '/clientes'
+    | '/incidencias'
     | '/obras'
     | '/presupuestos'
     | '/presupuestos/$budgetId/editar'
@@ -303,9 +326,11 @@ export interface FileRouteTypes {
     | '/propuesta/$budgetId'
     | '/_app/'
     | '/_app/clientes/$clientId'
+    | '/_app/incidencias/$incidentId'
     | '/_app/obras/$workId'
     | '/_app/presupuestos/nuevo'
     | '/_app/clientes/'
+    | '/_app/incidencias/'
     | '/_app/obras/'
     | '/_app/presupuestos/'
     | '/_app/presupuestos/$budgetId/editar'
@@ -447,6 +472,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppClientesClientIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/incidencias/': {
+      id: '/_app/incidencias/'
+      path: '/incidencias'
+      fullPath: '/incidencias/'
+      preLoaderRoute: typeof AppIncidenciasIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/incidencias/$incidentId': {
+      id: '/_app/incidencias/$incidentId'
+      path: '/incidencias/$incidentId'
+      fullPath: '/incidencias/$incidentId'
+      preLoaderRoute: typeof AppIncidenciasIncidentIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/obras/': {
       id: '/_app/obras/'
       path: '/obras'
@@ -506,9 +545,11 @@ interface AppRouteChildren {
   AppPlanificacionRoute: typeof AppPlanificacionRoute
   AppIndexRoute: typeof AppIndexRoute
   AppClientesClientIdRoute: typeof AppClientesClientIdRoute
+  AppIncidenciasIncidentIdRoute: typeof AppIncidenciasIncidentIdRoute
   AppObrasWorkIdRoute: typeof AppObrasWorkIdRoute
   AppPresupuestosNuevoRoute: typeof AppPresupuestosNuevoRoute
   AppClientesIndexRoute: typeof AppClientesIndexRoute
+  AppIncidenciasIndexRoute: typeof AppIncidenciasIndexRoute
   AppObrasIndexRoute: typeof AppObrasIndexRoute
   AppPresupuestosIndexRoute: typeof AppPresupuestosIndexRoute
   AppPresupuestosBudgetIdEditarRoute: typeof AppPresupuestosBudgetIdEditarRoute
@@ -529,9 +570,11 @@ const AppRouteChildren: AppRouteChildren = {
   AppPlanificacionRoute: AppPlanificacionRoute,
   AppIndexRoute: AppIndexRoute,
   AppClientesClientIdRoute: AppClientesClientIdRoute,
+  AppIncidenciasIncidentIdRoute: AppIncidenciasIncidentIdRoute,
   AppObrasWorkIdRoute: AppObrasWorkIdRoute,
   AppPresupuestosNuevoRoute: AppPresupuestosNuevoRoute,
   AppClientesIndexRoute: AppClientesIndexRoute,
+  AppIncidenciasIndexRoute: AppIncidenciasIndexRoute,
   AppObrasIndexRoute: AppObrasIndexRoute,
   AppPresupuestosIndexRoute: AppPresupuestosIndexRoute,
   AppPresupuestosBudgetIdEditarRoute: AppPresupuestosBudgetIdEditarRoute,

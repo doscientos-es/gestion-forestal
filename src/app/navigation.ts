@@ -21,6 +21,7 @@ import {
 import {
   canAccess,
   overdueInvoices,
+  visibleIncidents,
   type Area,
   type Person,
   type Workspace,
@@ -52,7 +53,14 @@ export type Destination = {
 }
 
 export const destinations: Destination[] = [
-  { area: 'incidencias', to: '/incidencias', label: 'Incidencias', short: 'Incidencias', icon: ClipboardList, group: 'Operativa' },
+  {
+    area: 'incidencias',
+    to: '/incidencias',
+    label: 'Incidencias',
+    short: 'Incidencias',
+    icon: ClipboardList,
+    group: 'Operativa',
+  },
   {
     area: 'inicio',
     to: '/',
@@ -175,8 +183,9 @@ export function navigationCounts(
   const avisos = workspace.notifications.filter(
     (item) => item.personId === user.id && !item.read,
   ).length
-  const incidencias = workspace.incidents.filter((item) => item.status !== 'cerrada' &&
-    (user.role === 'admin' || item.createdBy === user.id || item.assignedTo === user.id)).length
+  const incidencias = visibleIncidents(workspace, user).filter(
+    (item) => item.status !== 'cerrada',
+  ).length
   if (user.role === 'admin') {
     return {
       presupuestos: workspace.budgets.filter(

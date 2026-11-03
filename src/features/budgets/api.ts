@@ -51,10 +51,16 @@ export type BudgetsApi = {
 
 export function createBudgetsApi(deps: ApiDeps): BudgetsApi {
   return {
-    saveFromIncident: (incidentId, input) => mutate(deps, (workspace, context) => {
-      const { workspace: next, budget } = budgetFromIncident(workspace, incidentId, input, context)
-      return { workspace: next, result: budget }
-    }),
+    saveFromIncident: (incidentId, input) =>
+      mutate(deps, (workspace, context) => {
+        const { workspace: next, budget } = budgetFromIncident(
+          workspace,
+          incidentId,
+          input,
+          context,
+        )
+        return { workspace: next, result: budget }
+      }),
     save: (input, budgetId) =>
       mutate(deps, (workspace, context) => {
         const { workspace: next, budget } = saveBudget(workspace, input, context, budgetId)

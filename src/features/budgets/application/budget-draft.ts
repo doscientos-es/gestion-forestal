@@ -86,9 +86,18 @@ export function emptyDraft(today: string, workspace?: Workspace): BudgetInput {
 
 export function incidentBudgetDraft(incident: ServiceIncident, today: string): BudgetInput {
   return {
-    title: incident.title, clientId: incident.clientId, zoneId: '', date: today,
+    title: incident.title,
+    clientId: incident.clientId,
+    zoneId: '',
+    date: today,
     params: DEFAULT_PARAMS,
-    notes: [`Origen: ${incident.code}`, incident.description, incident.location ? `Ubicación: ${incident.location}` : ''].filter(Boolean).join('\n'),
+    notes: [
+      `Origen: ${incident.code}`,
+      incident.description,
+      incident.location ? `Ubicación: ${incident.location}` : '',
+    ]
+      .filter(Boolean)
+      .join('\n'),
     lines: [{ ...newFreeLine(), description: incident.title }],
   }
 }

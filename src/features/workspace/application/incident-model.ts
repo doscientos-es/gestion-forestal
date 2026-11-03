@@ -37,9 +37,17 @@ export type ServiceIncident = {
   entries: IncidentEntry[]
 }
 
-export type ServiceIncidentInput = Pick<ServiceIncident,
-  'clientId' | 'title' | 'description' | 'location' | 'contactName' | 'contactPhone' |
-  'preferredTime' | 'priority' | 'assignedTo'
+export type ServiceIncidentInput = Pick<
+  ServiceIncident,
+  | 'clientId'
+  | 'title'
+  | 'description'
+  | 'location'
+  | 'contactName'
+  | 'contactPhone'
+  | 'preferredTime'
+  | 'priority'
+  | 'assignedTo'
 >
 
 export type IncidentVisitInput = Pick<IncidentEntry, 'date' | 'text' | 'minutes' | 'material'>

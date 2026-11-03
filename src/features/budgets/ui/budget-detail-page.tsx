@@ -70,9 +70,18 @@ export function BudgetDetailPage({ budget }: { budget: Budget }) {
 
   return (
     <>
-      {budget.incidentId ? <p className="text-muted-foreground mb-4 text-sm">Origen:{' '}
-        <Link to="/incidencias/$incidentId" params={{ incidentId: budget.incidentId }} className="font-medium underline">Ver incidencia del cliente</Link>
-      </p> : null}
+      {budget.incidentId ? (
+        <p className="text-muted-foreground mb-4 text-sm">
+          Origen:{' '}
+          <Link
+            to="/incidencias/$incidentId"
+            params={{ incidentId: budget.incidentId }}
+            className="font-medium underline"
+          >
+            Ver incidencia del cliente
+          </Link>
+        </p>
+      ) : null}
       <PageTop
         back={{ to: '/presupuestos', label: 'Volver a presupuestos' }}
         title={budget.title}

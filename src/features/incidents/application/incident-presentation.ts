@@ -8,5 +8,7 @@ export const incidentStatus: Record<ServiceIncidentStatus, { label: string; tone
 }
 
 export const incidentPriority: Record<ServiceIncidentPriority, string> = {
-  normal: 'Normal', alta: 'Alta', urgente: 'Urgente',
+  normal: 'Normal',
+  alta: 'Alta',
+  urgente: 'Urgente',
 }

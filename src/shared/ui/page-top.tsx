@@ -10,7 +10,10 @@ import { useNavigate } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-type BackTarget = { to: '/presupuestos' | '/obras' | '/planificacion' | '/clientes'; label: string }
+type BackTarget = {
+  to: '/presupuestos' | '/obras' | '/planificacion' | '/clientes' | '/incidencias'
+  label: string
+}
 
 /** Sticky page header: title, optional back button, secondary actions and the primary action. */
 export function PageTop({
