@@ -1,6 +1,7 @@
 import {
   acceptBudget,
   apiDeps,
+  budgetFromIncident,
   createClient,
   createZone,
   importBudgets,
@@ -29,6 +30,7 @@ import { DEFAULT_PARAMS } from './application/budget-draft'
 
 export type BudgetsApi = {
   save(input: BudgetInput, budgetId?: string): Promise<Budget>
+  saveFromIncident(incidentId: string, input: BudgetInput): Promise<Budget>
   /** New clients and zones are created from the budget form, where they are needed. */
   createClient(input: ClientInput): Promise<Client>
   createZone(name: string): Promise<Zone>
@@ -49,6 +51,10 @@ export type BudgetsApi = {
 
 export function createBudgetsApi(deps: ApiDeps): BudgetsApi {
   return {
+    saveFromIncident: (incidentId, input) => mutate(deps, (workspace, context) => {
+      const { workspace: next, budget } = budgetFromIncident(workspace, incidentId, input, context)
+      return { workspace: next, result: budget }
+    }),
     save: (input, budgetId) =>
       mutate(deps, (workspace, context) => {
         const { workspace: next, budget } = saveBudget(workspace, input, context, budgetId)

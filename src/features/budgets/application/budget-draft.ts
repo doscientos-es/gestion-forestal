@@ -6,6 +6,7 @@ import {
   type BudgetParams,
   type FreeLine,
   type PlantingLine,
+  type ServiceIncident,
   type TreatmentLine,
   type Workspace,
 } from '@/features/workspace'
@@ -80,6 +81,15 @@ export function emptyDraft(today: string, workspace?: Workspace): BudgetInput {
     notes: '',
     params: DEFAULT_PARAMS,
     lines: [newPlantingLine(workspace)],
+  }
+}
+
+export function incidentBudgetDraft(incident: ServiceIncident, today: string): BudgetInput {
+  return {
+    title: incident.title, clientId: incident.clientId, zoneId: '', date: today,
+    params: DEFAULT_PARAMS,
+    notes: [`Origen: ${incident.code}`, incident.description, incident.location ? `Ubicación: ${incident.location}` : ''].filter(Boolean).join('\n'),
+    lines: [{ ...newFreeLine(), description: incident.title }],
   }
 }
 
