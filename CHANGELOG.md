@@ -25,4 +25,3 @@
 ### Correcciones
 
 - Correct toast function parameters for better notification handling
-
