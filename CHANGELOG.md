@@ -6,6 +6,7 @@
 
 ### Nuevas funciones
 
+- Enhance client billing details and validation logic
 - Add support for free-form budget lines with pricing
 - Update changelog with new features and tests
 - Add crew checklist component tests for attendance and ratings

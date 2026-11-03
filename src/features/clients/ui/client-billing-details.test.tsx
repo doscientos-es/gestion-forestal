@@ -30,7 +30,38 @@ describe('client billing UI', () => {
     expect(html).toContain('type="tel"')
     expect(html).toMatch(/autocomplete="billing postal-code"/i)
     expect(html).toContain('value="Elena Robles García"')
+    expect(html).toContain('placeholder="12345678Z"')
+    expect(html).toContain('placeholder="48001"')
+    expect(html).toContain('placeholder="administracion@cliente.es"')
+    expect(html).toContain('aria-describedby=')
   })
+
+  it('suggests the display name for billing and adapts the tax example for companies', () => {
+    const html = renderToStaticMarkup(
+      <ClientFormFields
+        value={{ ...client, kind: 'empresa', name: 'Bosques del Norte', legalName: '' }}
+        onChange={vi.fn()}
+      />,
+    )
+    expect(html).toContain('placeholder="Bosques del Norte"')
+    expect(html).toContain('placeholder="B12345674"')
+    expect(html).toMatch(/autocomplete="billing organization"/i)
+    expect(html).toContain('Déjalo vacío si coincide con el nombre del cliente.')
+  })
+
+  it.each(['', 'ES9121000418450200051332'])(
+    'keeps banking optional and reveals saved accounts: %s',
+    (iban) => {
+      const html = renderToStaticMarkup(
+        <ClientFormFields value={{ ...client, iban }} onChange={vi.fn()} />,
+      )
+      const disclosure = html.match(/<details[^>]*>/)?.[0]
+      expect(disclosure).toBeDefined()
+      expect(disclosure?.includes('open=""')).toBe(Boolean(iban))
+      expect(html).toContain('Cuenta bancaria')
+      expect(html).toContain('Opcional')
+    },
+  )
 
   it.each(['proposal', 'invoice'])(
     'prints the legal recipient and full billing address on the %s',

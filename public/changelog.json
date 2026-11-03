@@ -8,6 +8,7 @@
         {
           "title": "Nuevas funciones",
           "items": [
+            "Enhance client billing details and validation logic",
             "Add support for free-form budget lines with pricing",
             "Update changelog with new features and tests",
             "Add crew checklist component tests for attendance and ratings",
@@ -37,6 +38,13 @@
         }
       ],
       "changes": [
+        {
+          "sha": "1c83c510973ea9f5e26e1159c6ebc1c3f3193b25",
+          "type": "feat",
+          "scope": "clients",
+          "breaking": false,
+          "description": "Enhance client billing details and validation logic"
+        },
         {
           "sha": "f28217a718b82da075c61d7ec7e412221cea3cfb",
           "type": "feat",
