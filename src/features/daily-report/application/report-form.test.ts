@@ -13,7 +13,9 @@ if (!foreman?.crewId || !work) throw new Error('Missing fixture foreman or work'
 const workspace = {
   ...seed,
   reports: [],
-  assignments: [{ id: 'assignment', workId: work.id, crewId: foreman.crewId, start: today, end: today }],
+  assignments: [
+    { id: 'assignment', workId: work.id, crewId: foreman.crewId, start: today, end: today },
+  ],
 }
 const context = reportContext(workspace, foreman, today)
 if (!context) throw new Error('Missing fixture assignment')

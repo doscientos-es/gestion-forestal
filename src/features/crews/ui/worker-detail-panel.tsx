@@ -16,8 +16,8 @@ export function WorkerDetailPanel({
 }) {
   const delta =
     row.teamYieldDeviation !== null &&
-      previous?.teamYieldDeviation !== null &&
-      previous?.teamYieldDeviation !== undefined
+    previous?.teamYieldDeviation !== null &&
+    previous?.teamYieldDeviation !== undefined
       ? row.teamYieldDeviation - previous.teamYieldDeviation
       : null
   return (

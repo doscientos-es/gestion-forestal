@@ -8,6 +8,8 @@
         {
           "title": "Nuevas funciones",
           "items": [
+            "Add crew checklist component tests for attendance and ratings",
+            "Add daily worker ratings and improve report form",
             "Add work profitability analysis and client comparison features",
             "Add ShareLinkCard component for document sharing",
             "Add user management features including profile editing",
@@ -33,6 +35,20 @@
         }
       ],
       "changes": [
+        {
+          "sha": "c0823fe16eed591cc127a43cc62de040a49cd240",
+          "type": "feat",
+          "scope": "test",
+          "breaking": false,
+          "description": "Add crew checklist component tests for attendance and ratings"
+        },
+        {
+          "sha": "4788006ffc9267995bbea9d60950326be76e8aeb",
+          "type": "feat",
+          "scope": "daily-report",
+          "breaking": false,
+          "description": "Add daily worker ratings and improve report form"
+        },
         {
           "sha": "287dfd036f135ea026a248b29c6bc530083f47fc",
           "type": "feat",

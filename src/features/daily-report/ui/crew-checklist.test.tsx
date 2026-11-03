@@ -5,7 +5,9 @@ import { buildSeed } from '@/features/workspace/infrastructure/build-seed'
 
 import { CrewChecklist } from './crew-checklist'
 
-const people = buildSeed('2026-11-04').people.filter((person) => person.role !== 'admin').slice(0, 2)
+const people = buildSeed('2026-11-04')
+  .people.filter((person) => person.role !== 'admin')
+  .slice(0, 2)
 const [first, second] = people
 if (!first || !second) throw new Error('Missing fixture people')
 

@@ -6,6 +6,8 @@
 
 ### Nuevas funciones
 
+- Add crew checklist component tests for attendance and ratings
+- Add daily worker ratings and improve report form
 - Add work profitability analysis and client comparison features
 - Add ShareLinkCard component for document sharing
 - Add user management features including profile editing
@@ -25,3 +27,4 @@
 ### Correcciones
 
 - Correct toast function parameters for better notification handling
+
