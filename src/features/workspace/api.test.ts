@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { createBudgetsApi } from '@/features/budgets/api'
+import {
+  draftFromBudget,
+  newFreeLine,
+  updateLine,
+} from '@/features/budgets/application/budget-draft'
 import { createDailyReportApi } from '@/features/daily-report/api'
 import { createInvoicesApi } from '@/features/invoices/api'
 import { createPlanningApi } from '@/features/planning/api'
@@ -9,6 +14,7 @@ import { DomainError } from '@/shared/lib/errors'
 import { createMemoryStorage } from '@/shared/lib/local-storage'
 
 import { createWorkspaceApi } from './api'
+import { invoiceTotals } from './application/invoice-draft'
 import type { ApiDeps } from './application/ports'
 import { createLocalBackend } from './infrastructure/local-backend'
 
@@ -81,6 +87,46 @@ describe('api layer over the local backend', () => {
     expect(after.assignments).toHaveLength(before.assignments.length + 1)
     expect(after.works.find((work) => work.id === pending.id)?.status).toBe('planificada')
     expect(after.reports).toEqual(before.reports)
+  })
+
+  it('persists, reloads and edits free-only budgets, then invoices the exact accepted price', async () => {
+    const source = (await api.workspace.getWorkspace()).budgets[0]
+    if (!source) throw new Error('Missing fixture budget')
+    const free = {
+      ...newFreeLine(),
+      description: 'Alquiler',
+      quantity: 2.5,
+      unit: 'h',
+      unitPrice: 1234,
+      unitCost: 450,
+    }
+    const input = { ...draftFromBudget(source), title: 'Servicio a medida', lines: [free] }
+    const saved = await api.budgets.save(input)
+    const reloaded = setup(api.storage)
+    await reloaded.workspace.ensureReady()
+    expect(
+      (await reloaded.workspace.getWorkspace()).budgets.find((item) => item.id === saved.id)?.lines,
+    ).toEqual([free])
+    const changed = updateLine(input.lines, free.id, { quantity: 3.5 })
+    await api.budgets.save({ ...input, lines: changed }, saved.id)
+    expect(
+      (await reloaded.workspace.getWorkspace()).budgets.find((item) => item.id === saved.id)?.lines,
+    ).toEqual([{ ...free, quantity: 3.5 }])
+    const accepted = await api.budgets.accept(saved.id)
+    expect(accepted.planned).toMatchObject({
+      price: 4319,
+      otherCost: 1575,
+      totalCost: 1575,
+      crewDays: 0,
+    })
+    await api.works.finish(accepted.id)
+    const invoice = await api.works.createInvoiceDraft(accepted.id)
+    expect(invoiceTotals(invoice)).toEqual({ base: 4319, vat: 907, total: 5226 })
+    await expect(api.works.createInvoiceDraft(accepted.id)).rejects.toBeInstanceOf(DomainError)
+    expect(
+      (await reloaded.workspace.getWorkspace()).works.find((item) => item.id === accepted.id)
+        ?.planned,
+    ).toEqual(accepted.planned)
   })
 
   it('persists individual scores across reloads and edits without duplicating the report', async () => {

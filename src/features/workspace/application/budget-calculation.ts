@@ -6,10 +6,14 @@ export type LineEstimate = {
   hectares: number
   workerDays: number
   materialCost: Cents
+  otherCost: Cents
+  fixedPrice: Cents
 }
 
 export type BudgetEstimate = PlannedFigures & {
   lines: LineEstimate[]
+  otherCost: Cents
+  fixedPrice: Cents
   margin: Cents
   marginRate: number
   pricePerHectare: Cents
@@ -22,6 +26,17 @@ function speciesCost(speciesId: string, species: Species[]) {
 }
 
 export function estimateLine(line: BudgetLine, species: Species[]): LineEstimate {
+  if (line.kind === 'libre') {
+    return {
+      lineId: line.id,
+      plants: 0,
+      hectares: 0,
+      workerDays: 0,
+      materialCost: 0,
+      otherCost: Math.round(line.quantity * line.unitCost),
+      fixedPrice: Math.round(line.quantity * line.unitPrice),
+    }
+  }
   if (line.kind === 'plantacion') {
     const plants = Math.round(line.hectares * line.density)
     return {
@@ -30,6 +45,8 @@ export function estimateLine(line: BudgetLine, species: Species[]): LineEstimate
       hectares: line.hectares,
       workerDays: line.yieldPerDay > 0 ? plants / line.yieldPerDay : 0,
       materialCost: plants * speciesCost(line.speciesId, species),
+      otherCost: 0,
+      fixedPrice: 0,
     }
   }
   return {
@@ -38,12 +55,15 @@ export function estimateLine(line: BudgetLine, species: Species[]): LineEstimate
     hectares: line.hectares,
     workerDays: line.hectaresPerDay > 0 ? line.hectares / line.hectaresPerDay : 0,
     materialCost: 0,
+    otherCost: 0,
+    fixedPrice: 0,
   }
 }
 
 /**
  * Budget model used by the forestry company: plants ÷ yield gives worker days,
- * crews always work complete days, and price applies the target margin over cost.
+ * crews always work complete days, and price applies the target margin over forestry cost.
+ * Free-form lines add their explicit sale price and internal cost without extra crew days.
  */
 export function estimateBudget(
   lines: BudgetLine[],
@@ -60,10 +80,16 @@ export function estimateBudget(
   const laborCost = workerDays * params.dailyCost
   const materialCost = estimates.reduce((sum, item) => sum + item.materialCost, 0)
   const travelCost = crewDays * params.travelPerCrewDay
-  const totalCost = laborCost + materialCost + travelCost
+  const otherCost = estimates.reduce((sum, item) => sum + item.otherCost, 0)
+  const fixedPrice = estimates.reduce((sum, item) => sum + item.fixedPrice, 0)
+  const operationalCost = laborCost + materialCost + travelCost
+  const totalCost = operationalCost + otherCost
   const margin = Math.min(Math.max(params.targetMargin, 0), 0.6)
   const price =
-    totalCost > 0 ? Math.ceil(totalCost / (1 - margin) / PRICE_ROUNDING) * PRICE_ROUNDING : 0
+    fixedPrice +
+    (operationalCost > 0
+      ? Math.ceil(operationalCost / (1 - margin) / PRICE_ROUNDING) * PRICE_ROUNDING
+      : 0)
 
   return {
     lines: estimates,
@@ -75,6 +101,8 @@ export function estimateBudget(
     laborCost,
     materialCost,
     travelCost,
+    otherCost,
+    fixedPrice,
     totalCost,
     price,
     dailyCost: params.dailyCost,
@@ -100,6 +128,7 @@ export function toPlannedFigures(estimate: BudgetEstimate): PlannedFigures {
     laborCost: estimate.laborCost,
     materialCost: estimate.materialCost,
     travelCost: estimate.travelCost,
+    otherCost: estimate.otherCost,
     totalCost: estimate.totalCost,
     price: estimate.price,
     dailyCost: estimate.dailyCost,
@@ -121,15 +150,53 @@ export function validateBudget(
   if (draft.lines.length === 0)
     issues.push({ field: 'lines', message: 'Añade al menos una partida.' })
   draft.lines.forEach((line, index) => {
-    if (line.hectares <= 0)
+    if (line.kind === 'libre') {
+      if (!line.description.trim() || !line.unit.trim())
+        issues.push({
+          field: `lines.${index}`,
+          message: `Partida ${index + 1}: indica concepto y unidad.`,
+        })
+      if (!Number.isFinite(line.quantity) || line.quantity <= 0)
+        issues.push({ field: `lines.${index}`, message: `Partida ${index + 1}: cantidad > 0.` })
+      if (
+        ![line.unitPrice, line.unitCost].every(
+          (value) => Number.isSafeInteger(value) && value >= 0,
+        ) ||
+        ![line.unitPrice, line.unitCost].every((value) =>
+          Number.isSafeInteger(Math.round(value * line.quantity)),
+        )
+      )
+        issues.push({
+          field: `lines.${index}`,
+          message: `Partida ${index + 1}: precio y coste deben ser importes válidos, no negativos.`,
+        })
+      return
+    }
+    if (!Number.isFinite(line.hectares) || line.hectares <= 0)
       issues.push({ field: `lines.${index}`, message: `Partida ${index + 1}: superficie > 0 ha.` })
-    if (line.kind === 'plantacion' && (line.density <= 0 || line.yieldPerDay <= 0))
+    if (
+      line.kind === 'plantacion' &&
+      ![line.density, line.yieldPerDay].every((value) => Number.isFinite(value) && value > 0)
+    )
       issues.push({
         field: `lines.${index}`,
         message: `Partida ${index + 1}: densidad y rendimiento deben ser > 0.`,
       })
+    if (
+      line.kind === 'tratamiento' &&
+      (!line.description.trim() ||
+        !Number.isFinite(line.hectaresPerDay) ||
+        line.hectaresPerDay <= 0)
+    )
+      issues.push({
+        field: `lines.${index}`,
+        message: `Partida ${index + 1}: describe el tratamiento e indica un rendimiento > 0.`,
+      })
   })
-  if (draft.params.dailyCost <= 0)
+  if (
+    draft.lines.some((line) => line.kind !== 'libre') &&
+    (!Number.isFinite(draft.params.dailyCost) || draft.params.dailyCost <= 0)
+  )
     issues.push({ field: 'dailyCost', message: 'El coste de peonada debe ser > 0.' })
   return issues
 }

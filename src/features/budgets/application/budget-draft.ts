@@ -4,6 +4,9 @@ import {
   type BudgetInput,
   type BudgetLine,
   type BudgetParams,
+  type FreeLine,
+  type PlantingLine,
+  type TreatmentLine,
   type Workspace,
 } from '@/features/workspace'
 
@@ -36,7 +39,7 @@ export function plantingDefaults(workspace: Workspace | undefined, speciesId: st
   return { density: typical.density, yieldPerDay: suggestion.value }
 }
 
-export function newPlantingLine(workspace?: Workspace, speciesId = 's-radiata'): BudgetLine {
+export function newPlantingLine(workspace?: Workspace, speciesId = 's-radiata'): PlantingLine {
   return {
     id: crypto.randomUUID(),
     kind: 'plantacion',
@@ -46,13 +49,25 @@ export function newPlantingLine(workspace?: Workspace, speciesId = 's-radiata'):
   }
 }
 
-export function newTreatmentLine(): BudgetLine {
+export function newTreatmentLine(): TreatmentLine {
   return {
     id: crypto.randomUUID(),
     kind: 'tratamiento',
     description: 'Desbroce previo',
     hectares: 5,
     hectaresPerDay: 0.5,
+  }
+}
+
+export function newFreeLine(): FreeLine {
+  return {
+    id: crypto.randomUUID(),
+    kind: 'libre',
+    description: '',
+    quantity: 1,
+    unit: 'ud',
+    unitPrice: 0,
+    unitCost: 0,
   }
 }
 

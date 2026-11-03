@@ -56,7 +56,8 @@ export function BudgetDocument({ budget, workspace }: { budget: Budget; workspac
           <p className="text-xs text-zinc-500">Trabajo</p>
           <p className="font-semibold">{budget.title}</p>
           <p className="text-zinc-600">
-            {find.zone(budget.zoneId)?.name} · {crewDays} días de cuadrilla
+            {find.zone(budget.zoneId)?.name}
+            {crewDays > 0 ? ` · ${crewDays} días de cuadrilla` : ''}
           </p>
         </div>
       </section>

@@ -17,7 +17,12 @@ import { PageTop } from '@/shared/ui/page-top'
 import { Panel, PanelHeader } from '@/shared/ui/surface'
 
 import { budgetsApi } from '../api'
-import { newPlantingLine, newTreatmentLine, updateLine } from '../application/budget-draft'
+import {
+  newFreeLine,
+  newPlantingLine,
+  newTreatmentLine,
+  updateLine,
+} from '../application/budget-draft'
 import { BudgetLineEditor } from './budget-line-editor'
 import { BudgetPreview } from './budget-preview'
 import { NewClientShortcut, NewZoneShortcut } from './quick-create-dialogs'
@@ -43,7 +48,7 @@ export function BudgetEditorPage({
   const save = useCommand((input: BudgetInput) => budgetsApi.save(input, budgetId), {
     success: (budget) => ({
       title: budgetId ? 'Presupuesto actualizado' : 'Presupuesto guardado',
-      description: `${budget.title} · ${formatMoney(estimate.price)} + IVA`,
+      description: `${budget.title} · ${formatMoney(estimate.price, true)} + IVA`,
     }),
     onSuccess: (budget) =>
       void navigate({ to: '/presupuestos/$budgetId', params: { budgetId: budget.id } }),
@@ -121,30 +126,38 @@ export function BudgetEditorPage({
             <PanelHeader
               id="budget-lines"
               title="2 · ¿Qué trabajo hay que hacer?"
-              description="Añade una partida por cada plantación o tratamiento. Se calcula sola."
-              action={
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onPress={() => patch({ lines: [...draft.lines, newTreatmentLine()] })}
-                  >
-                    <Tractor aria-hidden="true" className="size-4" /> Tratamiento
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onPress={() => patch({ lines: [...draft.lines, newPlantingLine(workspace)] })}
-                  >
-                    <Plus aria-hidden="true" className="size-4" /> Plantación
-                  </Button>
-                </div>
-              }
+              description="Plantaciones, tratamientos y conceptos libres con cantidad y precio."
             />
+            <fieldset
+              className="border-border flex min-w-0 flex-wrap gap-2 border-b px-4 py-2"
+              aria-label="Añadir partidas"
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={() => patch({ lines: [...draft.lines, newFreeLine()] })}
+              >
+                <Plus aria-hidden="true" className="size-4" /> Partida libre
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={() => patch({ lines: [...draft.lines, newTreatmentLine()] })}
+              >
+                <Tractor aria-hidden="true" className="size-4" /> Tratamiento
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onPress={() => patch({ lines: [...draft.lines, newPlantingLine(workspace)] })}
+              >
+                <Plus aria-hidden="true" className="size-4" /> Plantación
+              </Button>
+            </fieldset>
             {draft.lines.length === 0 ? (
               <p className="text-muted-foreground flex items-center gap-2 px-5 py-8 text-sm">
-                <Sprout aria-hidden="true" className="size-4" /> Añade una plantación o un
-                tratamiento para calcular.
+                <Sprout aria-hidden="true" className="size-4" /> Añade una plantación, un
+                tratamiento o una partida libre.
               </p>
             ) : (
               <ul className="divide-border divide-y">
@@ -164,40 +177,42 @@ export function BudgetEditorPage({
               </ul>
             )}
           </Panel>
-          <Panel aria-labelledby="budget-params">
-            <PanelHeader
-              id="budget-params"
-              title="3 · ¿Cuánto cuesta y cuánto quieres ganar?"
-              description="Ya vienen con los valores habituales de la empresa; cámbialos si esta obra es distinta."
-            />
-            <div className="grid gap-3 p-5 sm:grid-cols-2">
-              <NumberField
-                label="Personas en la cuadrilla"
-                suffix="pers."
-                min={1}
-                value={draft.params.crewSize}
-                onChange={(crewSize) => setParam({ crewSize })}
+          {draft.lines.some((line) => line.kind !== 'libre') ? (
+            <Panel aria-labelledby="budget-params">
+              <PanelHeader
+                id="budget-params"
+                title="3 · Costes y margen del trabajo forestal"
+                description="Se aplican a plantaciones y tratamientos. Las partidas libres mantienen su precio unitario."
               />
-              <NumberField
-                label="Coste de una peonada (un día de una persona)"
-                suffix="€"
-                value={draft.params.dailyCost / 100}
-                onChange={(value) => setParam({ dailyCost: Math.round(value * 100) })}
-              />
-              <NumberField
-                label="Desplazamiento de la cuadrilla, por día"
-                suffix="€"
-                value={draft.params.travelPerCrewDay / 100}
-                onChange={(value) => setParam({ travelPerCrewDay: Math.round(value * 100) })}
-              />
-              <NumberField
-                label="Margen que quieres ganar (máx. 60)"
-                suffix="%"
-                value={Math.round(draft.params.targetMargin * 100)}
-                onChange={(value) => setParam({ targetMargin: Math.min(value, 60) / 100 })}
-              />
-            </div>
-          </Panel>
+              <div className="grid gap-3 p-5 sm:grid-cols-2">
+                <NumberField
+                  label="Personas en la cuadrilla"
+                  suffix="pers."
+                  min={1}
+                  value={draft.params.crewSize}
+                  onChange={(crewSize) => setParam({ crewSize })}
+                />
+                <NumberField
+                  label="Coste de una peonada (un día de una persona)"
+                  suffix="€"
+                  value={draft.params.dailyCost / 100}
+                  onChange={(value) => setParam({ dailyCost: Math.round(value * 100) })}
+                />
+                <NumberField
+                  label="Desplazamiento de la cuadrilla, por día"
+                  suffix="€"
+                  value={draft.params.travelPerCrewDay / 100}
+                  onChange={(value) => setParam({ travelPerCrewDay: Math.round(value * 100) })}
+                />
+                <NumberField
+                  label="Margen que quieres ganar (máx. 60)"
+                  suffix="%"
+                  value={Math.round(draft.params.targetMargin * 100)}
+                  onChange={(value) => setParam({ targetMargin: Math.min(value, 60) / 100 })}
+                />
+              </div>
+            </Panel>
+          ) : null}
         </div>
         <BudgetPreview estimate={estimate} />
       </div>
@@ -206,7 +221,7 @@ export function BudgetEditorPage({
         <div className="min-w-0 flex-1">
           <p className="text-muted-foreground text-xs">Precio de venta + IVA</p>
           <p className="text-lg leading-tight font-semibold tabular-nums">
-            {formatMoney(estimate.price)}
+            {formatMoney(estimate.price, true)}
           </p>
         </div>
         <Button onPress={submit} isDisabled={save.isPending}>

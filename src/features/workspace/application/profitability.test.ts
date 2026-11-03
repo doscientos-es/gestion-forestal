@@ -123,6 +123,26 @@ describe('operational work profitability', () => {
     expect(result.remainingWorkerDays).toBe(0)
   })
 
+  it.each(['en_curso', 'terminada'] as const)(
+    'retains free-form budget costs in %s forecasts without inventing incurred costs',
+    (status) => {
+      const current: Work = {
+        ...work,
+        status,
+        planned: { ...work.planned, otherCost: 12_345, totalCost: work.planned.totalCost + 12_345 },
+      }
+      const result = workProfitability(workspace({ works: [current] }), current)
+      const baseline = workProfitability(workspace(), { ...work, status })
+      if (baseline.projectedCost === null || baseline.projectedMargin === null)
+        throw new Error('Missing fixture forecast')
+      expect(result.performance.totalCost).toBe(baseline.performance.totalCost)
+      expect(result.budgetAtProgress).toBe(baseline.budgetAtProgress)
+      expect(result.costDeviation).toBe(baseline.costDeviation)
+      expect(result.projectedCost).toBe(baseline.projectedCost + 12_345)
+      expect(result.projectedMargin).toBe(baseline.projectedMargin - 12_345)
+    },
+  )
+
   it('distinguishes calendar activity from simultaneous crew days and caps earned value', () => {
     const result = workProfitability(
       workspace({

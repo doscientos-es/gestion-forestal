@@ -29,7 +29,10 @@ export function workProfitability(workspace: Workspace, work: Work) {
     : finished
       ? performance.crewDays
       : performance.crewDays / progress
-  const budgetAtProgress = Math.round(work.planned.totalCost * progress)
+  // Daily reports do not measure free-form items: compare like-for-like forestry costs only.
+  const budgetAtProgress = Math.round(
+    (work.planned.totalCost - (work.planned.otherCost ?? 0)) * progress,
+  )
   const expenses = workspace.expenses.filter((expense) => expense.workId === work.id)
   const expenseTotal = (status: 'aprobado' | 'pendiente') =>
     expenses

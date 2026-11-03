@@ -18,7 +18,7 @@ export type WorkPerformance = {
   actualYield: number
   /** actual ÷ planned − 1. Positive = faster than budgeted. */
   yieldDeviation: number
-  /** Expected cost at completion, extrapolating labour from the actual yield. */
+  /** Expected cost at completion; free-form costs remain budget estimates, not actuals. */
   projectedCost: Cents
   projectedMargin: Cents
   projectedMarginRate: number
@@ -68,13 +68,14 @@ export function calculatePerformance(
 
   const finished = work.status === 'terminada' || work.status === 'facturada'
   let projectedCost = planned.totalCost
-  if (finished) projectedCost = totalCost
+  if (finished) projectedCost = totalCost + (planned.otherCost ?? 0)
   else if (progress > 0) {
     const remaining = Math.max(0, 1 - progress)
     projectedCost =
       totalCost +
       Math.round(((laborCost + travelCost) / progress) * remaining) +
-      Math.round(planned.materialCost * remaining)
+      Math.round(planned.materialCost * remaining) +
+      (planned.otherCost ?? 0)
   }
 
   const plannedMargin = planned.price - planned.totalCost

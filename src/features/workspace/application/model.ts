@@ -74,7 +74,19 @@ export type TreatmentLine = {
   hectaresPerDay: number
 }
 
-export type BudgetLine = PlantingLine | TreatmentLine
+export type FreeLine = {
+  id: string
+  kind: 'libre'
+  description: string
+  quantity: number
+  unit: string
+  /** Explicit sale price per unit, excluding VAT. */
+  unitPrice: Cents
+  /** Internal cost per unit; zero when not specified. */
+  unitCost: Cents
+}
+
+export type BudgetLine = PlantingLine | TreatmentLine | FreeLine
 
 export type BudgetParams = {
   crewSize: number
@@ -111,6 +123,8 @@ export type PlannedFigures = {
   laborCost: Cents
   materialCost: Cents
   travelCost: Cents
+  /** Budgeted cost of free lines. Missing on older accepted budgets. */
+  otherCost?: Cents
   totalCost: Cents
   price: Cents
   dailyCost: Cents

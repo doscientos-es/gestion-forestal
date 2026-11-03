@@ -16,6 +16,13 @@ Al entrar se elige un usuario de ejemplo; cada rol ve algo distinto.
 
 El cálculo del presupuesto es: `plantas = hectáreas × densidad`, `peonadas = plantas ÷ rendimiento`, jornadas de cuadrilla completas, precio = coste ÷ (1 − margen). Cada obra aceptada conserva esas cifras para compararlas con los partes reales.
 
+### Partidas del presupuesto
+
+- Líneas compactas de plantación y tratamiento, con rendimiento y opciones desplegables.
+- **Partidas libres:** concepto, cantidad, unidad y precio unitario sin IVA, para materiales, alquileres, transportes o servicios. Pueden combinarse con trabajos forestales o ser todo el presupuesto.
+- El coste interno por unidad es opcional y no aparece en la propuesta. Si se omite se considera cero; el precio de venta de estas partidas no se modifica por el margen forestal ni se redondea a decenas de euros.
+- Al aceptar se conservan sus costes e importes. Los partes no miden la ejecución de partidas libres: su coste presupuestado se mantiene en la previsión de cierre, no en el coste real acumulado ni en la desviación al avance.
+
 ### Rentabilidad y actividad
 
 - **Obras:** coste acumulado, desglose de personal/material/transporte, desviación al mismo avance, peonadas consumidas y estimadas al cierre, coste por hectárea, facturado y cobrado sin IVA (sin contar borradores).

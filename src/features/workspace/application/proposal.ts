@@ -9,25 +9,37 @@ const WHOLE_EURO: Cents = 100
 
 /**
  * What the client sees: one amount per line, never the internal cost or margin. The sale price
- * is shared out in proportion to what each line costs us, and the last line absorbs rounding so
- * the lines always add up to the budget price.
+ * of forestry lines is shared out in proportion to their costs; the last forestry line absorbs
+ * rounding. Free-form lines retain their explicit sale price, regardless of their internal cost.
  */
 export function proposalLines(budget: Budget, species: Species[]): ProposalLine[] {
   const estimate = estimateStoredBudget(budget, species)
   const rawWorkerDays = estimate.lines.reduce((sum, line) => sum + line.workerDays, 0)
   const indirect = estimate.laborCost + estimate.travelCost
+  const operationalLines = budget.lines.filter((line) => line.kind !== 'libre')
+  const lastOperationalId = operationalLines.at(-1)?.id
+  const operationalPrice = estimate.price - estimate.fixedPrice
   const costs = estimate.lines.map((line) => {
-    const share = rawWorkerDays > 0 ? line.workerDays / rawWorkerDays : 1 / estimate.lines.length
+    const share = rawWorkerDays > 0 ? line.workerDays / rawWorkerDays : 0
     return line.materialCost + indirect * share
   })
   const totalCost = costs.reduce((sum, cost) => sum + cost, 0)
   let assigned: Cents = 0
   return budget.lines.map((line, index) => {
-    const last = index === budget.lines.length - 1
+    if (line.kind === 'libre')
+      return {
+        title: line.description,
+        detail: `${formatNumber(line.quantity, 2)} ${line.unit} × ${formatMoney(line.unitPrice, true)}`,
+        amount: estimate.lines[index]?.fixedPrice ?? 0,
+      }
+    const last = line.id === lastOperationalId
     const share = totalCost > 0 ? (costs[index] ?? 0) / totalCost : 0
     const amount = last
-      ? estimate.price - assigned
-      : Math.round((estimate.price * share) / WHOLE_EURO) * WHOLE_EURO
+      ? operationalPrice - assigned
+      : Math.min(
+          operationalPrice - assigned,
+          Math.round((operationalPrice * share) / WHOLE_EURO) * WHOLE_EURO,
+        )
     assigned += amount
     const item = estimate.lines[index]
     return line.kind === 'plantacion'
@@ -59,7 +71,7 @@ export function budgetEmailDraft(
     message: [
       `Buenos días${client ? `, ${client.name}` : ''}:`,
       '',
-      `Les enviamos la propuesta «${budget.title}» por ${formatMoney(price)} + IVA.`,
+      `Les enviamos la propuesta «${budget.title}» por ${formatMoney(price, true)} + IVA.`,
       `Pueden consultarla aquí: ${link}`,
       '',
       'Quedamos a su disposición para cualquier duda.',

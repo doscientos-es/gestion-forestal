@@ -7,10 +7,11 @@ import {
   type LineEstimate,
   type Workspace,
 } from '@/features/workspace'
-import { formatNumber } from '@/shared/lib/format'
+import { formatMoney, formatNumber } from '@/shared/lib/format'
 import { ChoiceField, NumberField, TextField } from '@/shared/ui/form-controls'
 
 import { plantingDefaults } from '../application/budget-draft'
+import { FreeLineFields } from './free-line-fields'
 import { NewSpeciesShortcut } from './quick-create-dialogs'
 
 export function BudgetLineEditor({
@@ -32,99 +33,117 @@ export function BudgetLineEditor({
   const label = `Partida ${index + 1}`
 
   return (
-    <li className="px-5 py-4">
-      <div className="mb-3 flex items-center justify-between gap-3">
+    <li className="px-4 py-3" aria-label={label}>
+      <div className="mb-2 flex items-center justify-between gap-3">
         <p className="text-sm font-semibold">
           {label}
           <span className="text-muted-foreground ml-2 text-xs font-normal">
-            {line.kind === 'plantacion' ? 'Plantación' : 'Tratamiento'}
+            {line.kind === 'plantacion'
+              ? 'Plantación'
+              : line.kind === 'libre'
+                ? 'Libre'
+                : 'Tratamiento'}
           </span>
         </p>
-        <IconButton
-          label={`Quitar ${label.toLowerCase()}`}
-          variant="ghost"
-          size="icon-sm"
-          onPress={onRemove}
-        >
-          <Trash2 aria-hidden="true" className="size-4" />
-        </IconButton>
+        <div className="flex items-center gap-2">
+          {line.kind === 'libre' ? (
+            <span className="text-sm font-semibold tabular-nums">
+              {formatMoney(estimate?.fixedPrice ?? 0, true)}
+            </span>
+          ) : null}
+          <IconButton
+            label={`Quitar ${label.toLowerCase()}`}
+            variant="ghost"
+            size="icon-sm"
+            onPress={onRemove}
+          >
+            <Trash2 aria-hidden="true" className="size-4" />
+          </IconButton>
+        </div>
       </div>
       {line.kind === 'plantacion' ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 xl:grid-cols-12">
           <ChoiceField
-            className="col-span-2 sm:col-span-3"
+            className="col-span-2 xl:col-span-6"
             label="Especie"
             value={line.speciesId}
             onChange={(speciesId) =>
               onChange({ speciesId, ...plantingDefaults(workspace, speciesId) })
             }
             options={workspace.species.map((item) => ({ value: item.id, label: item.name }))}
-            footer={
-              <NewSpeciesShortcut
-                onCreated={(species) =>
-                  onChange({
-                    speciesId: species.id,
-                    ...plantingDefaults(workspace, species.id),
-                  })
-                }
-              />
-            }
           />
           <NumberField
+            className="xl:col-span-3"
             label="Superficie"
             suffix="ha"
             value={line.hectares}
             onChange={(hectares) => onChange({ hectares })}
           />
           <NumberField
+            className="xl:col-span-3"
             label="Densidad"
             suffix="pl/ha"
             value={line.density}
             onChange={(density) => onChange({ density })}
           />
-          <NumberField
-            label="Rendimiento"
-            suffix="pl/peón"
-            value={line.yieldPerDay}
-            onChange={(yieldPerDay) => onChange({ yieldPerDay })}
-          />
         </div>
+      ) : line.kind === 'libre' ? (
+        <FreeLineFields line={line} onChange={onChange} />
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-2 xl:grid-cols-12">
           <TextField
-            className="col-span-2"
+            className="col-span-2 xl:col-span-8"
             label="Descripción"
             value={line.description}
             onChange={(description) => onChange({ description })}
           />
           <NumberField
+            className="col-span-2 xl:col-span-4"
             label="Superficie"
             suffix="ha"
             value={line.hectares}
             onChange={(hectares) => onChange({ hectares })}
           />
-          <NumberField
-            label="Rendimiento"
-            suffix="ha/peón"
-            value={line.hectaresPerDay}
-            onChange={(hectaresPerDay) => onChange({ hectaresPerDay })}
-          />
         </div>
       )}
-      <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-        {estimate && estimate.plants > 0 ? (
-          <span>{formatNumber(estimate.plants)} plantas</span>
-        ) : null}
-        {estimate ? <span>{formatNumber(estimate.workerDays, 1)} peonadas</span> : null}
-        {history && line.kind === 'plantacion' ? (
-          <HistoryHint
-            real={history.yield}
-            current={line.yieldPerDay}
-            works={history.works}
-            onApply={() => onChange({ yieldPerDay: Math.round(history.yield / 5) * 5 })}
-          />
-        ) : null}
-      </div>
+      {line.kind !== 'libre' ? (
+        <details className="mt-2 text-xs">
+          <summary className="text-muted-foreground cursor-pointer">
+            {estimate && estimate.plants > 0 ? (
+              <span>{formatNumber(estimate.plants)} plantas · </span>
+            ) : null}
+            {estimate ? <span>{formatNumber(estimate.workerDays, 1)} peonadas · </span> : null}
+            Rendimiento y opciones
+          </summary>
+          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+            <NumberField
+              label="Rendimiento"
+              suffix={line.kind === 'plantacion' ? 'pl/peón' : 'ha/peón'}
+              value={line.kind === 'plantacion' ? line.yieldPerDay : line.hectaresPerDay}
+              onChange={(value) =>
+                onChange(
+                  line.kind === 'plantacion' ? { yieldPerDay: value } : { hectaresPerDay: value },
+                )
+              }
+            />
+            {line.kind === 'plantacion' ? (
+              <NewSpeciesShortcut
+                onCreated={(species) =>
+                  onChange({ speciesId: species.id, ...plantingDefaults(workspace, species.id) })
+                }
+              />
+            ) : null}
+          </div>
+          {history && line.kind === 'plantacion' ? (
+            <HistoryHint
+              real={history.yield}
+              current={line.yieldPerDay}
+              works={history.works}
+              onApply={() => onChange({ yieldPerDay: Math.round(history.yield / 5) * 5 })}
+            />
+          ) : null}
+        </details>
+      ) : null}
     </li>
   )
 }
@@ -147,7 +166,7 @@ function HistoryHint({
   return (
     <Badge
       variant={optimistic ? 'warning' : 'success'}
-      className="gap-1.5"
+      className="mt-2 gap-1.5 whitespace-normal"
       title="Plantas por peón y día que salen de los partes de las obras ya terminadas con solo esta especie y sin tratamientos."
     >
       <Icon aria-hidden="true" className="size-3.5" />

@@ -24,8 +24,8 @@ export function WorkEconomicsPanel({ analysis }: { analysis: WorkProfitability }
         title="Rentabilidad y esfuerzo de la obra"
         description="Coste de los partes frente al presupuesto correspondiente al avance ejecutado."
         meta={
-          <Tag tone={analysis.finished ? 'green' : 'blue'}>
-            {analysis.finished ? 'Cierre operativo' : 'Estimación'}
+          <Tag tone={analysis.finished && !work.planned.otherCost ? 'green' : 'blue'}>
+            {analysis.finished && !work.planned.otherCost ? 'Cierre operativo' : 'Estimación'}
           </Tag>
         }
       />
@@ -99,6 +99,16 @@ export function WorkEconomicsPanel({ analysis }: { analysis: WorkProfitability }
                 <td className="px-5 py-3">{hasData ? formatMoney(row.actual) : '—'}</td>
               </tr>
             ))}
+            {work.planned.otherCost ? (
+              <tr>
+                <th scope="row" className="px-5 py-3 text-left font-medium">
+                  Partidas libres
+                </th>
+                <td className="px-5 py-3">{formatMoney(work.planned.otherCost, true)}</td>
+                <td className="text-muted-foreground px-5 py-3">Sin medición</td>
+                <td className="text-muted-foreground px-5 py-3">No registrado</td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </div>
@@ -158,6 +168,13 @@ export function WorkEconomicsPanel({ analysis }: { analysis: WorkProfitability }
           Personal valorado a la tarifa diaria actual; planta y transporte a precios del
           presupuesto. No son costes históricos de nómina ni facturas conciliadas.
         </p>
+        {work.planned.otherCost ? (
+          <p className="text-muted-foreground">
+            Las partidas libres conservan {formatMoney(work.planned.otherCost, true)} de coste
+            presupuestado en la previsión de cierre. Los partes no miden su ejecución: no se
+            incluyen en el coste acumulado ni en la desviación al mismo avance.
+          </p>
+        ) : null}
         <Link
           to="/cuadrillas"
           search={{ vista: 'trabajadores' }}

@@ -35,7 +35,11 @@ export function BudgetDetailPage({ budget }: { budget: Budget }) {
   const [confirmAccept, setConfirmAccept] = useState(false)
   const [sending, setSending] = useState(false)
   // The tab lives in the URL: refresh, back and shared links keep it.
-  const [tab, setTab] = useUrlState<Tab>('pestana', 'partidas', ['partidas', 'propuesta', 'historial'])
+  const [tab, setTab] = useUrlState<Tab>('pestana', 'partidas', [
+    'partidas',
+    'propuesta',
+    'historial',
+  ])
   const history = activityFor(workspace.activity, 'budget', budget.id)
   const find = lookup(workspace)
   const estimate = estimateStoredBudget(budget, workspace.species)
@@ -188,12 +192,16 @@ export function BudgetDetailPage({ budget }: { budget: Budget }) {
                       <p className="text-muted-foreground text-xs">
                         {line.kind === 'plantacion'
                           ? `${formatNumber(line.hectares, 2)} ha × ${formatNumber(line.density)} pl/ha · ${formatNumber(line.yieldPerDay)} pl/peón y día`
-                          : `${formatNumber(line.hectares, 2)} ha · ${formatNumber(line.hectaresPerDay, 2)} ha/peón y día`}
+                          : line.kind === 'libre'
+                            ? `${formatNumber(line.quantity, 2)} ${line.unit} × ${formatMoney(line.unitPrice, true)}`
+                            : `${formatNumber(line.hectares, 2)} ha · ${formatNumber(line.hectaresPerDay, 2)} ha/peón y día`}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium tabular-nums">
-                        {formatNumber(item?.workerDays ?? 0, 1)} peonadas
+                        {line.kind === 'libre'
+                          ? formatMoney(item?.fixedPrice ?? 0, true)
+                          : `${formatNumber(item?.workerDays ?? 0, 1)} peonadas`}
                       </p>
                       {item && item.plants > 0 ? (
                         <p className="text-muted-foreground text-xs tabular-nums">

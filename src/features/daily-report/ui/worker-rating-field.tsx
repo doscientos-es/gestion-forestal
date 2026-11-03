@@ -14,9 +14,9 @@ export function WorkerRatingField({
 }) {
   const id = useId()
   return (
-    <fieldset className="border-border border-t px-3 py-3">
+    <fieldset className="border-border border-t px-1 py-3 min-[360px]:px-3">
       <legend className="sr-only">Nota del día de {name}</legend>
-      <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
+      <div className="grid grid-cols-5 gap-1 min-[360px]:gap-2 sm:grid-cols-10">
         {WORKER_RATINGS.map((score) => (
           <label key={score} className="relative cursor-pointer">
             <input
