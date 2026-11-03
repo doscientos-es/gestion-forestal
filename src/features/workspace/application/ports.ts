@@ -14,6 +14,7 @@ import type {
   Expense,
   InvoiceDraft,
   Person,
+  ServiceIncident,
   Species,
   Work,
   Zone,
@@ -36,6 +37,7 @@ export type Repositories = {
   notifications: Repository<AppNotification>
   expenses: Repository<Expense>
   activity: Repository<ActivityEvent>
+  incidents: Repository<ServiceIncident>
 }
 
 /** Who is signed in. Production replaces it with the Supabase Auth session. */

@@ -1,5 +1,9 @@
 import type { IsoDate } from '@/shared/lib/dates'
 
+import type { ServiceIncident } from './incident-model'
+
+export type { ServiceIncident, ServiceIncidentInput, ServiceIncidentStatus, ServiceIncidentPriority, IncidentEntry, IncidentVisitInput } from './incident-model'
+
 /** All amounts are integer cents (EUR). */
 export type Cents = number
 
@@ -124,6 +128,8 @@ export type Budget = {
   params: BudgetParams
   notes: string
   workId: string | null
+  /** Customer request that originated this budget. Absent on older budgets and copies. */
+  incidentId?: string | null
 }
 
 /** Frozen copy of the accepted budget used to compare against actuals. */
@@ -365,6 +371,7 @@ export type Workspace = {
   tasks: WorkTask[]
   notifications: AppNotification[]
   expenses: Expense[]
+  incidents: ServiceIncident[]
   /** Newest first. */
   activity: ActivityEvent[]
 }

@@ -23,6 +23,7 @@ const collectionNames = [
   'notifications',
   'expenses',
   'activity',
+  'incidents',
 ] as const satisfies readonly (keyof Collections & keyof Repositories)[]
 
 /** Reads every aggregate and assembles the snapshot the domain functions work on. */

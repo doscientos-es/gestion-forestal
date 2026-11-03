@@ -68,6 +68,7 @@ export function buildSeed(today: IsoDate): Workspace {
     notifications: [],
     expenses: [],
     activity: [],
+    incidents: [],
   }
   const codeCount = new Map<number, number>()
   const budgetCount = new Map<number, number>()

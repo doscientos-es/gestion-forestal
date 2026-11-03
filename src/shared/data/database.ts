@@ -23,6 +23,7 @@ export const collections = [
   'notifications',
   'expenses',
   'activity',
+  'incidents',
 ] as const
 
 export type CollectionName = (typeof collections)[number]

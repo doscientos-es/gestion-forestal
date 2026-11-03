@@ -15,6 +15,7 @@ export type Area =
   | 'cuadrillas'
   | 'avisos'
   | 'clientes'
+  | 'incidencias'
 
 const access: Record<Role, Area[]> = {
   admin: [
@@ -31,9 +32,10 @@ const access: Record<Role, Area[]> = {
     'cuadrillas',
     'clientes',
     'actividad',
+    'incidencias',
   ],
-  capataz: ['inicio', 'obras', 'parte', 'gastos', 'ausencias', 'avisos'],
-  peon: ['inicio', 'obras', 'ausencias', 'avisos'],
+  capataz: ['inicio', 'obras', 'parte', 'gastos', 'ausencias', 'avisos', 'incidencias'],
+  peon: ['inicio', 'obras', 'ausencias', 'avisos', 'incidencias'],
 }
 
 /** UI-level access map. Production enforces the same rules with RLS policies. */
