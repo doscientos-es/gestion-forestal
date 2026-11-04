@@ -1,15 +1,25 @@
 {
-  "name": "Rodal · Gestión forestal",
-  "short_name": "Rodal",
-  "description": "Presupuestos, cuadrillas, partes y facturas.",
+  "name": "Riera Racing · Gestión de taller",
+  "short_name": "Riera Racing",
+  "description": "Demo de proyectos, piezas y taller.",
   "lang": "es",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#f6f7f5",
-  "theme_color": "#166534",
+  "theme_color": "#151719",
   "icons": [
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+    {
+      "src": "/icon.png",
+      "sizes": "110x45",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
   ]
 }

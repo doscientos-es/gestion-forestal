@@ -1,83 +1,33 @@
-# Rodal · gestión forestal
+# Riera Racing · demo de gestión de taller
 
-Demo de una aplicación de gestión para una empresa forestal que planta árboles y arbustos por zonas con cuadrillas de unos cinco trabajadores. Centraliza presupuestos, obras, planificación, partes diarios, vacaciones y borradores de factura, y compara cada obra y cada campaña con lo presupuestado.
+Prototipo comercial con datos ficticios. No usa servidor ni cuentas: los cambios se
+guardan únicamente en `localStorage` del navegador, bajo una clave propia. No introducir
+datos reales ni usarlo para gestionar el taller de producción.
 
-**Es una demo con datos ficticios.** No hay servidor, cuentas ni integraciones: todo se guarda en el navegador (`localStorage`).
+## Recorrido de demostración
 
-## Qué se puede probar
-
-Al entrar se elige un usuario de ejemplo; cada rol ve algo distinto.
-
-| Rol            | Qué hace                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Administración | Crea o importa (CSV) presupuestos con peonadas, coste y precio calculados al escribir; los envía al cliente (correo simulado con enlace) y ve cuántas veces los abre; los acepta (nace la obra); asigna cuadrillas avisando de vacaciones; aprueba ausencias; genera borradores de factura, los revisa con vista de factura y los envía a la gestoría en CSV; gestiona cuadrillas (altas, cambios de equipo, capataz, bajas y vacaciones de cualquier trabajador) y compara su rentabilidad; consulta la actividad y los informes por campaña. |
-| Capataz        | Rellena el parte diario de su cuadrilla desde el móvil: quién ha trabajado, plantas, hectáreas e incidencias.                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Peón           | Ve sus próximos días y pide vacaciones.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-
-El cálculo del presupuesto es: `plantas = hectáreas × densidad`, `peonadas = plantas ÷ rendimiento`, jornadas de cuadrilla completas, precio = coste ÷ (1 − margen). Cada obra aceptada conserva esas cifras para compararlas con los partes reales.
-
-### Partidas del presupuesto
-
-- Líneas compactas de plantación y tratamiento, con rendimiento y opciones desplegables.
-- **Partidas libres:** concepto, cantidad, unidad y precio unitario sin IVA, para materiales, alquileres, transportes o servicios. Pueden combinarse con trabajos forestales o ser todo el presupuesto.
-- El coste interno por unidad es opcional y no aparece en la propuesta. Si se omite se considera cero; el precio de venta de estas partidas no se modifica por el margen forestal ni se redondea a decenas de euros.
-- Al aceptar se conservan sus costes e importes. Los partes no miden la ejecución de partidas libres: su coste presupuestado se mantiene en la previsión de cierre, no en el coste real acumulado ni en la desviación al avance.
-
-### Rentabilidad y actividad
-
-- **Obras:** coste acumulado, desglose de personal/material/transporte, desviación al mismo avance, peonadas consumidas y estimadas al cierre, coste por hectárea, facturado y cobrado sin IVA (sin contar borradores).
-- **Histórico del cliente:** obras cerradas anteriores del mismo tipo de trabajo, con filtro de zona; costes y peonadas por hectárea ponderados por superficie y margen ponderado por importe contratado.
-- **Cuadrillas → Por trabajador:** participación histórica, días, peonadas, coste imputado, incidencias de equipo y detalle por obra; filtros de campaña, cuadrilla actual y nombre. El ritmo es el del equipo cuando participó la persona, no producción individual. Los días con varios partes completos se marcan para revisión.
-- **Límites del cálculo:** personal a la tarifa diaria actual, material y transporte a precios del presupuesto. Los justificantes con IVA se muestran aparte para no duplicar material/transporte ya valorado. No es beneficio contable ni incluye gastos generales. Sin partes o sin avance suficiente no se inventa una previsión.
-
-### Valoración diaria por trabajador
-
-- Cada asistente recibe una nota entera de **1 a 10** elegida explícitamente por el capataz. El parte no se envía hasta completar todas las notas; desmarcar a una persona elimina su valoración.
-- Administración puede consultar las notas en los partes de la obra y la media, cobertura e histórico diario en **Cuadrillas → Por trabajador**, filtrados por campaña.
-- Los partes antiguos conservan su asistencia sin inventar notas y no entran en la media. Las valoraciones son subjetivas: no equivalen a producción individual ni se incluyen en el informe del cliente.
-
-## Arranque
-
-Requiere Node.js 22.18+ y pnpm.
-
-```sh
-pnpm install
-pnpm dev
-```
-
-`Restablecer datos de ejemplo` (menú lateral) vuelve al escenario inicial. Los datos de ejemplo se generan en `src/features/workspace/infrastructure/` de forma determinista a partir de la fecha actual.
-
-## Calidad
-
-```sh
-pnpm quality   # formato, lint, estructura, tipos y tests
-pnpm build
-```
-
-## Arquitectura
-
-Vite + React + TanStack Router y Query + Tailwind v4 + `@doscientos/ui`; gráficos con Recharts.
-
-```
-src/
-  app/                 shell, navegación y guardas de ruta
-  routes/              rutas finas de TanStack Router
-  shared/
-    data/              puerto Repository<T> y adaptador localStorage
-    lib/               fechas, formato, reloj, errores, useCommand
-    ui/                composición común (paneles, filtros, formularios, gráficos)
-  features/
-    workspace/         núcleo: modelo, reglas puras, puertos y backend local
-    budgets/ works/ planning/ daily-report/ absences/ invoices/ activity/ reports/ home/ session/
-      api.ts           operaciones reales (async) sobre los repositorios
-      application/     lógica de pantalla sin React Query ni UI
-      ui/              componentes
-```
-
-- La **UI** nunca toca el almacenamiento: llama a `api.ts` mediante `useCommand` y lee con las consultas del núcleo.
-- Cada `api.ts` se construye con `createXApi(deps)`; los tests inyectan repositorios en memoria.
-- Para pasar a Supabase se implementa un `Backend` (repositorios + sesión) y se cambia solo `workspace/infrastructure/backend.ts`. Ver `docs/demo-to-production.md`.
+1. En **Proyectos**, abrir un vehículo o crear uno y añadir o editar partidas del presupuesto.
+2. Aprobar el presupuesto, asignar tareas y registrar en **Partes de taller** horas, gastos y piezas.
+3. En **Inventario**, revisar existencias y ubicación. En **Compras**, recibir un pedido y confirmar cualquier diferencia; la recepción aumenta el stock una sola vez.
+4. Volver al proyecto para consultar los costes registrados y crear un borrador en **Facturación**.
+5. Consultar **Equipo** para vacaciones y **Asistente IA** para ver los ejemplos simulados de voz y documentos.
 
 ## Límites
 
-Sin login real, sin facturación fiscal (los borradores no son facturas). Los correos no salen: el envío solo queda anotado en el historial (`activity`), y el enlace de la propuesta (`/propuesta/:id`) solo funciona en el mismo navegador. La importación CSV usa una plantilla propia, no el formato del programa de presupuestos del cliente. El selector de usuario no es seguridad.
+- El asistente muestra respuestas fijas: no graba voz ni lee, guarda o sube el PDF.
+- Los presupuestos no se envían; la aprobación es local. Los borradores no son facturas fiscales y el cobro es simulado. El CSV es de ejemplo, no un formato validado por la asesoría.
+- No hay autenticación, permisos, datos compartidos, copias de seguridad, e-commerce, integraciones ni fichaje de jornada. Los pedidos no se envían al proveedor; solo admiten una pieza y una recepción cerrada.
+- El inventario no implementa reservas y los presupuestos no generan consumos automáticamente. El coste refleja únicamente los partes registrados, no un margen contable.
+- La copia conserva código y documentación forestal heredados que no participan en la demo de Riera Racing. No son funcionalidades del taller.
+
+## Desarrollo
+
+Requiere Node.js 22.18+ y pnpm. Instalar con `pnpm install --frozen-lockfile` y arrancar con `pnpm dev`.
+
+El punto de entrada es `src/main.tsx`; el dominio, datos ficticios y pantallas están en
+`src/features/racing`. La opción **Restablecer datos de ejemplo** elimina únicamente
+la clave de esta demo del navegador, previa confirmación.
+
+Ejecutar `pnpm quality` para formato, lint, estructura, tipos y pruebas; `pnpm build`
+genera la aplicación. El paso a producción requiere un diseño y validación propios:
+el documento forestal heredado no describe este dominio.

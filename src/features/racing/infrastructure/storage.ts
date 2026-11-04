@@ -8,10 +8,21 @@ export function loadWorkshop(storage: Pick<Storage, 'getItem'>): Workshop {
   if (!raw) return seedWorkshop()
   try {
     const data = JSON.parse(raw) as Workshop
-    if (data.version !== 1 || !Array.isArray(data.projects) || !Array.isArray(data.parts) || !Array.isArray(data.products) || !Array.isArray(data.purchases) || !Array.isArray(data.invoices) || !Array.isArray(data.absences)) throw new Error('Formato no reconocido')
-    return data
+    if (
+      data.version !== 1 ||
+      !Array.isArray(data.projects) ||
+      !Array.isArray(data.parts) ||
+      !Array.isArray(data.products) ||
+      !Array.isArray(data.purchases) ||
+      !Array.isArray(data.invoices) ||
+      !Array.isArray(data.absences)
+    )
+      throw new Error('Formato no reconocido')
+    return { ...data, tasks: Array.isArray(data.tasks) ? data.tasks : [] }
   } catch {
-    throw new Error('No se pueden leer los datos guardados. Restablece la demo para recuperar los datos de ejemplo.')
+    throw new Error(
+      'No se pueden leer los datos guardados. Restablece la demo para recuperar los datos de ejemplo.',
+    )
   }
 }
 

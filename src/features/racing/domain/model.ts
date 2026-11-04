@@ -19,6 +19,7 @@ export interface Project {
   title: string
   status: ProjectStatus
   lines: QuoteLine[]
+  responsible?: string
 }
 
 export interface Part {
@@ -71,6 +72,14 @@ export interface Absence {
   to: string
 }
 
+export interface Task {
+  id: string
+  projectId: string
+  description: string
+  worker: string
+  done: boolean
+}
+
 export interface Workshop {
   version: 1
   projects: Project[]
@@ -79,4 +88,5 @@ export interface Workshop {
   purchases: Purchase[]
   invoices: Invoice[]
   absences: Absence[]
+  tasks: Task[]
 }
